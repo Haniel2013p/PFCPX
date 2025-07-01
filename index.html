@@ -2,46 +2,106 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Haniel - VSSP da SSP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Painel de Controle - SSP</title>
   <style>
     body {
-      background-color: #1e1e1e;
-      color: white;
       font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 50px;
+      background-color: #222;
+      color: #eee;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px;
+      min-height: 100vh;
     }
     h1 {
       color: #00ccff;
-      font-size: 3em;
+      margin-bottom: 30px;
     }
-    p {
-      font-size: 1.5em;
+    input[type="text"] {
+      padding: 10px;
+      font-size: 1.1em;
+      border-radius: 5px;
+      border: none;
+      width: 250px;
+      margin-right: 10px;
     }
-    a.button {
-      display: inline-block;
-      margin-top: 20px;
-      padding: 12px 24px;
+    button {
+      padding: 10px 20px;
+      font-size: 1.1em;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
       background-color: #00ccff;
-      color: white;
-      text-decoration: none;
-      border-radius: 8px;
-      font-size: 1.2em;
+      color: #222;
+      transition: background-color 0.3s;
     }
-    a.button:hover {
+    button:hover {
       background-color: #0099cc;
+      color: white;
+    }
+    #resultado {
+      margin-top: 30px;
+      background-color: #333;
+      padding: 20px;
+      border-radius: 8px;
+      width: 350px;
+      text-align: center;
+    }
+    #acoes {
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <h1>Haniel</h1>
-  <p>Vice-Secretário de Segurança Pública (SSP)</p>
-  <p>Comprometido com a segurança e o progresso.</p>
+  <h1>Painel de Controle SSP</h1>
 
-  <a href="https://www.roblox.com/users/2322627588/profile" class="button" target="_blank">
-    Ver perfil no Roblox
-  </a>
+  <div>
+    <input type="text" id="inputID" placeholder="Digite o ID do jogador" />
+    <button onclick="pesquisar()">Pesquisar</button>
+  </div>
+
+  <div id="resultado" style="display:none;">
+    <p><strong>Nome:</strong> <span id="nome"></span></p>
+    <p><strong>Cargo:</strong> <span id="cargo"></span></p>
+
+    <div id="acoes">
+      <button onclick="acao('Promover')">Promover</button>
+      <button onclick="acao('Rebaixar')">Rebaixar</button>
+      <button onclick="acao('Expulsar')">Expulsar</button>
+    </div>
+  </div>
+
+  <script>
+    // Lista simulada de jogadores (ID, nome, cargo)
+    const jogadores = {
+      "12345": { nome: "João Silva", cargo: "Soldado" },
+      "67890": { nome: "Maria Souza", cargo: "Cabo" },
+      "11223": { nome: "Carlos Pereira", cargo: "Sargento" },
+      "44556": { nome: "Ana Oliveira", cargo: "Tenente" },
+      // Você pode adicionar mais aqui
+    };
+
+    function pesquisar() {
+      const id = document.getElementById('inputID').value.trim();
+      const resultadoDiv = document.getElementById('resultado');
+
+      if (id in jogadores) {
+        document.getElementById('nome').innerText = jogadores[id].nome;
+        document.getElementById('cargo').innerText = jogadores[id].cargo;
+        resultadoDiv.style.display = "block";
+      } else {
+        alert('Jogador não encontrado!');
+        resultadoDiv.style.display = "none";
+      }
+    }
+
+    function acao(acao) {
+      const nome = document.getElementById('nome').innerText;
+      alert(`${acao} executado para ${nome}! (Isso é só um teste)`);
+    }
+  </script>
 </body>
 </html>
-
