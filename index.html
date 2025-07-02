@@ -1,111 +1,137 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Login - Painel SSP</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    background-color: #222;
-    color: #eee;
-    margin: 0;
-    padding: 40px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-  }
-  #login, #painel {
-    background-color: #333;
-    padding: 20px;
-    border-radius: 8px;
-    width: 350px;
-    display: none;
-    flex-direction: column;
-  }
-  input, select, button {
-    margin: 10px 0;
-    padding: 10px;
-    font-size: 1em;
-    border-radius: 5px;
-    border: none;
-  }
-  button {
-    cursor: pointer;
-    background-color: #00ccff;
-    color: #222;
-    transition: background-color 0.3s;
-  }
-  button:hover {
-    background-color: #0099cc;
-    color: white;
-  }
-  #userInfo {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    background: #444;
-    padding: 10px 20px;
-    border-radius: 8px;
-  }
-  #resultado {
-    margin-top: 20px;
-    background-color: #222;
-    padding: 15px;
-    border-radius: 8px;
-  }
-  #acoes button {
-    width: 100px;
-    margin: 5px;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Painel de Controle SSP</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #222;
+      color: #eee;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    #painel {
+      background-color: #333;
+      padding: 20px;
+      border-radius: 8px;
+      width: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    h1 {
+      color: #00ccff;
+      margin: 0 0 10px 0;
+      align-self: center;
+    }
+    #userInfo {
+      align-self: flex-end;
+      background: #444;
+      padding: 8px 15px;
+      border-radius: 8px;
+      font-size: 0.9em;
+      display: none;
+      color: #ddd;
+    }
+    #userInfo button {
+      margin-left: 10px;
+      background: #f44;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 0.9em;
+    }
+    input[type="text"], select {
+      padding: 10px;
+      font-size: 1.1em;
+      border-radius: 5px;
+      border: none;
+      width: 100%;
+      margin: 5px 0;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1.1em;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px 0;
+      background-color: #00ccff;
+      color: #222;
+      transition: background-color 0.3s;
+      width: 100%;
+    }
+    button:hover {
+      background-color: #0099cc;
+      color: white;
+    }
+    #resultado, #novo-jogador {
+      background-color: #444;
+      padding: 20px;
+      border-radius: 8px;
+      width: 100%;
+      text-align: center;
+      display: none;
+      box-sizing: border-box;
+    }
+    #acoes button {
+      width: 120px;
+      margin: 5px 8px;
+    }
+    #acoes {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  </style>
 </head>
 <body>
 
-<!-- Tela de login -->
-<div id="login" style="display:flex; flex-direction:column;">
-  <h2>Login / Cadastro</h2>
-  <input type="text" id="loginID" placeholder="Digite seu ID" />
-  <input type="password" id="loginSenha" placeholder="Digite sua senha" />
-  <button onclick="fazerLogin()">Entrar</button>
-  <p id="msgLogin" style="color:#f44;"></p>
-</div>
+  <div id="painel">
+    <h1>Painel de Controle SSP</h1>
 
-<!-- Painel -->
-<div id="painel" style="display:flex; flex-direction:column;">
-  <h1>Painel de Controle SSP</h1>
+    <div id="userInfo">
+      <span id="userNome"></span> - <span id="userCargo"></span>
+      <button onclick="logout()">Sair</button>
+    </div>
 
-  <div>
-    <input type="text" id="inputID" placeholder="Digite o ID do jogador" />
-    <button onclick="pesquisar()">Pesquisar</button>
-  </div>
+    <div id="loginArea">
+      <input type="text" id="loginID" placeholder="Digite seu ID" />
+      <input type="password" id="loginSenha" placeholder="Digite sua senha" />
+      <button onclick="login()">Entrar</button>
+      <p style="font-size:0.9em; color:#aaa; margin-top:10px;">
+        Ou cadastre-se abaixo
+      </p>
+    </div>
 
-  <div id="resultado" style="display:none;">
-    <p><strong>Nome:</strong> <span id="nome"></span></p>
-    <p><strong>Cargo:</strong> <span id="cargo"></span></p>
-    <div id="acoes">
-      <button onclick="promover()">Promover</button>
-      <button onclick="rebaixar()">Rebaixar</button>
-      <button onclick="expulsar()">Expulsar</button>
+    <div id="novo-jogador">
+      <h2>Cadastro de Novo Jogador</h2>
+      <input type="text" id="novoID" placeholder="Digite o novo ID" />
+      <input type="text" id="novoNome" placeholder="Digite o nome" />
+      <input type="password" id="novoSenha" placeholder="Digite a senha" />
+      <select id="novoCargo"></select>
+      <button onclick="adicionarJogador()">Cadastrar</button>
+    </div>
+
+    <div id="resultado">
+      <p><strong>Nome:</strong> <span id="nome"></span></p>
+      <p><strong>Cargo:</strong> <span id="cargo"></span></p>
+      <div id="acoes">
+        <button onclick="promover()">Promover</button>
+        <button onclick="rebaixar()">Rebaixar</button>
+        <button onclick="expulsar()">Expulsar</button>
+      </div>
     </div>
   </div>
-
-  <div id="novo-jogador" style="margin-top:30px;">
-    <h2>Adicionar Novo Jogador</h2>
-    <input type="text" id="novoID" placeholder="Digite o novo ID" />
-    <input type="text" id="novoNome" placeholder="Digite o nome" />
-    <input type="password" id="novoSenha" placeholder="Digite a senha" />
-    <select id="novoCargo"></select>
-    <button onclick="adicionarJogador()">Adicionar Jogador</button>
-  </div>
-</div>
-
-<!-- Informação do usuário logado -->
-<div id="userInfo" style="display:none;">
-  <span id="userNome"></span> - <span id="userCargo"></span> 
-  <button onclick="logout()" style="margin-left:15px; background:#f44; color:#fff;">Sair</button>
-</div>
 
 <script>
   const cargos = [
@@ -117,126 +143,196 @@
     "Chefe de inteligência"
   ];
 
-  // Pega jogadores do localStorage ou cria padrão vazio
-  let jogadores = JSON.parse(localStorage.getItem('jogadores')) || {};
-  // Pega usuários (login) do localStorage ou cria padrão vazio
-  let usuarios = JSON.parse(localStorage.getItem('usuarios')) || {};
+  // Estrutura dos jogadores: id -> { nome, cargo, senha }
+  let jogadores = JSON.parse(localStorage.getItem('jogadores')) || {
+    "1": { nome: "Rodrigo", cargo: "Inspetor chefe", senha: "123" },
+    "2": { nome: "Japa", cargo: "Inspetor", senha: "123" },
+    "3": { nome: "Haniel", cargo: "Chefe de inteligência", senha: "123" },
+    "4": { nome: "Luis", cargo: "Estagiário", senha: "123" }
+  };
 
+  // Guarda o id do usuário logado
   let usuarioLogado = null;
+  // Guarda o id do jogador selecionado para ações
   let idAtual = null;
 
-  // Preenche select de cargos em novo jogador
+  // Popula o select de cargos no cadastro
   const selectNovoCargo = document.getElementById('novoCargo');
   cargos.forEach(cargo => {
-    const opt = document.createElement('option');
-    opt.value = cargo;
-    opt.textContent = cargo;
-    selectNovoCargo.appendChild(opt);
+    const option = document.createElement('option');
+    option.value = cargo;
+    option.textContent = cargo;
+    selectNovoCargo.appendChild(option);
   });
 
-  // Mostrar tela de login ao entrar
-  document.getElementById('login').style.display = 'flex';
-
-  // Função para salvar dados no localStorage
-  function salvarDados() {
+  function salvarLocalStorage() {
     localStorage.setItem('jogadores', JSON.stringify(jogadores));
-    localStorage.setItem('usuarios', JSON.stringify(usuarios));
   }
 
-  // Login
-  function fazerLogin() {
-    const id = document.getElementById('loginID').value.trim();
-    const senha = document.getElementById('loginSenha').value;
-
-    if (!id || !senha) {
-      document.getElementById('msgLogin').innerText = "Preencha ID e senha!";
+  function atualizarUserInfo() {
+    if (!usuarioLogado) {
+      document.getElementById('userInfo').style.display = 'none';
       return;
     }
-
-    if (!(id in usuarios)) {
-      // Cadastrar novo usuário com cargo inicial "Estagiário"
-      usuarios[id] = { senha: senha };
-      jogadores[id] = { nome: "Usuário " + id, cargo: "Estagiário" };
-      salvarDados();
-      alert("Conta criada com sucesso! Agora faça login novamente.");
-      document.getElementById('msgLogin').innerText = "";
-      return;
-    }
-
-    // Verificar senha
-    if (usuarios[id].senha !== senha) {
-      document.getElementById('msgLogin').innerText = "Senha incorreta!";
-      return;
-    }
-
-    // Login ok
-    usuarioLogado = id;
-    mostrarPainel();
-  }
-
-  // Mostra painel e info do usuário logado
-  function mostrarPainel() {
-    document.getElementById('login').style.display = 'none';
-    document.getElementById('painel').style.display = 'flex';
-    document.getElementById('userInfo').style.display = 'block';
+    const userInfoDiv = document.getElementById('userInfo');
+    userInfoDiv.style.display = 'block';
     document.getElementById('userNome').innerText = jogadores[usuarioLogado].nome;
     document.getElementById('userCargo').innerText = jogadores[usuarioLogado].cargo;
   }
 
-  // Logout
+  function login() {
+    const id = document.getElementById('loginID').value.trim();
+    const senha = document.getElementById('loginSenha').value;
+
+    if (!(id in jogadores)) {
+      alert("ID não cadastrado.");
+      return;
+    }
+    if (jogadores[id].senha !== senha) {
+      alert("Senha incorreta.");
+      return;
+    }
+
+    usuarioLogado = id;
+
+    document.getElementById('loginID').value = '';
+    document.getElementById('loginSenha').value = '';
+
+    document.getElementById('loginArea').style.display = 'none';
+    document.getElementById('novo-jogador').style.display = 'none';
+    document.getElementById('resultado').style.display = 'none';
+
+    atualizarUserInfo();
+    alert(`Bem-vindo, ${jogadores[usuarioLogado].nome}!`);
+  }
+
   function logout() {
     usuarioLogado = null;
     idAtual = null;
-    document.getElementById('painel').style.display = 'none';
     document.getElementById('userInfo').style.display = 'none';
-    document.getElementById('login').style.display = 'flex';
-    document.getElementById('loginID').value = '';
-    document.getElementById('loginSenha').value = '';
-    document.getElementById('msgLogin').innerText = '';
+    document.getElementById('loginArea').style.display = 'block';
+    document.getElementById('novo-jogador').style.display = 'block';
+    document.getElementById('resultado').style.display = 'none';
   }
 
-  // Função para verificar se usuário logado pode agir sobre outro jogador
-  function podeAgirSobre(outroID) {
-    if (!usuarioLogado || !jogadores[usuarioLogado] || !jogadores[outroID]) return false;
-    const cargoUsuario = jogadores[usuarioLogado].cargo;
-    const cargoOutro = jogadores[outroID].cargo;
-    return cargos.indexOf(cargoUsuario) > cargos.indexOf(cargoOutro);
-  }
-
-  // Pesquisar jogador
   function pesquisar() {
-    const id = document.getElementById('inputID').value.trim();
-    const resultadoDiv = document.getElementById('resultado');
-
-    if (id in jogadores) {
-      if (!podeAgirSobre(id) && id !== usuarioLogado) {
-        alert("Você não tem permissão para ver ou agir sobre esse jogador.");
-        resultadoDiv.style.display = 'none';
-        idAtual = null;
-        return;
-      }
-      idAtual = id;
-      atualizarExibicao();
-      resultadoDiv.style.display = 'block';
-    } else {
-      alert('Jogador não encontrado!');
-      resultadoDiv.style.display = 'none';
-      idAtual = null;
+    if (!usuarioLogado) {
+      alert("Você precisa fazer login para pesquisar jogadores.");
+      return;
     }
+
+    const id = prompt("Digite o ID do jogador para pesquisar:");
+    if (!id || !(id in jogadores)) {
+      alert("Jogador não encontrado.");
+      return;
+    }
+
+    idAtual = id;
+    atualizarExibicao();
+    document.getElementById('resultado').style.display = 'block';
   }
 
-  // Atualizar dados na tela
   function atualizarExibicao() {
     if (!idAtual) return;
     document.getElementById('nome').innerText = jogadores[idAtual].nome;
     document.getElementById('cargo').innerText = jogadores[idAtual].cargo;
+  }
 
-    // Ativa ou desativa botões baseado na permissão
-    const podeAgir = podeAgirSobre(idAtual);
-    document.querySelectorAll('#acoes button').forEach(btn => {
-      btn.disabled = !podeAgir;
-    });
+  function podeAlterar(cargoUsuario, cargoAlvo) {
+    return cargos.indexOf(cargoUsuario) > cargos.indexOf(cargoAlvo);
+  }
 
-    // Usuário pode agir sobre ele mesmo só para ver, não para mexer
-    if (idAtual === usuarioLogado) {
-      document.querySelectorAll('#acoes button').
+  function promover() {
+    if (!idAtual) return;
+    if (!usuarioLogado) {
+      alert("Faça login para executar esta ação.");
+      return;
+    }
+    if (!podeAlterar(jogadores[usuarioLogado].cargo, jogadores[idAtual].cargo)) {
+      alert("Você não pode promover um jogador com cargo igual ou superior ao seu.");
+      return;
+    }
+
+    let cargoAtual = jogadores[idAtual].cargo;
+    let indice = cargos.indexOf(cargoAtual);
+    if (indice < cargos.length - 1) {
+      jogadores[idAtual].cargo = cargos[indice + 1];
+      salvarLocalStorage();
+      atualizarExibicao();
+      alert(`${jogadores[idAtual].nome} foi promovido para ${jogadores[idAtual].cargo}!`);
+    } else {
+      alert(`${jogadores[idAtual].nome} já está no cargo máximo (${cargoAtual})!`);
+    }
+  }
+
+  function rebaixar() {
+    if (!idAtual) return;
+    if (!usuarioLogado) {
+      alert("Faça login para executar esta ação.");
+      return;
+    }
+    if (!podeAlterar(jogadores[usuarioLogado].cargo, jogadores[idAtual].cargo)) {
+      alert("Você não pode rebaixar um jogador com cargo igual ou superior ao seu.");
+      return;
+    }
+
+    let cargoAtual = jogadores[idAtual].cargo;
+    let indice = cargos.indexOf(cargoAtual);
+    if (indice > 0) {
+      jogadores[idAtual].cargo = cargos[indice - 1];
+      salvarLocalStorage();
+      atualizarExibicao();
+      alert(`${jogadores[idAtual].nome} foi rebaixado para ${jogadores[idAtual].cargo}!`);
+    } else {
+      alert(`${jogadores[idAtual].nome} já está no cargo mínimo (${cargoAtual})!`);
+    }
+  }
+
+  function expulsar() {
+    if (!idAtual) return;
+    if (!usuarioLogado) {
+      alert("Faça login para executar esta ação.");
+      return;
+    }
+    if (!podeAlterar(jogadores[usuarioLogado].cargo, jogadores[idAtual].cargo)) {
+      alert("Você não pode expulsar um jogador com cargo igual ou superior ao seu.");
+      return;
+    }
+
+    let nome = jogadores[idAtual].nome;
+    delete jogadores[idAtual];
+    salvarLocalStorage();
+    alert(`${nome} foi expulso da organização!`);
+    document.getElementById('resultado').style.display = 'none';
+    idAtual = null;
+  }
+
+  function adicionarJogador() {
+    const novoID = document.getElementById('novoID').value.trim();
+    const novoNome = document.getElementById('novoNome').value.trim();
+    const novoSenha = document.getElementById('novoSenha').value;
+    const novoCargo = document.getElementById('novoCargo').value;
+
+    if (!novoID || !novoNome || !novoSenha) {
+      alert('Por favor, preencha todos os campos!');
+      return;
+    }
+
+    if (novoID in jogadores) {
+      alert('Esse ID já existe!');
+      return;
+    }
+
+    jogadores[novoID] = { nome: novoNome, cargo: novoCargo, senha: novoSenha };
+    salvarLocalStorage();
+    alert(`Jogador ${novoNome} cadastrado com sucesso!`);
+
+    document.getElementById('novoID').value = '';
+    document.getElementById('novoNome').value = '';
+    document.getElementById('novoSenha').value = '';
+    document.getElementById('novoCargo').value = cargos[0];
+  }
+</script>
+
+</body>
+</html>
