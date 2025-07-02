@@ -22,13 +22,17 @@
     border-radius: 8px;
     box-shadow: 0 0 15px #000;
     padding: 20px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    min-height: 600px;
   }
   h1 {
     text-align: center;
     margin-bottom: 15px;
     color: #aaf;
   }
-  input[type=text], input[type=password], select {
+  input[type=text], input[type=password] {
     width: 100%;
     padding: 8px 6px;
     margin: 6px 0 12px 0;
@@ -55,18 +59,47 @@
     background: #444;
     cursor: default;
   }
+
+  /* Menu topo: alinhado canto superior esquerdo e botões retangulares, texto branco, sem borda azul */
   #menuTopo {
     display: flex;
-    gap: 12px;
+    gap: 10px;
     margin-bottom: 15px;
-    flex-wrap: wrap;
+    justify-content: flex-start;
   }
   #menuTopo button {
-    flex: 1;
-    min-width: 70px;
-    padding: 8px 6px;
+    flex: none;
+    padding: 8px 14px;
     font-size: 0.95rem;
+    background: transparent;
+    border: none;
+    color: white;
+    border-radius: 0;
+    box-shadow: none;
+    text-align: center;
+    cursor: pointer;
+    font-weight: normal;
   }
+  #menuTopo button:hover {
+    background: #3366cc;
+  }
+
+  /* Botão sair menor e no canto inferior direito */
+  #btnLogout {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: auto;
+    padding: 6px 12px;
+    font-size: 0.9rem;
+    background: #d44;
+    border-radius: 4px;
+    font-weight: bold;
+  }
+  #btnLogout:hover {
+    background: #b33;
+  }
+
   #lista-registros {
     max-height: 200px;
     overflow-y: auto;
@@ -139,13 +172,13 @@
     </div>
 
     <!-- Área logado -->
-    <div id="painel" style="display:none;">
+    <div id="painel" style="display:none; flex:1; position: relative;">
       <div id="menuTopo">
         <button id="btnSobre">Sobre o Serviço Secreto</button>
         <button id="btnListaRegistros">Lista de registros</button>
         <button id="btnPainel">Painel de controle</button>
-        <button id="btnLogout" style="background:#d44;">Sair</button>
       </div>
+      <button id="btnLogout">Sair</button>
 
       <!-- Texto explicativo sobre o Serviço Secreto -->
       <div id="sobre-ss" style="display:none;">
@@ -174,260 +207,240 @@
         </div>
       </div>
     </div>
-  </div>
 
-<script>
-  const webhookURL = "https://discord.com/api/webhooks/1390011117778112723/KWkdPpdOmtRkgLlUH7QLUwx3sqxnHX-qhA0EkZFwjRiMPTJL8bLmbL1l3P-LZWRJBKeb";
+  <script>
+    const webhookURL = "https://discord.com/api/webhooks/1390011117778112723/KWkdPpdOmtRkgLlUH7QLUwx3sqxnHX-qhA0EkZFwjRiMPTJL8bLmbL1l3P-LZWRJBKeb";
 
-  // Cargos em ordem crescente
-  const cargos = [
-    "Estagiário",
-    "Agente",
-    "Investigador",
-    "Detetive",
-    "Chefe de Seção",
-    "Diretor",
-    "VSSP",
-    "SSP"
-  ];
+    const cargos = [
+      "Estagiário",
+      "Agente",
+      "Investigador",
+      "Detetive",
+      "Chefe de Seção",
+      "Diretor",
+      "VSSP",
+      "SSP"
+    ];
 
-  // Cria ou reseta o banco de jogadores com o usuário solicitado
-  let jogadores = {
-    "5": {
-      nome: "Gabriel",
-      senha: "VSSP-HANIEL",
-      cargo: "VSSP"
+    let jogadores = JSON.parse(localStorage.getItem('jogadoresSS')) || {};
+
+    // Cria jogador fixo ID 5 Gabriel VSSP se não existir
+    if (!jogadores["5"]) {
+      jogadores["5"] = {
+        nome: "Gabriel",
+        senha: "VSSP-HANIEL",
+        cargo: "VSSP"
+      };
+      localStorage.setItem('jogadoresSS', JSON.stringify(jogadores));
     }
-  };
-  salvarLocalStorage();
 
-  let idAtual = null;       // ID do usuário logado
-  let idSelecionado = null; // ID selecionado na pesquisa
+    let idAtual = null;
+    let idSelecionado = null;
 
-  // Referências DOM
-  const loginDiv = document.getElementById('login');
-  const cadastroDiv = document.getElementById('novo-jogador');
-  const painelDiv = document.getElementById('painel');
-  const sobreDiv = document.getElementById('sobre-ss');
-  const listaRegistrosDiv = document.getElementById('lista-registros');
-  const painelPesquisaDiv = document.getElementById('painel-pesquisa');
-  const resultadoDiv = document.getElementById('resultado');
+    const loginDiv = document.getElementById('login');
+    const cadastroDiv = document.getElementById('novo-jogador');
+    const painelDiv = document.getElementById('painel');
+    const sobreDiv = document.getElementById('sobre-ss');
+    const listaRegistrosDiv = document.getElementById('lista-registros');
+    const painelPesquisaDiv = document.getElementById('painel-pesquisa');
+    const resultadoDiv = document.getElementById('resultado');
 
-  // Salva no localStorage
-  function salvarLocalStorage() {
-    localStorage.setItem('jogadoresSS', JSON.stringify(jogadores));
-  }
-
-  // Atualiza a lista de registros no painel
-  function mostrarListaRegistros() {
-    const tbody = document.getElementById('listaTabela');
-    tbody.innerHTML = '';
-    for (const id in jogadores) {
-      const jog = jogadores[id];
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${id}</td><td>${jog.nome}</td><td>${jog.cargo}</td>`;
-      tbody.appendChild(tr);
+    function salvarLocalStorage() {
+      localStorage.setItem('jogadoresSS', JSON.stringify(jogadores));
     }
-  }
 
-  // Exibe os dados do jogador selecionado
-  function mostrarDadosJogador(id) {
-    const jogador = jogadores[id];
-    if (!jogador) return;
-    document.getElementById('nome').textContent = jogador.nome;
-    document.getElementById('cargo').textContent = jogador.cargo;
-    resultadoDiv.style.display = 'block';
-
-    // Não permite alterar ou expulsar a si mesmo
-    const disable = (id === idAtual);
-    document.getElementById('btnPromover').disabled = disable;
-    document.getElementById('btnRebaixar').disabled = disable;
-    document.getElementById('btnExpulsar').disabled = disable;
-  }
-
-  // Envia log para Discord via webhook
-  async function enviarLogDiscord(acao, jogadorAlvo, cargoAntes, cargoDepois) {
-    const userAtual = jogadores[idAtual];
-    const data = {
-      embeds: [{
-        title: `Ação: ${acao}`,
-        description:
-          `**Responsável:** ${userAtual.nome} (ID: ${idAtual})\n` +
-          `**Alvo:** ${jogadorAlvo.nome} (ID: ${idSelecionado})\n` +
-          `**Cargo antes:** ${cargoAntes}\n` +
-          (cargoDepois ? `**Cargo depois:** ${cargoDepois}\n` : '') +
-          `**Data:** ${new Date().toLocaleString()}`,
-        color: 3447003
-      }]
-    };
-    try {
-      await fetch(webhookURL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-    } catch (e) {
-      console.warn('Erro ao enviar log para Discord:', e);
+    function mostrarListaRegistros() {
+      const tbody = document.getElementById('listaTabela');
+      tbody.innerHTML = '';
+      for (const id in jogadores) {
+        const jog = jogadores[id];
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${id}</td><td>${jog.nome}</td><td>${jog.cargo}</td>`;
+        tbody.appendChild(tr);
+      }
     }
-  }
 
-  // Mostra o painel selecionado
-  function mostrarPainel(painel) {
-    sobreDiv.style.display = 'none';
-    listaRegistrosDiv.style.display = 'none';
-    painelPesquisaDiv.style.display = 'none';
-    resultadoDiv.style.display = 'none';
-    idSelecionado = null;
+    function mostrarDadosJogador(id) {
+      const jogador = jogadores[id];
+      if (!jogador) return;
+      document.getElementById('nome').textContent = jogador.nome;
+      document.getElementById('cargo').textContent = jogador.cargo;
+      resultadoDiv.style.display = 'block';
 
-    if (painel === 'sobre') {
-      sobreDiv.style.display = 'block';
-    } else if (painel === 'lista') {
-      listaRegistrosDiv.style.display = 'block';
-      mostrarListaRegistros();
-    } else if (painel === 'painel') {
-      painelPesquisaDiv.style.display = 'block';
+      const disabled = (id === idAtual);
+      document.getElementById('btnPromover').disabled = disabled;
+      document.getElementById('btnRebaixar').disabled = disabled;
+      document.getElementById('btnExpulsar').disabled = disabled;
     }
-  }
 
-  // Eventos
-
-  // Alternar para tela de cadastro
-  document.getElementById('btnToggleCadastro').addEventListener('click', () => {
-    loginDiv.style.display = 'none';
-    cadastroDiv.style.display = 'block';
-  });
-
-  // Voltar para tela de login
-  document.getElementById('btnVoltarLogin').addEventListener('click', () => {
-    cadastroDiv.style.display = 'none';
-    loginDiv.style.display = 'block';
-  });
-
-  // Login
-  document.getElementById('btnLogin').addEventListener('click', () => {
-    const id = document.getElementById('loginID').value.trim();
-    const senha = document.getElementById('loginSenha').value;
-    if (!id || !senha) {
-      alert('Preencha ID e senha.');
-      return;
+    async function enviarLogDiscord(acao, jogadorAlvo, cargoAntes, cargoDepois) {
+      const userAtual = jogadores[idAtual];
+      const data = {
+        embeds: [{
+          title: `Ação: ${acao}`,
+          description:
+            `**Responsável:** ${userAtual.nome} (ID: ${idAtual})\n` +
+            `**Alvo:** ${jogadorAlvo.nome} (ID: ${idSelecionado})\n` +
+            `**Cargo antes:** ${cargoAntes}\n` +
+            (cargoDepois ? `**Cargo depois:** ${cargoDepois}\n` : '') +
+            `**Data:** ${new Date().toLocaleString()}`,
+          color: 3447003
+        }]
+      };
+      try {
+        await fetch(webhookURL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+      } catch(e) {
+        console.error('Erro ao enviar log para Discord:', e);
+      }
     }
-    if (!(id in jogadores)) {
-      alert('ID não cadastrado.');
-      return;
-    }
-    if (jogadores[id].senha !== senha) {
-      alert('Senha incorreta.');
-      return;
-    }
-    idAtual = id;
-    loginDiv.style.display = 'none';
-    painelDiv.style.display = 'block';
-    mostrarPainel('sobre');
-  });
 
-  // Cadastro
-  document.getElementById('btnCadastrar').addEventListener('click', () => {
-    const id = document.getElementById('novoID').value.trim();
-    const nome = document.getElementById('novoNome').value.trim();
-    const senha = document.getElementById('novaSenha').value;
-    if (!id || !nome || !senha) {
-      alert('Preencha todos os campos.');
-      return;
-    }
-    if (id in jogadores) {
-      alert('ID já cadastrado.');
-      return;
-    }
-    jogadores[id] = { nome, senha, cargo: "Estagiário" };
-    salvarLocalStorage();
-    alert(`Usuário ${nome} cadastrado com sucesso como Estagiário.`);
-    cadastroDiv.style.display = 'none';
-    loginDiv.style.display = 'block';
-  });
-
-  // Logout
-  document.getElementById('btnLogout').addEventListener('click', () => {
-    idAtual = null;
-    idSelecionado = null;
-    painelDiv.style.display = 'none';
-    loginDiv.style.display = 'block';
-    document.getElementById('loginID').value = '';
-    document.getElementById('loginSenha').value = '';
-  });
-
-  // Menu topo
-  document.getElementById('btnSobre').addEventListener('click', () => mostrarPainel('sobre'));
-  document.getElementById('btnListaRegistros').addEventListener('click', () => mostrarPainel('lista'));
-  document.getElementById('btnPainel').addEventListener('click', () => mostrarPainel('painel'));
-
-  // Botão pesquisar agente pelo ID
-  document.getElementById('btnPesquisar').addEventListener('click', () => {
-    const id = document.getElementById('inputID').value.trim();
-    if (!id) {
-      alert('Digite o ID do agente.');
-      return;
-    }
-    if (!(id in jogadores)) {
-      alert('Agente não encontrado.');
+    function atualizarTela(estado) {
+      // Oculta tudo
+      loginDiv.style.display = 'none';
+      cadastroDiv.style.display = 'none';
+      painelDiv.style.display = 'none';
+      sobreDiv.style.display = 'none';
+      listaRegistrosDiv.style.display = 'none';
+      painelPesquisaDiv.style.display = 'none';
       resultadoDiv.style.display = 'none';
-      return;
-    }
-    idSelecionado = id;
-    mostrarDadosJogador(id);
-  });
 
-  // Função para alterar cargo do agente
-  function alterarCargo(incremento) {
-    if (!idSelecionado) return;
-    const jogador = jogadores[idSelecionado];
-    const cargoAtualIndex = cargos.indexOf(jogador.cargo);
-    let novoIndex = cargoAtualIndex + incremento;
-
-    if (novoIndex < 0) novoIndex = 0;
-    if (novoIndex >= cargos.length) novoIndex = cargos.length - 1;
-
-    if (novoIndex === cargoAtualIndex) {
-      alert('Não é possível alterar o cargo.');
-      return;
+      if (estado === 'login') {
+        loginDiv.style.display = 'block';
+      } else if (estado === 'cadastro') {
+        cadastroDiv.style.display = 'block';
+      } else if (estado === 'sobre') {
+        painelDiv.style.display = 'flex';
+        sobreDiv.style.display = 'block';
+      } else if (estado === 'lista') {
+        painelDiv.style.display = 'flex';
+        listaRegistrosDiv.style.display = 'block';
+        mostrarListaRegistros();
+      } else if (estado === 'painel') {
+        painelDiv.style.display = 'flex';
+        painelPesquisaDiv.style.display = 'block';
+      }
     }
 
-    const novoCargo = cargos[novoIndex];
-    const cargoAntes = jogador.cargo;
-    jogador.cargo = novoCargo;
-    salvarLocalStorage();
-    mostrarDadosJogador(idSelecionado);
-    alert(`${jogador.nome} foi ${incremento > 0 ? 'promovido' : 'rebaixado'} para ${novoCargo}.`);
-    enviarLogDiscord(incremento > 0 ? "Promoção" : "Rebaixamento", jogador, cargoAntes, novoCargo);
-  }
+    document.getElementById('btnToggleCadastro').onclick = () => {
+      atualizarTela('cadastro');
+    };
+    document.getElementById('btnVoltarLogin').onclick = () => {
+      atualizarTela('login');
+    };
 
-  // Promover
-  document.getElementById('btnPromover').addEventListener('click', () => {
-    alterarCargo(+1);
-  });
+    document.getElementById('btnLogin').onclick = () => {
+      const id = document.getElementById('loginID').value.trim();
+      const senha = document.getElementById('loginSenha').value;
+      if (!jogadores[id]) {
+        alert('ID não encontrado.');
+        return;
+      }
+      if (jogadores[id].senha !== senha) {
+        alert('Senha incorreta.');
+        return;
+      }
+      idAtual = id;
+      atualizarTela('sobre');
+    };
 
-  // Rebaixar
-  document.getElementById('btnRebaixar').addEventListener('click', () => {
-    alterarCargo(-1);
-  });
+    document.getElementById('btnLogout').onclick = () => {
+      idAtual = null;
+      idSelecionado = null;
+      document.getElementById('loginID').value = '';
+      document.getElementById('loginSenha').value = '';
+      atualizarTela('login');
+    };
 
-  // Expulsar agente
-  document.getElementById('btnExpulsar').addEventListener('click', () => {
-    if (!idSelecionado) return;
-    if (idSelecionado === idAtual) {
-      alert('Você não pode expulsar a si mesmo.');
-      return;
-    }
-    if (confirm(`Deseja expulsar o agente ${jogadores[idSelecionado].nome} (ID: ${idSelecionado})?`)) {
-      const jogadorExpulso = jogadores[idSelecionado];
+    document.getElementById('btnCadastrar').onclick = () => {
+      const id = document.getElementById('novoID').value.trim();
+      const nome = document.getElementById('novoNome').value.trim();
+      const senha = document.getElementById('novaSenha').value;
+
+      if (!id || !nome || !senha) {
+        alert('Preencha todos os campos.');
+        return;
+      }
+      if (jogadores[id]) {
+        alert('ID já cadastrado.');
+        return;
+      }
+      jogadores[id] = { nome, senha, cargo: 'Estagiário' };
+      salvarLocalStorage();
+      alert(`Membro ${nome} cadastrado com cargo Estagiário.`);
+      atualizarTela('login');
+    };
+
+    document.getElementById('btnSobre').onclick = () => {
+      atualizarTela('sobre');
+    };
+
+    document.getElementById('btnListaRegistros').onclick = () => {
+      atualizarTela('lista');
+    };
+
+    document.getElementById('btnPainel').onclick = () => {
+      atualizarTela('painel');
+    };
+
+    document.getElementById('btnPesquisar').onclick = () => {
+      const id = document.getElementById('inputID').value.trim();
+      if (!jogadores[id]) {
+        alert('ID não encontrado.');
+        resultadoDiv.style.display = 'none';
+        return;
+      }
+      idSelecionado = id;
+      mostrarDadosJogador(id);
+    };
+
+    document.getElementById('btnPromover').onclick = () => {
+      const jogador = jogadores[idSelecionado];
+      let idx = cargos.indexOf(jogador.cargo);
+      if (idx < cargos.length - 1) {
+        const cargoAntes = jogador.cargo;
+        jogador.cargo = cargos[idx + 1];
+        salvarLocalStorage();
+        mostrarDadosJogador(idSelecionado);
+        enviarLogDiscord('Promoção', jogador, cargoAntes, jogador.cargo);
+        alert(`Promovido para ${jogador.cargo}`);
+      } else {
+        alert('Já está no cargo máximo.');
+      }
+    };
+
+    document.getElementById('btnRebaixar').onclick = () => {
+      const jogador = jogadores[idSelecionado];
+      let idx = cargos.indexOf(jogador.cargo);
+      if (idx > 0) {
+        const cargoAntes = jogador.cargo;
+        jogador.cargo = cargos[idx - 1];
+        salvarLocalStorage();
+        mostrarDadosJogador(idSelecionado);
+        enviarLogDiscord('Rebaixamento', jogador, cargoAntes, jogador.cargo);
+        alert(`Rebaixado para ${jogador.cargo}`);
+      } else {
+        alert('Já está no cargo mínimo.');
+      }
+    };
+
+    document.getElementById('btnExpulsar').onclick = () => {
+      if (!confirm('Confirma expulsar este agente?')) return;
+      const jogador = jogadores[idSelecionado];
+      enviarLogDiscord('Expulsão', jogador, jogador.cargo, null);
       delete jogadores[idSelecionado];
       salvarLocalStorage();
-      alert(`Agente ${jogadorExpulso.nome} expulso com sucesso.`);
-      idSelecionado = null;
+      alert(`Agente ${jogador.nome} expulso.`);
       resultadoDiv.style.display = 'none';
-      enviarLogDiscord("Expulsão", jogadorExpulso, jogadorExpulso.cargo, null);
-    }
-  });
+      idSelecionado = null;
+    };
 
-</script>
+    // Inicializa com tela login
+    atualizarTela('login');
+  </script>
+  </div>
 </body>
 </html>
