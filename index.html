@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Painel de Controle do Serviço Secreto Municipal </title>
+  <title>Painel de Controle do Serviço Secreto Municipal</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -76,9 +75,25 @@
       font-weight: bold;
       user-select: none;
     }
-    #pesquisa {
-      margin-top: 30px;
-      text-align: center;
+    #btnLista {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background-color: #00ccff;
+      color: #000;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #listaRegistros {
+      display: none;
+      background-color: #333;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 20px;
+      width: 400px;
+      text-align: left;
     }
     #pesquisa input {
       padding: 10px;
@@ -88,49 +103,68 @@
       width: 250px;
       margin-right: 10px;
     }
+    #sobre {
+      margin-top: 30px;
+      background-color: #333;
+      padding: 20px;
+      border-radius: 8px;
+      width: 500px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
 
-  <h1>Painel de Controle  do Serviço Secreto Municipal</h1>
+<h1>Painel de Controle do Serviço Secreto Municipal</h1>
 
-  <!-- Login -->
-  <div id="login">
-    <input type="text" id="loginID" placeholder="Digite seu ID" />
-    <input type="password" id="loginSenha" placeholder="Digite sua senha" />
-    <button onclick="fazerLogin()">Entrar</button>
+<!-- Botão de lista de registros -->
+<button id="btnLista" onclick="mostrarLista()">Lista de registros</button>
 
-    <button id="btnToggleCadastro">Ou cadastre-se abaixo</button>
+<!-- Login -->
+<div id="login">
+  <input type="text" id="loginID" placeholder="Digite seu ID" />
+  <input type="password" id="loginSenha" placeholder="Digite sua senha" />
+  <button onclick="fazerLogin()">Entrar</button>
+  <button id="btnToggleCadastro">Ou cadastre-se abaixo</button>
+</div>
+
+<!-- Cadastro -->
+<div id="novo-jogador" style="display:none;">
+  <h2>Adicionar Novo Jogador</h2>
+  <input type="text" id="novoID" placeholder="Digite o novo ID" />
+  <input type="text" id="novoNome" placeholder="Digite o nome" />
+  <input type="password" id="novaSenha" placeholder="Digite a senha" />
+  <button onclick="adicionarJogador()">Adicionar Jogador</button>
+</div>
+
+<!-- Mensagem sobre o serviço secreto -->
+<div id="sobre" style="display:none;">
+  <h2>Sobre o serviço secreto</h2>
+  <p>O Serviço Secreto é um órgão de segurança da gestão Municipal do Complexo, pode atuar na segurança de funcionários públicos, juízes e secretários, mas trabalha de forma prioritária e intensa na segurança do Prefeito da cidade.</p>
+</div>
+
+<!-- Pesquisa jogador -->
+<div id="pesquisa" style="display:none;">
+  <input type="text" id="inputID" placeholder="Digite o ID do jogador" />
+  <button onclick="pesquisar()">Pesquisar</button>
+</div>
+
+<!-- Resultado -->
+<div id="resultado" style="display:none;">
+  <p><strong>Nome:</strong> <span id="nome"></span></p>
+  <p><strong>Cargo:</strong> <span id="cargo"></span></p>
+  <div id="acoes">
+    <button onclick="promover()">Promover</button>
+    <button onclick="rebaixar()">Rebaixar</button>
+    <button onclick="expulsar()">Expulsar</button>
   </div>
+</div>
 
-  <!-- Cadastro -->
-  <div id="novo-jogador" style="display:none;">
-    <h2>Adicionar Novo Jogador</h2>
-    <input type="text" id="novoID" placeholder="Digite o novo ID" />
-    <input type="text" id="novoNome" placeholder="Digite o nome" />
-    <input type="password" id="novaSenha" placeholder="Digite a senha" />
-    <button onclick="adicionarJogador()">Adicionar Jogador</button>
-  </div>
+<!-- Lista de registros -->
+<div id="listaRegistros"></div>
 
-  <!-- Pesquisa jogador -->
-  <div id="pesquisa" style="display:none;">
-    <input type="text" id="inputID" placeholder="Digite o ID do jogador" />
-    <button onclick="pesquisar()">Pesquisar</button>
-  </div>
-
-  <!-- Resultado -->
-  <div id="resultado" style="display:none;">
-    <p><strong>Nome:</strong> <span id="nome"></span></p>
-    <p><strong>Cargo:</strong> <span id="cargo"></span></p>
-    <div id="acoes">
-      <button onclick="promover()">Promover</button>
-      <button onclick="rebaixar()">Rebaixar</button>
-      <button onclick="expulsar()">Expulsar</button>
-    </div>
-  </div>
-
-  <!-- Info usuário logado no canto -->
-  <div id="user-info"></div>
+<!-- Info do usuário logado -->
+<div id="user-info"></div>
 
 <script>
 const cargos = [
@@ -144,7 +178,6 @@ const cargos = [
   "Secretario de segurança pública"
 ];
 
-// Dados iniciais com senha (para testes)
 let jogadores = JSON.parse(localStorage.getItem('jogadores')) || {
   "1": { nome: "Rodrigo", cargo: "Inspetor chefe", senha: "RD" },
   "2": { nome: "Japa", cargo: "Inspetor", senha: "JP" },
@@ -152,21 +185,11 @@ let jogadores = JSON.parse(localStorage.getItem('jogadores')) || {
   "4": { nome: "Luis", cargo: "Estagiário", senha: "LS" }
 };
 
-let idAtual = null; // id do usuário logado
-let idAtualSelecionado = null; // id do usuário selecionado na pesquisa
-
-const webhookURL = "https://discord.com/api/webhooks/1390011117778112723/KWkdPpdOmtRkgLlUH7QLUwx3sqxnHX-qhA0EkZFwjRiMPTJL8bLmbL1l3P-LZWRJBKeb";
+let idAtual = null;
+let idAtualSelecionado = null;
 
 function salvarLocalStorage() {
   localStorage.setItem('jogadores', JSON.stringify(jogadores));
-}
-
-function enviarLogDiscord(mensagem) {
-  fetch(webhookURL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ content: mensagem })
-  }).catch(console.error);
 }
 
 function fazerLogin() {
@@ -187,28 +210,19 @@ function fazerLogin() {
 }
 
 function mostrarPainel() {
-  // Oculta login e cadastro
   document.getElementById('login').style.display = 'none';
   document.getElementById('novo-jogador').style.display = 'none';
+  document.getElementById('pesquisa').style.display = 'block';
+  document.getElementById('sobre').style.display = 'block';
 
-  // Exibe dados do usuário no canto
   const userInfo = document.getElementById('user-info');
   userInfo.innerText = `Nome: ${jogadores[idAtual].nome} | Cargo: ${jogadores[idAtual].cargo}`;
   userInfo.style.display = 'block';
-
-  // Exibe painel de busca
-  document.getElementById('inputID').value = '';
-  document.getElementById('resultado').style.display = 'none';
-
-  // Mostrar campo pesquisar
-  document.getElementById('pesquisa').style.display = 'block';
 }
 
 function pesquisar() {
-  if (!idAtual) {
-    alert('Faça login primeiro!');
-    return;
-  }
+  if (!idAtual) return;
+
   const id = document.getElementById('inputID').value.trim();
   const resultadoDiv = document.getElementById('resultado');
 
@@ -218,9 +232,7 @@ function pesquisar() {
     return;
   }
 
-  // Permissão: só mostra se idAtual tiver cargo igual ou maior que o pesquisado
   if (!podeModificar(idAtual, id)) {
-    // Exibir nome e cargo, mas sem botões
     atualizarExibicao(id);
     resultadoDiv.style.display = 'block';
     document.getElementById('acoes').style.display = 'none';
@@ -242,88 +254,59 @@ function indiceCargo(cargo) {
   return cargos.indexOf(cargo);
 }
 
-// Checa se jogador com id1 pode modificar o id2
 function podeModificar(id1, id2) {
-  const ind1 = indiceCargo(jogadores[id1].cargo);
-  const ind2 = indiceCargo(jogadores[id2].cargo);
-  return ind1 > ind2; // só maior cargo pode modificar
+  return indiceCargo(jogadores[id1].cargo) > indiceCargo(jogadores[id2].cargo);
 }
 
 function promover() {
   if (!idAtualSelecionado) return;
+  let atual = jogadores[idAtualSelecionado];
+  let indAtual = indiceCargo(atual.cargo);
+  let indUser = indiceCargo(jogadores[idAtual].cargo);
 
-  let cargoAtual = jogadores[idAtualSelecionado].cargo;
-  let indice = indiceCargo(cargoAtual);
-  let indiceCargoUsuario = indiceCargo(jogadores[idAtual].cargo);
-
-  if (indice >= cargos.length - 1) {
-    alert(`${jogadores[idAtualSelecionado].nome} já está no cargo máximo (${cargoAtual})!`);
-    return;
-  }
-
-  if (indice + 1 >= indiceCargoUsuario) {
+  if (indAtual + 1 >= indUser) {
     alert('Você não pode promover este jogador para o seu próprio cargo ou acima.');
     return;
   }
 
-  if (!podeModificar(idAtual, idAtualSelecionado)) {
-    alert('Você não tem permissão para promover este jogador.');
-    return;
-  }
-
-  jogadores[idAtualSelecionado].cargo = cargos[indice + 1];
+  jogadores[idAtualSelecionado].cargo = cargos[indAtual + 1];
   salvarLocalStorage();
   atualizarExibicao(idAtualSelecionado);
-
-  alert(`${jogadores[idAtualSelecionado].nome} foi promovido para ${jogadores[idAtualSelecionado].cargo}!`);
-
-  // Enviar log para Discord
-  enviarLogDiscord(`:arrow_up: **Promoção**: ${jogadores[idAtual].nome} promoveu ${jogadores[idAtualSelecionado].nome} para **${jogadores[idAtualSelecionado].cargo}**.`);
+  alert(`${atual.nome} foi promovido para ${jogadores[idAtualSelecionado].cargo}`);
 }
 
 function rebaixar() {
   if (!idAtualSelecionado) return;
-  let cargoAtual = jogadores[idAtualSelecionado].cargo;
-  let indice = indiceCargo(cargoAtual);
-
-  if (indice <= 0) {
-    alert(`${jogadores[idAtualSelecionado].nome} já está no cargo mínimo (${cargoAtual})!`);
+  let atual = jogadores[idAtualSelecionado];
+  let indAtual = indiceCargo(atual.cargo);
+  if (indAtual <= 0) {
+    alert(`${atual.nome} já está no cargo mínimo`);
+    return;
+  }
+  if (!podeModificar(idAtual, idAtualSelecionado)) {
+    alert('Você não tem permissão');
     return;
   }
 
-  if (!podeModificar(idAtual, idAtualSelecionado) || indiceCargo(jogadores[idAtual].cargo) <= indice) {
-    alert('Você não tem permissão para rebaixar este jogador.');
-    return;
-  }
-
-  jogadores[idAtualSelecionado].cargo = cargos[indice - 1];
+  jogadores[idAtualSelecionado].cargo = cargos[indAtual - 1];
   salvarLocalStorage();
   atualizarExibicao(idAtualSelecionado);
-
-  alert(`${jogadores[idAtualSelecionado].nome} foi rebaixado para ${jogadores[idAtualSelecionado].cargo}!`);
-
-  // Enviar log para Discord
-  enviarLogDiscord(`:arrow_down: **Rebaixamento**: ${jogadores[idAtual].nome} rebaixou ${jogadores[idAtualSelecionado].nome} para **${jogadores[idAtualSelecionado].cargo}**.`);
+  alert(`${atual.nome} foi rebaixado para ${jogadores[idAtualSelecionado].cargo}`);
 }
 
 function expulsar() {
   if (!idAtualSelecionado) return;
-
-  if (!podeModificar(idAtual, idAtualSelecionado) || indiceCargo(jogadores[idAtual].cargo) <= indiceCargo(jogadores[idAtualSelecionado].cargo)) {
-    alert('Você não tem permissão para expulsar este jogador.');
+  if (!podeModificar(idAtual, idAtualSelecionado)) {
+    alert('Você não tem permissão');
     return;
   }
 
   let nome = jogadores[idAtualSelecionado].nome;
   delete jogadores[idAtualSelecionado];
   salvarLocalStorage();
-  alert(`${nome} foi expulso da organização!`);
+  alert(`${nome} foi expulso`);
   document.getElementById('resultado').style.display = 'none';
   idAtualSelecionado = null;
-  document.getElementById('inputID').value = '';
-
-  // Enviar log para Discord
-  enviarLogDiscord(`:no_entry: **Expulsão**: ${jogadores[idAtual].nome} expulsou ${nome} da organização.`);
 }
 
 function adicionarJogador() {
@@ -332,33 +315,39 @@ function adicionarJogador() {
   const novaSenha = document.getElementById('novaSenha').value;
 
   if (!novoID || !novoNome || !novaSenha) {
-    alert('Por favor, preencha todos os campos!');
+    alert('Preencha todos os campos!');
     return;
   }
 
   if (novoID in jogadores) {
-    alert('Esse ID já existe!');
+    alert('ID já existe!');
     return;
   }
 
-  // O novo jogador sempre começa com o cargo mais baixo da lista
-  const cargoInicial = cargos[0];
-
-  jogadores[novoID] = { nome: novoNome, cargo: cargoInicial, senha: novaSenha };
+  jogadores[novoID] = { nome: novoNome, cargo: cargos[0], senha: novaSenha };
   salvarLocalStorage();
-  alert(`Jogador ${novoNome} adicionado com sucesso com o cargo ${cargoInicial}!`);
-
-  // Limpa os campos
+  alert(`Jogador ${novoNome} adicionado com sucesso!`);
   document.getElementById('novoID').value = '';
   document.getElementById('novoNome').value = '';
   document.getElementById('novaSenha').value = '';
 }
 
-// Evento para alternar o formulário de cadastro
 document.getElementById('btnToggleCadastro').addEventListener('click', () => {
   const cadastroDiv = document.getElementById('novo-jogador');
   cadastroDiv.style.display = cadastroDiv.style.display === 'none' ? 'block' : 'none';
 });
+
+function mostrarLista() {
+  const listaDiv = document.getElementById('listaRegistros');
+  let texto = "<h3>Lista de registros</h3><pre>Nome                | ID     | Cargo\n";
+  texto += "------------------------------------------\n";
+  for (const [id, dados] of Object.entries(jogadores)) {
+    texto += `${dados.nome.padEnd(20)} | ${id.padEnd(6)} | ${dados.cargo}\n`;
+  }
+  texto += "</pre>";
+  listaDiv.innerHTML = texto;
+  listaDiv.style.display = 'block';
+}
 </script>
 
 </body>
