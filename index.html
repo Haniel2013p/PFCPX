@@ -83,128 +83,124 @@
   </div>
 
 <script>
-const cargos = [
-  "Estagiário",
-  "Investigador operacional",
-  "Agente especializado",
-  "Inspetor",
-  "Inspetor chefe",
-  "Chefe de inteligência"
-];
+  // RESET AUTOMÁTICO DO BANCO DE DADOS
+  localStorage.removeItem('jogadores');
 
-// Tenta carregar os dados do localStorage ou usa os padrões
-let jogadores = JSON.parse(localStorage.getItem('jogadores')) || {
-  "1": { nome: "Rodrigo", cargo: "Inspetor chefe" },
-  "2": { nome: "Japa", cargo: "Inspetor" },
-  "3": { nome: "Haniel", cargo: "Chefe de inteligência" },
-  "4": { nome: "Luis", cargo: "Estagiário" }
-};
+  const cargos = [
+    "Estagiário",
+    "Investigador operacional",
+    "Agente especializado",
+    "Inspetor",
+    "Inspetor chefe",
+    "Chefe de inteligência"
+  ];
 
-let idAtual = null;
+  let jogadores = JSON.parse(localStorage.getItem('jogadores')) || {
+    "1": { nome: "Rodrigo", cargo: "Inspetor chefe" },
+    "2": { nome: "Japa", cargo: "Inspetor" },
+    "3": { nome: "Haniel", cargo: "Chefe de inteligência" },
+    "4": { nome: "Luis", cargo: "Estagiário" }
+  };
 
-// Preenche o select de cargos
-const selectNovoCargo = document.getElementById('novoCargo');
-cargos.forEach(cargo => {
-  const option = document.createElement('option');
-  option.value = cargo;
-  option.textContent = cargo;
-  selectNovoCargo.appendChild(option);
-});
+  let idAtual = null;
 
-function salvarLocalStorage() {
-  localStorage.setItem('jogadores', JSON.stringify(jogadores));
-}
+  // Preencher select de cargos
+  const selectNovoCargo = document.getElementById('novoCargo');
+  cargos.forEach(cargo => {
+    const option = document.createElement('option');
+    option.value = cargo;
+    option.textContent = cargo;
+    selectNovoCargo.appendChild(option);
+  });
 
-function pesquisar() {
-  const id = document.getElementById('inputID').value.trim();
-  const resultadoDiv = document.getElementById('resultado');
+  function salvarLocalStorage() {
+    localStorage.setItem('jogadores', JSON.stringify(jogadores));
+  }
 
-  if (id in jogadores) {
-    idAtual = id;
-    atualizarExibicao();
-    resultadoDiv.style.display = 'block';
-  } else {
-    alert('Jogador não encontrado!');
-    resultadoDiv.style.display = 'none';
+  function pesquisar() {
+    const id = document.getElementById('inputID').value.trim();
+    const resultadoDiv = document.getElementById('resultado');
+
+    if (id in jogadores) {
+      idAtual = id;
+      atualizarExibicao();
+      resultadoDiv.style.display = 'block';
+    } else {
+      alert('Jogador não encontrado!');
+      resultadoDiv.style.display = 'none';
+      idAtual = null;
+    }
+  }
+
+  function atualizarExibicao() {
+    if (!idAtual) return;
+    document.getElementById('nome').innerText = jogadores[idAtual].nome;
+    document.getElementById('cargo').innerText = jogadores[idAtual].cargo;
+  }
+
+  function promover() {
+    if (!idAtual) return;
+    let cargoAtual = jogadores[idAtual].cargo;
+    let indice = cargos.indexOf(cargoAtual);
+    if (indice < cargos.length - 1) {
+      jogadores[idAtual].cargo = cargos[indice + 1];
+      atualizarExibicao();
+      salvarLocalStorage();
+      alert(`${jogadores[idAtual].nome} foi promovido para ${jogadores[idAtual].cargo}!`);
+    } else {
+      alert(`${jogadores[idAtual].nome} já está no cargo máximo (${cargoAtual})!`);
+    }
+  }
+
+  function rebaixar() {
+    if (!idAtual) return;
+    let cargoAtual = jogadores[idAtual].cargo;
+    let indice = cargos.indexOf(cargoAtual);
+    if (indice > 0) {
+      jogadores[idAtual].cargo = cargos[indice - 1];
+      atualizarExibicao();
+      salvarLocalStorage();
+      alert(`${jogadores[idAtual].nome} foi rebaixado para ${jogadores[idAtual].cargo}!`);
+    } else {
+      alert(`${jogadores[idAtual].nome} já está no cargo mínimo (${cargoAtual})!`);
+    }
+  }
+
+  function expulsar() {
+    if (!idAtual) return;
+    let nome = jogadores[idAtual].nome;
+    delete jogadores[idAtual];
+    salvarLocalStorage();
+    alert(`${nome} foi expulso da organização!`);
+    document.getElementById('resultado').style.display = 'none';
     idAtual = null;
+    document.getElementById('inputID').value = '';
   }
-}
 
-function atualizarExibicao() {
-  if (!idAtual) return;
-  document.getElementById('nome').innerText = jogadores[idAtual].nome;
-  document.getElementById('cargo').innerText = jogadores[idAtual].cargo;
-}
+  function adicionarJogador() {
+    const novoID = document.getElementById('novoID').value.trim();
+    const novoNome = document.getElementById('novoNome').value.trim();
+    const novoCargo = document.getElementById('novoCargo').value;
 
-function promover() {
-  if (!idAtual) return;
-  let cargoAtual = jogadores[idAtual].cargo;
-  let indice = cargos.indexOf(cargoAtual);
-  if (indice < cargos.length - 1) {
-    jogadores[idAtual].cargo = cargos[indice + 1];
-    atualizarExibicao();
+    if (!novoID || !novoNome) {
+      alert('Por favor, preencha todos os campos!');
+      return;
+    }
+
+    if (novoID in jogadores) {
+      alert('Esse ID já existe!');
+      return;
+    }
+
+    jogadores[novoID] = { nome: novoNome, cargo: novoCargo };
     salvarLocalStorage();
-    alert(`${jogadores[idAtual].nome} foi promovido para ${jogadores[idAtual].cargo}!`);
-  } else {
-    alert(`${jogadores[idAtual].nome} já está no cargo máximo (${cargoAtual})!`);
+    alert(`Jogador ${novoNome} adicionado com sucesso!`);
+
+    // Limpar campos
+    document.getElementById('novoID').value = '';
+    document.getElementById('novoNome').value = '';
+    document.getElementById('novoCargo').value = cargos[0];
   }
-}
-
-function rebaixar() {
-  if (!idAtual) return;
-  let cargoAtual = jogadores[idAtual].cargo;
-  let indice = cargos.indexOf(cargoAtual);
-  if (indice > 0) {
-    jogadores[idAtual].cargo = cargos[indice - 1];
-    atualizarExibicao();
-    salvarLocalStorage();
-    alert(`${jogadores[idAtual].nome} foi rebaixado para ${jogadores[idAtual].cargo}!`);
-  } else {
-    alert(`${jogadores[idAtual].nome} já está no cargo mínimo (${cargoAtual})!`);
-  }
-}
-
-function expulsar() {
-  if (!idAtual) return;
-  let nome = jogadores[idAtual].nome;
-  delete jogadores[idAtual];
-  salvarLocalStorage();
-  alert(`${nome} foi expulso da organização!`);
-  document.getElementById('resultado').style.display = 'none';
-  idAtual = null;
-  document.getElementById('inputID').value = '';
-}
-
-function adicionarJogador() {
-  const novoID = document.getElementById('novoID').value.trim();
-  const novoNome = document.getElementById('novoNome').value.trim();
-  const novoCargo = document.getElementById('novoCargo').value;
-
-  if (!novoID || !novoNome) {
-    alert('Por favor, preencha todos os campos!');
-    return;
-  }
-
-  if (novoID in jogadores) {
-    alert('Esse ID já existe!');
-    return;
-  }
-
-  jogadores[novoID] = { nome: novoNome, cargo: novoCargo };
-  salvarLocalStorage();
-  alert(`Jogador ${novoNome} adicionado com sucesso!`);
-
-  document.getElementById('novoID').value = '';
-  document.getElementById('novoNome').value = '';
-  document.getElementById('novoCargo').value = cargos[0];
-}
-function resetarBanco() {
-  if (confirm("Tem certeza que deseja resetar todos os dados?")) {
-    localStorage.removeItem('jogadores');
-    location.reload(); // Recarrega a página para aplicar
-  }
-}
-
 </script>
 
 </body>
