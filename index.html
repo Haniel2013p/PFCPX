@@ -78,7 +78,8 @@
 <script>
   const cargos = ["Soldado", "Cabo", "Sargento", "Tenente", "Capitão"];
 
-  const jogadores = {
+  // Tenta carregar do localStorage; se não tiver, usa padrão inicial
+  let jogadores = JSON.parse(localStorage.getItem('jogadores')) || {
     "12345": { nome: "João Silva", cargo: "Soldado" },
     "67890": { nome: "Maria Souza", cargo: "Cabo" },
     "11223": { nome: "Carlos Pereira", cargo: "Sargento" },
@@ -86,6 +87,10 @@
   };
 
   let idAtual = null;
+
+  function salvarLocalStorage() {
+    localStorage.setItem('jogadores', JSON.stringify(jogadores));
+  }
 
   function pesquisar() {
     const id = document.getElementById('inputID').value.trim();
@@ -115,6 +120,7 @@
     if (indice < cargos.length - 1) {
       jogadores[idAtual].cargo = cargos[indice + 1];
       atualizarExibicao();
+      salvarLocalStorage();
       alert(`${jogadores[idAtual].nome} foi promovido para ${jogadores[idAtual].cargo}!`);
     } else {
       alert(`${jogadores[idAtual].nome} já está no cargo máximo (${cargoAtual})!`);
@@ -128,6 +134,7 @@
     if (indice > 0) {
       jogadores[idAtual].cargo = cargos[indice - 1];
       atualizarExibicao();
+      salvarLocalStorage();
       alert(`${jogadores[idAtual].nome} foi rebaixado para ${jogadores[idAtual].cargo}!`);
     } else {
       alert(`${jogadores[idAtual].nome} já está no cargo mínimo (${cargoAtual})!`);
@@ -138,6 +145,7 @@
     if (!idAtual) return;
     let nome = jogadores[idAtual].nome;
     delete jogadores[idAtual];
+    salvarLocalStorage();
     alert(`${nome} foi expulso da organização!`);
     document.getElementById('resultado').style.display = 'none';
     idAtual = null;
