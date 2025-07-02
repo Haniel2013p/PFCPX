@@ -57,13 +57,15 @@
   }
   #menuTopo {
     display: flex;
-    justify-content: space-between;
+    gap: 12px; /* Espaçamento entre botões */
     margin-bottom: 15px;
+    flex-wrap: wrap;
   }
   #menuTopo button {
-    width: auto;
-    padding: 6px 12px;
-    font-size: 0.9rem;
+    flex: 1;
+    min-width: 70px;
+    padding: 8px 6px;
+    font-size: 0.95rem;
   }
   #lista-registros {
     max-height: 200px;
@@ -183,7 +185,9 @@
       "Investigador",
       "Detetive",
       "Chefe de Seção",
-      "Diretor"
+      "Diretor",
+      "VSSP",
+      "SSP"
     ];
 
     // Dados dos jogadores armazenados localmente
@@ -260,7 +264,23 @@
       }
     }
 
-    // Event listeners
+    // Mostrar painel selecionado
+    function mostrarPainel(painel) {
+      sobreDiv.style.display = 'none';
+      listaRegistrosDiv.style.display = 'none';
+      painelPesquisaDiv.style.display = 'none';
+      resultadoDiv.style.display = 'none';
+      idSelecionado = null;
+
+      if(painel === 'sobre') {
+        sobreDiv.style.display = 'block';
+      } else if (painel === 'lista') {
+        listaRegistrosDiv.style.display = 'block';
+        mostrarListaRegistros();
+      } else if (painel === 'painel') {
+        painelPesquisaDiv.style.display = 'block';
+      }
+    }
 
     // Login
     document.getElementById('btnLogin').addEventListener('click', () => {
@@ -295,7 +315,6 @@
       loginDiv.style.display = 'none';
       cadastroDiv.style.display = 'block';
     });
-
     document.getElementById('btnVoltarLogin').addEventListener('click', () => {
       cadastroDiv.style.display = 'none';
       loginDiv.style.display = 'block';
@@ -306,74 +325,56 @@
       const novoID = document.getElementById('novoID').value.trim();
       const novoNome = document.getElementById('novoNome').value.trim();
       const novaSenha = document.getElementById('novaSenha').value;
+
       if (!novoID || !novoNome || !novaSenha) {
-        alert('Preencha todos os campos.');
+        alert('Preencha todos os campos para cadastro.');
         return;
       }
       if (novoID in jogadores) {
-        alert('ID já existe!');
+        alert('ID já cadastrado.');
         return;
       }
+
+      // Define cargo: se for o primeiro cadastro, cargo será Diretor
+      const cargoInicial = (Object.keys(jogadores).length === 0) ? "Diretor" : cargos[0];
+
       jogadores[novoID] = {
         nome: novoNome,
-        cargo: cargos[0],
-        senha: novaSenha
+        senha: novaSenha,
+        cargo: cargoInicial
       };
+
       salvarLocalStorage();
-      alert('Cadastro realizado com sucesso! Agora faça login.');
+
+      alert(`Usuário cadastrado com sucesso! Cargo inicial: ${cargoInicial}`);
       document.getElementById('novoID').value = '';
       document.getElementById('novoNome').value = '';
       document.getElementById('novaSenha').value = '';
+
       cadastroDiv.style.display = 'none';
       loginDiv.style.display = 'block';
     });
 
-    // Mostrar painel conforme botão
-    function mostrarPainel(painel) {
-      sobreDiv.style.display = 'none';
-      listaRegistrosDiv.style.display = 'none';
-      painelPesquisaDiv.style.display = 'none';
-      resultadoDiv.style.display = 'none';
-      idSelecionado = null;
-
-      if (painel === 'sobre') {
-        sobreDiv.style.display = 'block';
-      } else if (painel === 'lista') {
-        listaRegistrosDiv.style.display = 'block';
-        mostrarListaRegistros();
-      } else if (painel === 'painel') {
-        painelPesquisaDiv.style.display = 'block';
-      }
-    }
-
-    // Botões topo painel
-    document.getElementById('btnSobre').addEventListener('click', () => {
-      mostrarPainel('sobre');
-    });
-
-    document.getElementById('btnListaRegistros').addEventListener('click', () => {
-      mostrarPainel('lista');
-    });
-
-    document.getElementById('btnPainel').addEventListener('click', () => {
-      mostrarPainel('painel');
-    });
-
+    // Menu topo botões
+    document.getElementById('btnSobre').addEventListener('click', () => mostrarPainel('sobre'));
+    document.getElementById('btnListaRegistros').addEventListener('click', () => mostrarPainel('lista'));
+    document.getElementById('btnPainel').addEventListener('click', () => mostrarPainel('painel'));
     document.getElementById('btnLogout').addEventListener('click', () => {
-      if (confirm('Deseja realmente sair?')) {
-        idAtual = null;
-        idSelecionado = null;
-        painelDiv.style.display = 'none';
-        loginDiv.style.display = 'block';
-      }
+      idAtual = null;
+      idSelecionado = null;
+      painelDiv.style.display = 'none';
+      loginDiv.style.display = 'block';
     });
 
-    // Pesquisa jogador por ID
+    // Pesquisar jogador
     document.getElementById('btnPesquisar').addEventListener('click', () => {
       const id = document.getElementById('inputID').value.trim();
-      if (!id || !(id in jogadores)) {
-        alert('ID não encontrado!');
-        resultadoDiv.style.display = 'none';
+      if (!id) {
+        alert('Digite um ID para pesquisar.');
+        return;
+      }
+      if (!(id in jogadores)) {
+        alert('Jogador não encontrado.');
         return;
       }
       idSelecionado = id;
@@ -381,61 +382,52 @@
     });
 
     // Promover
-    document.getElementById('btnPromover').addEventListener('click', () => {
+    document.getElementById('btnPromover').addEventListener('click', async () => {
       if (!idSelecionado) return;
-      const jogador = jogadores[idSelecionado];
-      const idx = cargos.indexOf(jogador.cargo);
-      if (idx < 0 || idx >= cargos.length - 1) {
-        alert('Não é possível promover este jogador.');
+      const jog = jogadores[idSelecionado];
+      const idx = cargos.indexOf(jog.cargo);
+      if (idx === -1 || idx === cargos.length -1) {
+        alert('Não é possível promover.');
         return;
       }
-      const cargoAntes = jogador.cargo;
-      jogador.cargo = cargos[idx + 1];
+      const cargoAntes = jog.cargo;
+      jog.cargo = cargos[idx +1];
       salvarLocalStorage();
       mostrarDadosJogador(idSelecionado);
-      alert(`${jogador.nome} foi promovido para ${jogador.cargo}.`);
-      enviarLogDiscord('Promoção', jogador, cargoAntes, jogador.cargo);
+      alert(`${jog.nome} promovido de ${cargoAntes} para ${jog.cargo}`);
+      await enviarLogDiscord("Promoção", jog, cargoAntes, jog.cargo);
     });
 
     // Rebaixar
-    document.getElementById('btnRebaixar').addEventListener('click', () => {
+    document.getElementById('btnRebaixar').addEventListener('click', async () => {
       if (!idSelecionado) return;
-      const jogador = jogadores[idSelecionado];
-      const idx = cargos.indexOf(jogador.cargo);
+      const jog = jogadores[idSelecionado];
+      const idx = cargos.indexOf(jog.cargo);
       if (idx <= 0) {
-        alert('Não é possível rebaixar este jogador.');
+        alert('Não é possível rebaixar.');
         return;
       }
-      const cargoAntes = jogador.cargo;
-      jogador.cargo = cargos[idx - 1];
+      const cargoAntes = jog.cargo;
+      jog.cargo = cargos[idx -1];
       salvarLocalStorage();
       mostrarDadosJogador(idSelecionado);
-      alert(`${jogador.nome} foi rebaixado para ${jogador.cargo}.`);
-      enviarLogDiscord('Rebaixamento', jogador, cargoAntes, jogador.cargo);
+      alert(`${jog.nome} rebaixado de ${cargoAntes} para ${jog.cargo}`);
+      await enviarLogDiscord("Rebaixamento", jog, cargoAntes, jog.cargo);
     });
 
     // Expulsar
-    document.getElementById('btnExpulsar').addEventListener('click', () => {
+    document.getElementById('btnExpulsar').addEventListener('click', async () => {
       if (!idSelecionado) return;
-      if (!confirm('Tem certeza que deseja expulsar este jogador?')) return;
-      const jogador = jogadores[idSelecionado];
-      const cargoAntes = jogador.cargo;
+      if (!confirm(`Tem certeza que deseja expulsar ${jogadores[idSelecionado].nome}?`)) return;
+      const jog = jogadores[idSelecionado];
+      const cargoAntes = jog.cargo;
       delete jogadores[idSelecionado];
       salvarLocalStorage();
-      alert(`${jogador.nome} foi expulso do Serviço Secreto.`);
-      idSelecionado = null;
+      alert(`${jog.nome} foi expulso.`);
       resultadoDiv.style.display = 'none';
-      enviarLogDiscord('Expulsão', jogador, cargoAntes, null);
+      idSelecionado = null;
+      await enviarLogDiscord("Expulsão", jog, cargoAntes, null);
     });
-
-    // Na inicialização, mostrar login e esconder tudo
-    function init() {
-      loginDiv.style.display = 'block';
-      cadastroDiv.style.display = 'none';
-      painelDiv.style.display = 'none';
-    }
-    init();
-
   </script>
   </div>
 </body>
