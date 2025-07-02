@@ -108,7 +108,6 @@
     <input type="text" id="novoID" placeholder="Digite o novo ID" />
     <input type="text" id="novoNome" placeholder="Digite o nome" />
     <input type="password" id="novaSenha" placeholder="Digite a senha" />
-    <!-- removido select cargo -->
     <button onclick="adicionarJogador()">Adicionar Jogador</button>
   </div>
 
@@ -210,9 +209,8 @@ function pesquisar() {
 
   // Permissão: só mostra se idAtual tiver cargo igual ou maior que o pesquisado
   if (!podeModificar(idAtual, id)) {
-    // Se não pode modificar, mostra só nome e cargo, sem botões
-    document.getElementById('nome').innerText = jogadores[id].nome;
-    document.getElementById('cargo').innerText = jogadores[id].cargo;
+    // Exibir nome e cargo, mas sem botões
+    atualizarExibicao(id);
     resultadoDiv.style.display = 'block';
     document.getElementById('acoes').style.display = 'none';
     return;
@@ -237,7 +235,7 @@ function indiceCargo(cargo) {
 function podeModificar(id1, id2) {
   const ind1 = indiceCargo(jogadores[id1].cargo);
   const ind2 = indiceCargo(jogadores[id2].cargo);
-  return ind1 > ind2;
+  return ind1 > ind2; // alterei aqui para garantir que só quem tem cargo maior pode modificar
 }
 
 function promover() {
@@ -245,15 +243,21 @@ function promover() {
 
   let cargoAtual = jogadores[idAtualSelecionado].cargo;
   let indice = indiceCargo(cargoAtual);
+  let indiceCargoUsuario = indiceCargo(jogadores[idAtual].cargo);
 
   if (indice >= cargos.length - 1) {
     alert(`${jogadores[idAtualSelecionado].nome} já está no cargo máximo (${cargoAtual})!`);
     return;
   }
 
-  let indiceCargoUsuario = indiceCargo(jogadores[idAtual].cargo);
+  // Não permite promover para um cargo igual ou maior ao do usuário atual
+  if (indice + 1 >= indiceCargoUsuario) {
+    alert('Você não pode promover este jogador para o seu próprio cargo ou acima.');
+    return;
+  }
 
-  if (!podeModificar(idAtual, idAtualSelecionado) || indiceCargoUsuario <= indice) {
+  // Já checou se pode modificar antes, mas reforça só por segurança
+  if (!podeModificar(idAtual, idAtualSelecionado)) {
     alert('Você não tem permissão para promover este jogador.');
     return;
   }
@@ -266,7 +270,6 @@ function promover() {
 
 function rebaixar() {
   if (!idAtualSelecionado) return;
-
   let cargoAtual = jogadores[idAtualSelecionado].cargo;
   let indice = indiceCargo(cargoAtual);
 
@@ -275,9 +278,8 @@ function rebaixar() {
     return;
   }
 
-  let indiceCargoUsuario = indiceCargo(jogadores[idAtual].cargo);
-
-  if (!podeModificar(idAtual, idAtualSelecionado) || indiceCargoUsuario <= indice) {
+  // Permissão: só pode rebaixar se seu cargo for maior que o do alvo
+  if (!podeModificar(idAtual, idAtualSelecionado) || indiceCargo(jogadores[idAtual].cargo) <= indice) {
     alert('Você não tem permissão para rebaixar este jogador.');
     return;
   }
@@ -291,10 +293,8 @@ function rebaixar() {
 function expulsar() {
   if (!idAtualSelecionado) return;
 
-  let indiceCargoUsuario = indiceCargo(jogadores[idAtual].cargo);
-  let indiceCargoAlvo = indiceCargo(jogadores[idAtualSelecionado].cargo);
-
-  if (!podeModificar(idAtual, idAtualSelecionado) || indiceCargoUsuario <= indiceCargoAlvo) {
+  // Permissão: só pode expulsar se seu cargo for maior que o do alvo
+  if (!podeModificar(idAtual, idAtualSelecionado) || indiceCargo(jogadores[idAtual].cargo) <= indiceCargo(jogadores[idAtualSelecionado].cargo)) {
     alert('Você não tem permissão para expulsar este jogador.');
     return;
   }
@@ -343,4 +343,5 @@ document.getElementById('btnToggleCadastro').addEventListener('click', () => {
 });
 </script>
 
-</body
+</body>
+</html>
