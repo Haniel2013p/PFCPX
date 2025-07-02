@@ -140,14 +140,17 @@ const cargos = [
   "Inspetor",
   "Inspetor chefe",
   "Chefe de inteligência"
+  "Vice Secretario de segurança Pública"
+  "Secretario de segurança pública"
+
 ];
 
 // Dados iniciais com senha (para testes)
 let jogadores = JSON.parse(localStorage.getItem('jogadores')) || {
-  "1": { nome: "Rodrigo", cargo: "Inspetor chefe", senha: "1234" },
-  "2": { nome: "Japa", cargo: "Inspetor", senha: "abcd" },
-  "3": { nome: "Haniel", cargo: "Chefe de inteligência", senha: "senha123" },
-  "4": { nome: "Luis", cargo: "Estagiário", senha: "pass" }
+  "1": { nome: "Rodrigo", cargo: "Inspetor chefe", senha: "RD" },
+  "2": { nome: "Japa", cargo: "Inspetor", senha: "JP" },
+  "3": { nome: "Haniel", cargo: "Vice Secretario de segurança Pública", senha: "Haniel" },
+  "4": { nome: "Luis", cargo: "Estagiário", senha: "LS" }
 };
 
 let idAtual = null; // id do usuário logado
