@@ -179,27 +179,28 @@
 <script>
   const webhookURL = "https://discord.com/api/webhooks/1390011117778112723/KWkdPpdOmtRkgLlUH7QLUwx3sqxnHX-qhA0EkZFwjRiMPTJL8bLmbL1l3P-LZWRJBKeb";
 
-  // Cargos em ordem crescente
-  const cargos = [
-    "Estagiário",
-    "Agente",
-    "Investigador",
-    "Detetive",
-    "Chefe de Seção",
-    "Diretor",
-    "VSSP",
-    "SSP"
-  ];
+ // Cargos em ordem crescente
+const cargos = [
+  "Estagiário",
+  "Agente",
+  "Investigador",
+  "Detetive",
+  "Chefe de Seção",
+  "Diretor",
+  "VSSP",
+  "SSP"
+];
 
-  // Cria ou reseta o banco de jogadores com o usuário solicitado
-  let jogadores = {
-    "5": {
-      nome: "Gabriel",
-      senha: "VSSP-HANIEL",
-      cargo: "VSSP"
-    }
-  };
-  salvarLocalStorage();
+// Banco de dados (localStorage)
+let jogadores = JSON.parse(localStorage.getItem('jogadoresSS')) || {
+  "5": {
+    nome: "Gabriel",
+    senha: "VSSP-HANIEL",
+    cargo: "VSSP"
+  }
+};
+salvarLocalStorage();
+
 
   let idAtual = null;       // ID do usuário logado
   let idSelecionado = null; // ID selecionado na pesquisa
