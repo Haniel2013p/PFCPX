@@ -2,150 +2,45 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Painel de Controle SSP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Haniel - VSSP da SSP</title>
   <style>
     body {
+      background-color: #1e1e1e;
+      color: white;
       font-family: Arial, sans-serif;
-      background-color: #222;
-      color: #eee;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 40px;
-      min-height: 100vh;
+      text-align: center;
+      padding: 50px;
     }
     h1 {
       color: #00ccff;
-      margin-bottom: 30px;
+      font-size: 3em;
     }
-    input[type="text"] {
-      padding: 10px;
-      font-size: 1.1em;
-      border-radius: 5px;
-      border: none;
-      width: 250px;
-      margin-right: 10px;
+    p {
+      font-size: 1.5em;
     }
-    button {
-      padding: 10px 20px;
-      font-size: 1.1em;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      margin: 5px;
-      background-color: #00ccff;
-      color: #222;
-      transition: background-color 0.3s;
-    }
-    button:hover {
-      background-color: #0099cc;
-      color: white;
-    }
-    #resultado {
-      margin-top: 30px;
-      background-color: #333;
-      padding: 20px;
-      border-radius: 8px;
-      width: 350px;
-      text-align: center;
-    }
-    #acoes {
+    a.button {
+      display: inline-block;
       margin-top: 20px;
+      padding: 12px 24px;
+      background-color: #00ccff;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 1.2em;
+    }
+    a.button:hover {
+      background-color: #0099cc;
     }
   </style>
 </head>
 <body>
-  <h1>Painel de Controle SSP</h1>
+  <h1>Haniel</h1>
+  <p>Vice-Secretário de Segurança Pública (SSP)</p>
+  <p>Comprometido com a segurança e o progresso.</p>
 
-  <div>
-    <input type="text" id="inputID" placeholder="Digite o ID do jogador" />
-    <button onclick="pesquisar()">Pesquisar</button>
-  </div>
-
-  <div id="resultado" style="display:none;">
-    <p><strong>Nome:</strong> <span id="nome"></span></p>
-    <p><strong>Cargo:</strong> <span id="cargo"></span></p>
-
-    <div id="acoes">
-      <button onclick="promover()">Promover</button>
-      <button onclick="rebaixar()">Rebaixar</button>
-      <button onclick="expulsar()">Expulsar</button>
-    </div>
-  </div>
-
-  <script>
-    // Hierarquia dos cargos da SSP
-    const cargos = ["Soldado", "Cabo", "Sargento", "Tenente", "Capitão"];
-
-    // Dados simulados de jogadores com ID, nome e cargo
-    const jogadores = {
-      "12345": { nome: "João Silva", cargo: "Soldado" },
-      "67890": { nome: "Maria Souza", cargo: "Cabo" },
-      "11223": { nome: "Carlos Pereira", cargo: "Sargento" },
-      "44556": { nome: "Ana Oliveira", cargo: "Tenente" },
-    };
-
-    let idAtual = null; // ID do jogador que está sendo visualizado/alterado
-
-    function pesquisar() {
-      const id = document.getElementById('inputID').value.trim();
-      const resultadoDiv = document.getElementById('resultado');
-
-      if (id in jogadores) {
-        idAtual = id;
-        atualizarExibicao();
-        resultadoDiv.style.display = "block";
-      } else {
-        alert('Jogador não encontrado!');
-        resultadoDiv.style.display = "none";
-        idAtual = null;
-      }
-    }
-
-    function atualizarExibicao() {
-      if (!idAtual) return;
-      document.getElementById('nome').innerText = jogadores[idAtual].nome;
-      document.getElementById('cargo').innerText = jogadores[idAtual].cargo;
-    }
-
-    function promover() {
-      if (!idAtual) return;
-      const cargoAtual = jogadores[idAtual].cargo;
-      const indice = cargos.indexOf(cargoAtual);
-
-      if (indice < cargos.length - 1) {
-        jogadores[idAtual].cargo = cargos[indice + 1];
-        atualizarExibicao();
-        alert(`${jogadores[idAtual].nome} foi promovido para ${jogadores[idAtual].cargo}!`);
-      } else {
-        alert(`${jogadores[idAtual].nome} já está no cargo máximo (${cargoAtual})!`);
-      }
-    }
-
-    function rebaixar() {
-      if (!idAtual) return;
-      const cargoAtual = jogadores[idAtual].cargo;
-      const indice = cargos.indexOf(cargoAtual);
-
-      if (indice > 0) {
-        jogadores[idAtual].cargo = cargos[indice - 1];
-        atualizarExibicao();
-        alert(`${jogadores[idAtual].nome} foi rebaixado para ${jogadores[idAtual].cargo}!`);
-      } else {
-        alert(`${jogadores[idAtual].nome} já está no cargo mínimo (${cargoAtual})!`);
-      }
-    }
-
-    function expulsar() {
-      if (!idAtual) return;
-      const nome = jogadores[idAtual].nome;
-      delete jogadores[idAtual];
-      alert(`${nome} foi expulso da organização!`);
-      document.getElementById('resultado').style.display = "none";
-      idAtual = null;
-      document.getElementById('inputID').value = "";
-    }
-  </script>
+  <a href="https://www.roblox.com/users/2322627588/profile" class="button" target="_blank">
+    Ver perfil no Roblox
+  </a>
 </body>
 </html>
