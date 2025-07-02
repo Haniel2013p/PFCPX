@@ -20,7 +20,7 @@
       color: #00ccff;
       margin-bottom: 30px;
     }
-    input[type="text"], input[type="password"], select {
+    input[type="text"], input[type="password"] {
       padding: 10px;
       font-size: 1.1em;
       border-radius: 5px;
@@ -75,6 +75,18 @@
       font-weight: bold;
       user-select: none;
     }
+    #pesquisa {
+      margin-top: 30px;
+      text-align: center;
+    }
+    #pesquisa input {
+      padding: 10px;
+      font-size: 1.1em;
+      border-radius: 5px;
+      border: none;
+      width: 250px;
+      margin-right: 10px;
+    }
   </style>
 </head>
 <body>
@@ -96,8 +108,14 @@
     <input type="text" id="novoID" placeholder="Digite o novo ID" />
     <input type="text" id="novoNome" placeholder="Digite o nome" />
     <input type="password" id="novaSenha" placeholder="Digite a senha" />
-    <select id="novoCargo"></select>
+    <!-- removido select cargo -->
     <button onclick="adicionarJogador()">Adicionar Jogador</button>
+  </div>
+
+  <!-- Pesquisa jogador -->
+  <div id="pesquisa" style="display:none;">
+    <input type="text" id="inputID" placeholder="Digite o ID do jogador" />
+    <button onclick="pesquisar()">Pesquisar</button>
   </div>
 
   <!-- Resultado -->
@@ -133,15 +151,7 @@ let jogadores = JSON.parse(localStorage.getItem('jogadores')) || {
 };
 
 let idAtual = null; // id do usuário logado
-
-// Popula o select de cargos no campo de novo jogador
-const selectNovoCargo = document.getElementById('novoCargo');
-cargos.forEach(cargo => {
-  const option = document.createElement('option');
-  option.value = cargo;
-  option.textContent = cargo;
-  selectNovoCargo.appendChild(option);
-});
+let idAtualSelecionado = null; // id do usuário selecionado na pesquisa
 
 function salvarLocalStorage() {
   localStorage.setItem('jogadores', JSON.stringify(jogadores));
@@ -178,22 +188,8 @@ function mostrarPainel() {
   document.getElementById('inputID').value = '';
   document.getElementById('resultado').style.display = 'none';
 
-  // Mostra campo para pesquisar outros jogadores (se desejar)
-  if (!document.getElementById('pesquisa')) {
-    const divBusca = document.createElement('div');
-    divBusca.id = 'pesquisa';
-    divBusca.style.marginTop = '30px';
-    divBusca.style.textAlign = 'center';
-
-    divBusca.innerHTML = `
-      <input type="text" id="inputID" placeholder="Digite o ID do jogador" style="padding:10px; font-size:1.1em; border-radius:5px; border:none; width:250px; margin-right:10px;" />
-      <button onclick="pesquisar()">Pesquisar</button>
-    `;
-
-    document.body.appendChild(divBusca);
-  }
-
-  // Ajusta permissões: só pode promover/rebaixar se cargo atual for igual ou superior ao do alvo
+  // Mostrar campo pesquisar
+  document.getElementById('pesquisa').style.display = 'block';
 }
 
 function pesquisar() {
@@ -304,7 +300,6 @@ function adicionarJogador() {
   const novoID = document.getElementById('novoID').value.trim();
   const novoNome = document.getElementById('novoNome').value.trim();
   const novaSenha = document.getElementById('novaSenha').value;
-  const novoCargo = document.getElementById('novoCargo').value;
 
   if (!novoID || !novoNome || !novaSenha) {
     alert('Por favor, preencha todos os campos!');
@@ -316,15 +311,17 @@ function adicionarJogador() {
     return;
   }
 
-  jogadores[novoID] = { nome: novoNome, cargo: novoCargo, senha: novaSenha };
+  // O novo jogador sempre começa com o cargo mais baixo da lista
+  const cargoInicial = cargos[0];
+
+  jogadores[novoID] = { nome: novoNome, cargo: cargoInicial, senha: novaSenha };
   salvarLocalStorage();
-  alert(`Jogador ${novoNome} adicionado com sucesso!`);
+  alert(`Jogador ${novoNome} adicionado com sucesso com o cargo ${cargoInicial}!`);
 
   // Limpa os campos
   document.getElementById('novoID').value = '';
   document.getElementById('novoNome').value = '';
   document.getElementById('novaSenha').value = '';
-  document.getElementById('novoCargo').value = cargos[0];
 }
 
 // Evento para alternar o formulário de cadastro
