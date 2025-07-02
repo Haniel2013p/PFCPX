@@ -108,6 +108,7 @@
     <input type="text" id="novoID" placeholder="Digite o novo ID" />
     <input type="text" id="novoNome" placeholder="Digite o nome" />
     <input type="password" id="novaSenha" placeholder="Digite a senha" />
+    <!-- removido select cargo -->
     <button onclick="adicionarJogador()">Adicionar Jogador</button>
   </div>
 
@@ -122,13 +123,13 @@
     <p><strong>Nome:</strong> <span id="nome"></span></p>
     <p><strong>Cargo:</strong> <span id="cargo"></span></p>
     <div id="acoes">
-      <button id="btnPromover" onclick="promover()">Promover</button>
-      <button id="btnRebaixar" onclick="rebaixar()">Rebaixar</button>
-      <button id="btnExpulsar" onclick="expulsar()">Expulsar</button>
+      <button onclick="promover()">Promover</button>
+      <button onclick="rebaixar()">Rebaixar</button>
+      <button onclick="expulsar()">Expulsar</button>
     </div>
   </div>
 
-  <!-- Info usuário logado -->
+  <!-- Info usuário logado no canto -->
   <div id="user-info"></div>
 
 <script>
@@ -143,6 +144,7 @@ const cargos = [
   "Secretario de segurança pública"
 ];
 
+// Dados iniciais com senha (para testes)
 let jogadores = JSON.parse(localStorage.getItem('jogadores')) || {
   "1": { nome: "Rodrigo", cargo: "Inspetor chefe", senha: "RD" },
   "2": { nome: "Japa", cargo: "Inspetor", senha: "JP" },
@@ -150,8 +152,8 @@ let jogadores = JSON.parse(localStorage.getItem('jogadores')) || {
   "4": { nome: "Luis", cargo: "Estagiário", senha: "LS" }
 };
 
-let idAtual = null;
-let idAtualSelecionado = null;
+let idAtual = null; // id do usuário logado
+let idAtualSelecionado = null; // id do usuário selecionado na pesquisa
 
 function salvarLocalStorage() {
   localStorage.setItem('jogadores', JSON.stringify(jogadores));
@@ -175,26 +177,21 @@ function fazerLogin() {
 }
 
 function mostrarPainel() {
+  // Oculta login e cadastro
   document.getElementById('login').style.display = 'none';
   document.getElementById('novo-jogador').style.display = 'none';
 
+  // Exibe dados do usuário no canto
   const userInfo = document.getElementById('user-info');
   userInfo.innerText = `Nome: ${jogadores[idAtual].nome} | Cargo: ${jogadores[idAtual].cargo}`;
   userInfo.style.display = 'block';
 
+  // Exibe painel de busca
   document.getElementById('inputID').value = '';
   document.getElementById('resultado').style.display = 'none';
+
+  // Mostrar campo pesquisar
   document.getElementById('pesquisa').style.display = 'block';
-}
-
-function indiceCargo(cargo) {
-  return cargos.indexOf(cargo);
-}
-
-function podeModificar(id1, id2) {
-  const ind1 = indiceCargo(jogadores[id1].cargo);
-  const ind2 = indiceCargo(jogadores[id2].cargo);
-  return ind1 > ind2;
 }
 
 function pesquisar() {
@@ -202,7 +199,6 @@ function pesquisar() {
     alert('Faça login primeiro!');
     return;
   }
-
   const id = document.getElementById('inputID').value.trim();
   const resultadoDiv = document.getElementById('resultado');
 
@@ -212,16 +208,20 @@ function pesquisar() {
     return;
   }
 
+  // Permissão: só mostra se idAtual tiver cargo igual ou maior que o pesquisado
+  if (!podeModificar(idAtual, id)) {
+    // Se não pode modificar, mostra só nome e cargo, sem botões
+    document.getElementById('nome').innerText = jogadores[id].nome;
+    document.getElementById('cargo').innerText = jogadores[id].cargo;
+    resultadoDiv.style.display = 'block';
+    document.getElementById('acoes').style.display = 'none';
+    return;
+  }
+
   idAtualSelecionado = id;
   atualizarExibicao(id);
-
-  const pode = podeModificar(idAtual, id);
-
-  document.getElementById('btnPromover').style.display = pode ? 'inline-block' : 'none';
-  document.getElementById('btnRebaixar').style.display = pode ? 'inline-block' : 'none';
-  document.getElementById('btnExpulsar').style.display = pode ? 'inline-block' : 'none';
-
   resultadoDiv.style.display = 'block';
+  document.getElementById('acoes').style.display = 'block';
 }
 
 function atualizarExibicao(id) {
@@ -229,38 +229,80 @@ function atualizarExibicao(id) {
   document.getElementById('cargo').innerText = jogadores[id].cargo;
 }
 
+function indiceCargo(cargo) {
+  return cargos.indexOf(cargo);
+}
+
+// Checa se jogador com id1 pode modificar o id2
+function podeModificar(id1, id2) {
+  const ind1 = indiceCargo(jogadores[id1].cargo);
+  const ind2 = indiceCargo(jogadores[id2].cargo);
+  return ind1 > ind2;
+}
+
 function promover() {
   if (!idAtualSelecionado) return;
-  let indice = indiceCargo(jogadores[idAtualSelecionado].cargo);
+
+  let cargoAtual = jogadores[idAtualSelecionado].cargo;
+  let indice = indiceCargo(cargoAtual);
+
   if (indice >= cargos.length - 1) {
-    alert('Cargo máximo alcançado.');
+    alert(`${jogadores[idAtualSelecionado].nome} já está no cargo máximo (${cargoAtual})!`);
     return;
   }
+
+  let indiceCargoUsuario = indiceCargo(jogadores[idAtual].cargo);
+
+  if (!podeModificar(idAtual, idAtualSelecionado) || indiceCargoUsuario <= indice) {
+    alert('Você não tem permissão para promover este jogador.');
+    return;
+  }
+
   jogadores[idAtualSelecionado].cargo = cargos[indice + 1];
   salvarLocalStorage();
   atualizarExibicao(idAtualSelecionado);
-  alert('Jogador promovido!');
+  alert(`${jogadores[idAtualSelecionado].nome} foi promovido para ${jogadores[idAtualSelecionado].cargo}!`);
 }
 
 function rebaixar() {
   if (!idAtualSelecionado) return;
-  let indice = indiceCargo(jogadores[idAtualSelecionado].cargo);
+
+  let cargoAtual = jogadores[idAtualSelecionado].cargo;
+  let indice = indiceCargo(cargoAtual);
+
   if (indice <= 0) {
-    alert('Cargo mínimo alcançado.');
+    alert(`${jogadores[idAtualSelecionado].nome} já está no cargo mínimo (${cargoAtual})!`);
     return;
   }
+
+  let indiceCargoUsuario = indiceCargo(jogadores[idAtual].cargo);
+
+  if (!podeModificar(idAtual, idAtualSelecionado) || indiceCargoUsuario <= indice) {
+    alert('Você não tem permissão para rebaixar este jogador.');
+    return;
+  }
+
   jogadores[idAtualSelecionado].cargo = cargos[indice - 1];
   salvarLocalStorage();
   atualizarExibicao(idAtualSelecionado);
-  alert('Jogador rebaixado!');
+  alert(`${jogadores[idAtualSelecionado].nome} foi rebaixado para ${jogadores[idAtualSelecionado].cargo}!`);
 }
 
 function expulsar() {
   if (!idAtualSelecionado) return;
+
+  let indiceCargoUsuario = indiceCargo(jogadores[idAtual].cargo);
+  let indiceCargoAlvo = indiceCargo(jogadores[idAtualSelecionado].cargo);
+
+  if (!podeModificar(idAtual, idAtualSelecionado) || indiceCargoUsuario <= indiceCargoAlvo) {
+    alert('Você não tem permissão para expulsar este jogador.');
+    return;
+  }
+
   let nome = jogadores[idAtualSelecionado].nome;
   delete jogadores[idAtualSelecionado];
   salvarLocalStorage();
-  alert(`${nome} foi expulso.`);
+  alert(`${nome} foi expulso da organização!`);
   document.getElementById('resultado').style.display = 'none';
   idAtualSelecionado = null;
   document.getElementById('inputID').value = '';
@@ -272,7 +314,7 @@ function adicionarJogador() {
   const novaSenha = document.getElementById('novaSenha').value;
 
   if (!novoID || !novoNome || !novaSenha) {
-    alert('Preencha todos os campos!');
+    alert('Por favor, preencha todos os campos!');
     return;
   }
 
@@ -281,21 +323,24 @@ function adicionarJogador() {
     return;
   }
 
+  // O novo jogador sempre começa com o cargo mais baixo da lista
   const cargoInicial = cargos[0];
+
   jogadores[novoID] = { nome: novoNome, cargo: cargoInicial, senha: novaSenha };
   salvarLocalStorage();
-  alert(`Jogador ${novoNome} cadastrado com cargo ${cargoInicial}.`);
+  alert(`Jogador ${novoNome} adicionado com sucesso com o cargo ${cargoInicial}!`);
 
+  // Limpa os campos
   document.getElementById('novoID').value = '';
   document.getElementById('novoNome').value = '';
   document.getElementById('novaSenha').value = '';
 }
 
+// Evento para alternar o formulário de cadastro
 document.getElementById('btnToggleCadastro').addEventListener('click', () => {
   const cadastroDiv = document.getElementById('novo-jogador');
   cadastroDiv.style.display = cadastroDiv.style.display === 'none' ? 'block' : 'none';
 });
 </script>
 
-</body>
-</html>
+</body
