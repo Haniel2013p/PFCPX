@@ -83,14 +83,14 @@
   </div>
 
 <script>
-  const cargos = ["Soldado", "Cabo", "Sargento", "Tenente", "Capitão"];
+  const cargos = ["Estagiário", "Investigador operacional", "Agente especializado", "Inspetor", "Inspetor chefe","Chefe de inteligência"];
 
   // Pega os dados do localStorage ou usa os padrões iniciais
   let jogadores = JSON.parse(localStorage.getItem('jogadores')) || {
-    "12345": { nome: "João Silva", cargo: "Soldado" },
-    "67890": { nome: "Maria Souza", cargo: "Cabo" },
-    "11223": { nome: "Carlos Pereira", cargo: "Sargento" },
-    "44556": { nome: "Ana Oliveira", cargo: "Tenente" }
+    "1": { nome: "Rodrigo", cargo: "Inspetor Chefe" },
+    "2": { nome: "Japa, cargo: "Inspetor" },
+    "3": { nome: "Haniel", cargo: "Chefe de inteligência" },
+    "4": { nome: "Luis", cargo: "Estagiário" }
   };
 
   let idAtual = null;
