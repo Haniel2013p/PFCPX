@@ -1,1 +1,468 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Painel Serviço Secreto Municipal</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0; padding: 0;
+    background: #222;
+    color: #eee;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+  }
+  #container {
+    background: #333;
+    width: 400px;
+    margin: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 15px #000;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    min-height: 650px;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 15px;
+    color: #aaf;
+  }
+  input[type=text], input[type=password] {
+    width: 100%;
+    padding: 8px 6px;
+    margin: 6px 0 12px 0;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+  button {
+    background: #5588ee;
+    color: white;
+    padding: 10px;
+    width: 100%;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-bottom: 10px;
+  }
+  button:hover:not(:disabled) {
+    background: #4477dd;
+  }
+  button:disabled {
+    background: #444;
+    cursor: default;
+  }
+  #menuTopo {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    justify-content: flex-start;
+  }
+  #menuTopo button {
+    flex: none;
+    padding: 8px 14px;
+    font-size: 0.95rem;
+    background: transparent;
+    border: none;
+    color: white;
+    border-radius: 0;
+    box-shadow: none;
+    text-align: center;
+    cursor: pointer;
+    font-weight: normal;
+  }
+  #menuTopo button:hover {
+    background: #3366cc;
+  }
+  #infoUsuario {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    color: #88ccff;
+    font-size: 0.95rem;
+    text-align: right;
+    line-height: 1.3;
+  }
+  #btnLogout {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: auto;
+    padding: 6px 12px;
+    font-size: 0.9rem;
+    background: #d44;
+    border-radius: 4px;
+    font-weight: bold;
+  }
+  #btnLogout:hover {
+    background: #b33;
+  }
+  #lista-registros {
+    max-height: 220px;
+    overflow-y: auto;
+    background: #444;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+  }
+  #lista-registros table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  #lista-registros th, #lista-registros td {
+    border: 1px solid #666;
+    padding: 6px 4px;
+    font-size: 0.9rem;
+  }
+  #sobre-ss {
+    text-align: center;
+    margin: 50px 20px;
+    font-size: 1.1rem;
+    line-height: 1.5;
+  }
+  #resultado {
+    background: #444;
+    padding: 15px;
+    border-radius: 6px;
+    margin-top: 10px;
+  }
+  #resultado p {
+    margin: 8px 0;
+    font-size: 1rem;
+  }
+  #inputID {
+    font-size: 1rem;
+    padding: 6px;
+  }
+  .link-btn {
+    background: none;
+    border: none;
+    color: #88aaff;
+    cursor: pointer;
+    padding: 0;
+    font-size: 0.95rem;
+    text-decoration: underline;
+    margin-top: 10px;
+  }
+  .link-btn:hover {
+    color: #bbd;
+  }
+</style>
+</head>
+<body>
+  <div id="container">
+    <h1>Serviço Secreto Municipal</h1>
+
+    <div id="login">
+      <input type="text" id="loginID" placeholder="Digite seu ID" autocomplete="off" />
+      <input type="password" id="loginSenha" placeholder="Digite sua senha" autocomplete="off" />
+      <button id="btnLogin">Entrar</button>
+      <button class="link-btn" id="btnToggleCadastro">Cadastrar novo membro</button>
+    </div>
+
+    <div id="novo-jogador" style="display:none;">
+      <input type="text" id="novoID" placeholder="Novo ID (único)" autocomplete="off" />
+      <input type="text" id="novoNome" placeholder="Nome completo" autocomplete="off" />
+      <input type="password" id="novaSenha" placeholder="Senha" autocomplete="off" />
+      <button id="btnCadastrar">Cadastrar</button>
+      <button class="link-btn" id="btnVoltarLogin">Voltar ao login</button>
+    </div>
+
+    <div id="painel" style="display:none; flex:1; position: relative;">
+      <div id="menuTopo">
+        <button id="btnSobre">Sobre o Serviço Secreto</button>
+        <button id="btnListaRegistros">Lista de registros</button>
+        <button id="btnPainel">Painel de controle</button>
+      </div>
+      <div id="infoUsuario"></div>
+      <button id="btnLogout">Sair</button>
+
+      <div id="sobre-ss" style="display:none;">
+        <p>Bem-vindo ao Serviço Secreto Municipal, onde protegemos a integridade da prefeitura e a segurança dos cidadãos. Aqui você pode pesquisar membros, promover, rebaixar ou expulsar agentes com base nas necessidades da equipe.</p>
+      </div>
+
+      <div id="lista-registros" style="display:none;">
+        <table>
+          <thead><tr><th>ID</th><th>Nome</th><th>Cargo</th></tr></thead>
+          <tbody id="listaTabela"></tbody>
+        </table>
+      </div>
+
+      <div id="painel-pesquisa" style="display:none;">
+        <input type="text" id="inputID" placeholder="Digite ID do agente" autocomplete="off" />
+        <button id="btnPesquisar">Pesquisar</button>
+        <div id="resultado" style="display:none;">
+          <p><strong>Nome:</strong> <span id="nome"></span></p>
+          <p><strong>Cargo:</strong> <span id="cargo"></span></p>
+          <button id="btnPromover">Promover</button>
+          <button id="btnRebaixar">Rebaixar</button>
+          <button id="btnExpulsar" style="background:#d44;">Expulsar</button>
+        </div>
+      </div>
+    </div>
+
+  <script>
+    const webhookURL = "https://discord.com/api/webhooks/1390011117778112723/KWkdPpdOmtRkgLlUH7QLUwx3sqxnHX-qhA0EkZFwjRiMPTJL8bLmbL1l3P-LZWRJBKeb";
+    const cargos = [
+      "Estagiário",
+      "Agente",
+      "Investigador",
+      "Detetive",
+      "Chefe de Seção",
+      "Diretor",
+      "VSSP",
+      "SSP"
+    ];
+    let jogadores = JSON.parse(localStorage.getItem('jogadoresSS')) || {};
+    // Cria usuário default VSSP se não existir
+    if (!jogadores["5"]) {
+      jogadores["5"] = {
+        nome: "Gabriel",
+        senha: "VSSP-HANIEL",
+        cargo: "VSSP"
+      };
+      localStorage.setItem('jogadoresSS', JSON.stringify(jogadores));
+    }
+
+    let idAtual = null;
+    let idSelecionado = null;
+
+    const loginDiv = document.getElementById('login');
+    const cadastroDiv = document.getElementById('novo-jogador');
+    const painelDiv = document.getElementById('painel');
+    const sobreDiv = document.getElementById('sobre-ss');
+    const listaRegistrosDiv = document.getElementById('lista-registros');
+    const painelPesquisaDiv = document.getElementById('painel-pesquisa');
+    const resultadoDiv = document.getElementById('resultado');
+    const infoUsuarioDiv = document.getElementById('infoUsuario');
+
+    function salvarLocalStorage() {
+      localStorage.setItem('jogadoresSS', JSON.stringify(jogadores));
+    }
+
+    function atualizarInfoUsuario() {
+      if (!idAtual) {
+        infoUsuarioDiv.textContent = '';
+        return;
+      }
+      const user = jogadores[idAtual];
+      infoUsuarioDiv.innerHTML = `
+        <div><strong>Nome:</strong> ${user.nome}</div>
+        <div><strong>ID:</strong> ${idAtual}</div>
+        <div><strong>Cargo:</strong> ${user.cargo}</div>
+      `;
+    }
+
+    function mostrarListaRegistros() {
+      const tbody = document.getElementById('listaTabela');
+      tbody.innerHTML = '';
+      for (const id in jogadores) {
+        const jog = jogadores[id];
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${id}</td><td>${jog.nome}</td><td>${jog.cargo}</td>`;
+        tbody.appendChild(tr);
+      }
+    }
+
+    function mostrarDadosJogador(id) {
+      const jogador = jogadores[id];
+      if (!jogador) {
+        alert('Agente não encontrado');
+        resultadoDiv.style.display = 'none';
+        return;
+      }
+      idSelecionado = id;
+      document.getElementById('nome').textContent = jogador.nome;
+      document.getElementById('cargo').textContent = jogador.cargo;
+      resultadoDiv.style.display = 'block';
+      const disabled = (id === idAtual);
+      document.getElementById('btnPromover').disabled = disabled || (jogadores[id].cargo === cargos[cargos.length - 1]);
+      document.getElementById('btnRebaixar').disabled = disabled || (jogadores[id].cargo === cargos[0]);
+      document.getElementById('btnExpulsar').disabled = disabled;
+    }
+
+    async function enviarLogDiscord(acao, jogadorAlvo, cargoAntes, cargoDepois) {
+      const userAtual = jogadores[idAtual];
+      const data = {
+        embeds: [{
+          title: `Ação: ${acao}`,
+          description:
+            `**Responsável:** ${userAtual.nome} (ID: ${idAtual})\n` +
+            `**Alvo:** ${jogadorAlvo.nome} (ID: ${idSelecionado})\n` +
+            `**Cargo antes:** ${cargoAntes}\n` +
+            (cargoDepois ? `**Cargo depois:** ${cargoDepois}\n` : ''),
+          color: acao === "Expulsar" ? 0xFF0000 : 0x0099ff,
+          timestamp: new Date().toISOString()
+        }]
+      };
+      try {
+        await fetch(webhookURL, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(data)
+        });
+      } catch (err) {
+        console.error('Erro ao enviar log para Discord:', err);
+      }
+    }
+
+    document.getElementById('btnToggleCadastro').onclick = () => {
+      loginDiv.style.display = 'none';
+      cadastroDiv.style.display = 'block';
+    };
+
+    document.getElementById('btnVoltarLogin').onclick = () => {
+      cadastroDiv.style.display = 'none';
+      loginDiv.style.display = 'block';
+    };
+
+    document.getElementById('btnCadastrar').onclick = () => {
+      const id = document.getElementById('novoID').value.trim();
+      const nome = document.getElementById('novoNome').value.trim();
+      const senha = document.getElementById('novaSenha').value.trim();
+      if (!id || !nome || !senha) {
+        alert('Preencha todos os campos para cadastro');
+        return;
+      }
+      if (jogadores[id]) {
+        alert('ID já cadastrado');
+        return;
+      }
+      jogadores[id] = {
+        nome,
+        senha,
+        cargo: "Estagiário"
+      };
+      salvarLocalStorage();
+      alert('Cadastro realizado com sucesso. Agora faça login.');
+      document.getElementById('novoID').value = '';
+      document.getElementById('novoNome').value = '';
+      document.getElementById('novaSenha').value = '';
+      cadastroDiv.style.display = 'none';
+      loginDiv.style.display = 'block';
+    };
+
+    document.getElementById('btnLogin').onclick = () => {
+      const id = document.getElementById('loginID').value.trim();
+      const senha = document.getElementById('loginSenha').value.trim();
+      if (!id || !senha) {
+        alert('Preencha ID e senha para entrar');
+        return;
+      }
+      if (!jogadores[id] || jogadores[id].senha !== senha) {
+        alert('ID ou senha incorretos');
+        return;
+      }
+      idAtual = id;
+      loginDiv.style.display = 'none';
+      painelDiv.style.display = 'flex';
+      mostrarSobre();
+      atualizarInfoUsuario();
+    };
+
+    document.getElementById('btnLogout').onclick = () => {
+      idAtual = null;
+      idSelecionado = null;
+      painelDiv.style.display = 'none';
+      resultadoDiv.style.display = 'none';
+      sobreDiv.style.display = 'none';
+      listaRegistrosDiv.style.display = 'none';
+      painelPesquisaDiv.style.display = 'none';
+      loginDiv.style.display = 'block';
+      document.getElementById('loginID').value = '';
+      document.getElementById('loginSenha').value = '';
+      atualizarInfoUsuario();
+    };
+
+    function mostrarSobre() {
+      sobreDiv.style.display = 'block';
+      listaRegistrosDiv.style.display = 'none';
+      painelPesquisaDiv.style.display = 'none';
+      resultadoDiv.style.display = 'none';
+    }
+    function mostrarLista() {
+      mostrarListaRegistros();
+      sobreDiv.style.display = 'none';
+      listaRegistrosDiv.style.display = 'block';
+      painelPesquisaDiv.style.display = 'none';
+      resultadoDiv.style.display = 'none';
+    }
+    function mostrarPainelControle() {
+      sobreDiv.style.display = 'none';
+      listaRegistrosDiv.style.display = 'none';
+      painelPesquisaDiv.style.display = 'block';
+      resultadoDiv.style.display = 'none';
+      document.getElementById('inputID').value = '';
+      idSelecionado = null;
+    }
+
+    document.getElementById('btnSobre').onclick = mostrarSobre;
+    document.getElementById('btnListaRegistros').onclick = mostrarLista;
+    document.getElementById('btnPainel').onclick = mostrarPainelControle;
+
+    document.getElementById('btnPesquisar').onclick = () => {
+      const id = document.getElementById('inputID').value.trim();
+      if (!id) {
+        alert('Digite o ID para pesquisar');
+        return;
+      }
+      mostrarDadosJogador(id);
+    };
+
+    document.getElementById('btnPromover').onclick = async () => {
+      if (!idSelecionado) return;
+      const jogador = jogadores[idSelecionado];
+      const idx = cargos.indexOf(jogador.cargo);
+      if (idx < 0 || idx === cargos.length - 1) return;
+      const cargoAntes = jogador.cargo;
+      jogador.cargo = cargos[idx + 1];
+      salvarLocalStorage();
+      mostrarDadosJogador(idSelecionado);
+      await enviarLogDiscord("Promoção", jogador, cargoAntes, jogador.cargo);
+      alert(`Agente promovido para ${jogador.cargo}`);
+      atualizarInfoUsuario();
+      mostrarListaRegistros();
+    };
+
+    document.getElementById('btnRebaixar').onclick = async () => {
+      if (!idSelecionado) return
+      const jogador = jogadores[idSelecionado];
+      const idx = cargos.indexOf(jogador.cargo);
+      if (idx <= 0) return;
+      const cargoAntes = jogador.cargo;
+      jogador.cargo = cargos[idx - 1];
+      salvarLocalStorage();
+      mostrarDadosJogador(idSelecionado);
+      await enviarLogDiscord("Rebaixamento", jogador, cargoAntes, jogador.cargo);
+      alert(`Agente rebaixado para ${jogador.cargo}`);
+      atualizarInfoUsuario();
+      mostrarListaRegistros();
+    };
+
+    document.getElementById('btnExpulsar').onclick = async () => {
+      if (!idSelecionado) return;
+      if (idSelecionado === idAtual) {
+        alert("Você não pode expulsar a si mesmo.");
+        return;
+      }
+      const jogador = jogadores[idSelecionado];
+      if (!confirm(`Confirma expulsar o agente ${jogador.nome} (ID: ${idSelecionado})?`)) return;
+      const cargoAntes = jogador.cargo;
+      delete jogadores[idSelecionado];
+      salvarLocalStorage();
+      resultadoDiv.style.display = 'none';
+      await enviarLogDiscord("Expulsão", jogador, cargoAntes, null);
+      alert("Agente expulso com sucesso.");
+      mostrarListaRegistros();
+    };
+  </script>
+</body>
+</html>
 
