@@ -1,3 +1,4 @@
+html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -154,8 +155,18 @@ let jogadores = JSON.parse(localStorage.getItem('jogadores')) || {
 let idAtual = null; // id do usuário logado
 let idAtualSelecionado = null; // id do usuário selecionado na pesquisa
 
+const webhookURL = "https://discord.com/api/webhooks/1390011117778112723/KWkdPpdOmtRkgLlUH7QLUwx3sqxnHX-qhA0EkZFwjRiMPTJL8bLmbL1l3P-LZWRJBKeb";
+
 function salvarLocalStorage() {
   localStorage.setItem('jogadores', JSON.stringify(jogadores));
+}
+
+function enviarLogDiscord(mensagem) {
+  fetch(webhookURL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ content: mensagem })
+  }).catch(console.error);
 }
 
 function fazerLogin() {
@@ -235,7 +246,7 @@ function indiceCargo(cargo) {
 function podeModificar(id1, id2) {
   const ind1 = indiceCargo(jogadores[id1].cargo);
   const ind2 = indiceCargo(jogadores[id2].cargo);
-  return ind1 > ind2; // alterei aqui para garantir que só quem tem cargo maior pode modificar
+  return ind1 > ind2; // só maior cargo pode modificar
 }
 
 function promover() {
@@ -250,13 +261,11 @@ function promover() {
     return;
   }
 
-  // Não permite promover para um cargo igual ou maior ao do usuário atual
   if (indice + 1 >= indiceCargoUsuario) {
     alert('Você não pode promover este jogador para o seu próprio cargo ou acima.');
     return;
   }
 
-  // Já checou se pode modificar antes, mas reforça só por segurança
   if (!podeModificar(idAtual, idAtualSelecionado)) {
     alert('Você não tem permissão para promover este jogador.');
     return;
@@ -265,7 +274,11 @@ function promover() {
   jogadores[idAtualSelecionado].cargo = cargos[indice + 1];
   salvarLocalStorage();
   atualizarExibicao(idAtualSelecionado);
+
   alert(`${jogadores[idAtualSelecionado].nome} foi promovido para ${jogadores[idAtualSelecionado].cargo}!`);
+
+  // Enviar log para Discord
+  enviarLogDiscord(`:arrow_up: **Promoção**: ${jogadores[idAtual].nome} promoveu ${jogadores[idAtualSelecionado].nome} para **${jogadores[idAtualSelecionado].cargo}**.`);
 }
 
 function rebaixar() {
@@ -278,7 +291,6 @@ function rebaixar() {
     return;
   }
 
-  // Permissão: só pode rebaixar se seu cargo for maior que o do alvo
   if (!podeModificar(idAtual, idAtualSelecionado) || indiceCargo(jogadores[idAtual].cargo) <= indice) {
     alert('Você não tem permissão para rebaixar este jogador.');
     return;
@@ -287,13 +299,16 @@ function rebaixar() {
   jogadores[idAtualSelecionado].cargo = cargos[indice - 1];
   salvarLocalStorage();
   atualizarExibicao(idAtualSelecionado);
+
   alert(`${jogadores[idAtualSelecionado].nome} foi rebaixado para ${jogadores[idAtualSelecionado].cargo}!`);
+
+  // Enviar log para Discord
+  enviarLogDiscord(`:arrow_down: **Rebaixamento**: ${jogadores[idAtual].nome} rebaixou ${jogadores[idAtualSelecionado].nome} para **${jogadores[idAtualSelecionado].cargo}**.`);
 }
 
 function expulsar() {
   if (!idAtualSelecionado) return;
 
-  // Permissão: só pode expulsar se seu cargo for maior que o do alvo
   if (!podeModificar(idAtual, idAtualSelecionado) || indiceCargo(jogadores[idAtual].cargo) <= indiceCargo(jogadores[idAtualSelecionado].cargo)) {
     alert('Você não tem permissão para expulsar este jogador.');
     return;
@@ -306,6 +321,9 @@ function expulsar() {
   document.getElementById('resultado').style.display = 'none';
   idAtualSelecionado = null;
   document.getElementById('inputID').value = '';
+
+  // Enviar log para Discord
+  enviarLogDiscord(`:no_entry: **Expulsão**: ${jogadores[idAtual].nome} expulsou ${nome} da organização.`);
 }
 
 function adicionarJogador() {
