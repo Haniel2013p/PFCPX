@@ -1,136 +1,12 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Painel de Controle SSP</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #222;
-      color: #eee;
-      padding: 40px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-    }
-    h1 {
-      color: #00ccff;
-      margin-bottom: 30px;
-    }
-    input[type="text"], input[type="password"] {
-      padding: 10px;
-      font-size: 1.1em;
-      border-radius: 5px;
-      border: none;
-      width: 250px;
-      margin: 5px 0;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 1.1em;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      margin: 5px;
-      background-color: #00ccff;
-      color: #222;
-      transition: background-color 0.3s;
-    }
-    button:hover {
-      background-color: #0099cc;
-      color: white;
-    }
-    #resultado, #novo-jogador, #login {
-      margin-top: 30px;
-      background-color: #333;
-      padding: 20px;
-      border-radius: 8px;
-      width: 350px;
-      text-align: center;
-    }
-    #acoes button {
-      width: 100px;
-    }
-    #btnToggleCadastro {
-      font-size: 0.9em;
-      color: #00ccff;
-      background: none;
-      border: none;
-      cursor: pointer;
-      margin-top: 10px;
-      text-decoration: underline;
-    }
-    #user-info {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      background-color: #333;
-      padding: 10px 20px;
-      border-radius: 8px;
-      display: none;
-      color: #00ccff;
-      font-weight: bold;
-      user-select: none;
-    }
-    #pesquisa {
-      margin-top: 30px;
-      text-align: center;
-    }
-    #pesquisa input {
-      padding: 10px;
-      font-size: 1.1em;
-      border-radius: 5px;
-      border: none;
-      width: 250px;
-      margin-right: 10px;
-    }
-  </style>
-</head>
-<body>
+<!-- ... (seu código continua igual acima até aqui) ... -->
 
-  <h1>Painel de Controle SSP</h1>
+<!-- Info usuário logado no canto -->
+<div id="user-info"></div>
 
-  <!-- Login -->
-  <div id="login">
-    <input type="text" id="loginID" placeholder="Digite seu ID" />
-    <input type="password" id="loginSenha" placeholder="Digite sua senha" />
-    <button onclick="fazerLogin()">Entrar</button>
-
-    <button id="btnToggleCadastro">Ou cadastre-se abaixo</button>
-  </div>
-
-  <!-- Cadastro -->
-  <div id="novo-jogador" style="display:none;">
-    <h2>Adicionar Novo Jogador</h2>
-    <input type="text" id="novoID" placeholder="Digite o novo ID" />
-    <input type="text" id="novoNome" placeholder="Digite o nome" />
-    <input type="password" id="novaSenha" placeholder="Digite a senha" />
-    <!-- removido select cargo -->
-    <button onclick="adicionarJogador()">Adicionar Jogador</button>
-  </div>
-
-  <!-- Pesquisa jogador -->
-  <div id="pesquisa" style="display:none;">
-    <input type="text" id="inputID" placeholder="Digite o ID do jogador" />
-    <button onclick="pesquisar()">Pesquisar</button>
-  </div>
-
-  <!-- Resultado -->
-  <div id="resultado" style="display:none;">
-    <p><strong>Nome:</strong> <span id="nome"></span></p>
-    <p><strong>Cargo:</strong> <span id="cargo"></span></p>
-    <div id="acoes">
-      <button onclick="promover()">Promover</button>
-      <button onclick="rebaixar()">Rebaixar</button>
-      <button onclick="expulsar()">Expulsar</button>
-    </div>
-  </div>
-
-  <!-- Info usuário logado no canto -->
-  <div id="user-info"></div>
+<!-- Botão de reset temporário -->
+<button id="btnResetarBD" style="position: fixed; bottom: 10px; right: 10px; background-color: red; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; z-index: 999;">
+  Resetar Banco de Dados
+</button>
 
 <script>
 const cargos = [
@@ -142,7 +18,6 @@ const cargos = [
   "Chefe de inteligência",
   "Vice Secretario de segurança Pública",
   "Secretario de segurança pública"
-
 ];
 
 // Dados iniciais com senha (para testes)
@@ -153,8 +28,8 @@ let jogadores = JSON.parse(localStorage.getItem('jogadores')) || {
   "4": { nome: "Luis", cargo: "Estagiário", senha: "LS" }
 };
 
-let idAtual = null; // id do usuário logado
-let idAtualSelecionado = null; // id do usuário selecionado na pesquisa
+let idAtual = null;
+let idAtualSelecionado = null;
 
 function salvarLocalStorage() {
   localStorage.setItem('jogadores', JSON.stringify(jogadores));
@@ -178,20 +53,15 @@ function fazerLogin() {
 }
 
 function mostrarPainel() {
-  // Oculta login e cadastro
   document.getElementById('login').style.display = 'none';
   document.getElementById('novo-jogador').style.display = 'none';
 
-  // Exibe dados do usuário no canto
   const userInfo = document.getElementById('user-info');
   userInfo.innerText = `Nome: ${jogadores[idAtual].nome} | Cargo: ${jogadores[idAtual].cargo}`;
   userInfo.style.display = 'block';
 
-  // Exibe painel de busca
   document.getElementById('inputID').value = '';
   document.getElementById('resultado').style.display = 'none';
-
-  // Mostrar campo pesquisar
   document.getElementById('pesquisa').style.display = 'block';
 }
 
@@ -209,7 +79,6 @@ function pesquisar() {
     return;
   }
 
-  // Permissão: só mostra se idAtual tiver cargo igual ou maior que o pesquisado
   if (!podeModificar(idAtual, id)) {
     alert('Você não tem permissão para modificar este jogador.');
     resultadoDiv.style.display = 'none';
@@ -230,7 +99,6 @@ function indiceCargo(cargo) {
   return cargos.indexOf(cargo);
 }
 
-// Checa se jogador com id1 pode modificar o id2
 function podeModificar(id1, id2) {
   const ind1 = indiceCargo(jogadores[id1].cargo);
   const ind2 = indiceCargo(jogadores[id2].cargo);
@@ -247,7 +115,6 @@ function promover() {
     return;
   }
 
-  // Permissão: só pode promover se seu cargo for maior que o do alvo
   if (!podeModificar(idAtual, idAtualSelecionado) || indiceCargo(jogadores[idAtual].cargo) <= indice) {
     alert('Você não tem permissão para promover este jogador.');
     return;
@@ -269,7 +136,6 @@ function rebaixar() {
     return;
   }
 
-  // Permissão: só pode rebaixar se seu cargo for maior que o do alvo
   if (!podeModificar(idAtual, idAtualSelecionado) || indiceCargo(jogadores[idAtual].cargo) <= indice) {
     alert('Você não tem permissão para rebaixar este jogador.');
     return;
@@ -284,7 +150,6 @@ function rebaixar() {
 function expulsar() {
   if (!idAtualSelecionado) return;
 
-  // Permissão: só pode expulsar se seu cargo for maior que o do alvo
   if (!podeModificar(idAtual, idAtualSelecionado) || indiceCargo(jogadores[idAtual].cargo) <= indiceCargo(jogadores[idAtualSelecionado].cargo)) {
     alert('Você não tem permissão para expulsar este jogador.');
     return;
@@ -314,23 +179,29 @@ function adicionarJogador() {
     return;
   }
 
-  // O novo jogador sempre começa com o cargo mais baixo da lista
   const cargoInicial = cargos[0];
-
   jogadores[novoID] = { nome: novoNome, cargo: cargoInicial, senha: novaSenha };
   salvarLocalStorage();
   alert(`Jogador ${novoNome} adicionado com sucesso com o cargo ${cargoInicial}!`);
 
-  // Limpa os campos
   document.getElementById('novoID').value = '';
   document.getElementById('novoNome').value = '';
   document.getElementById('novaSenha').value = '';
 }
 
-// Evento para alternar o formulário de cadastro
+// Alternar entre login e cadastro
 document.getElementById('btnToggleCadastro').addEventListener('click', () => {
   const cadastroDiv = document.getElementById('novo-jogador');
   cadastroDiv.style.display = cadastroDiv.style.display === 'none' ? 'block' : 'none';
+});
+
+// 🔴 Botão para resetar banco de dados temporariamente
+document.getElementById('btnResetarBD').addEventListener('click', () => {
+  if (confirm("Tem certeza que deseja resetar o banco de dados? Isso apagará todos os dados salvos!")) {
+    localStorage.removeItem('jogadores');
+    alert('Banco de dados resetado com sucesso!');
+    location.reload();
+  }
 });
 </script>
 
