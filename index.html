@@ -26,8 +26,7 @@
       border-radius: 5px;
       border: none;
       width: 250px;
-      margin-right: 10px;
-      margin-bottom: 10px;
+      margin: 5px 0;
     }
     button {
       padding: 10px 20px;
@@ -44,29 +43,16 @@
       background-color: #0099cc;
       color: white;
     }
-    #resultado {
+    #resultado, #novo-jogador {
       margin-top: 30px;
       background-color: #333;
       padding: 20px;
       border-radius: 8px;
       width: 350px;
       text-align: center;
-      display: none;
     }
     #acoes button {
       width: 100px;
-    }
-    #novo-jogador {
-      margin-top: 40px;
-      background-color: #333;
-      padding: 20px;
-      border-radius: 8px;
-      width: 350px;
-      text-align: center;
-    }
-    #novo-jogador h2 {
-      margin-bottom: 15px;
-      color: #00ccff;
     }
   </style>
 </head>
@@ -78,7 +64,7 @@
     <button onclick="pesquisar()">Pesquisar</button>
   </div>
 
-  <div id="resultado">
+  <div id="resultado" style="display:none;">
     <p><strong>Nome:</strong> <span id="nome"></span></p>
     <p><strong>Cargo:</strong> <span id="cargo"></span></p>
     <div id="acoes">
@@ -88,56 +74,38 @@
     </div>
   </div>
 
-  <!-- Área para inserir novo jogador -->
   <div id="novo-jogador">
     <h2>Adicionar Novo Jogador</h2>
-    <input type="text" id="novoID" placeholder="Digite o novo ID" /><br />
-    <input type="text" id="novoNome" placeholder="Digite o nome" /><br />
-    <select id="novoCargo">
-      <!-- Opções criadas dinamicamente pelo script -->
-    </select><br />
+    <input type="text" id="novoID" placeholder="Digite o novo ID" />
+    <input type="text" id="novoNome" placeholder="Digite o nome" />
+    <select id="novoCargo"></select>
     <button onclick="adicionarJogador()">Adicionar Jogador</button>
   </div>
 
 <script>
   const cargos = ["Soldado", "Cabo", "Sargento", "Tenente", "Capitão"];
 
-  const bancoJogadores = {
-    key: 'jogadores',
-    dadosPadrao: {
-      "12345": { nome: "João Silva", cargo: "Soldado" },
-      "67890": { nome: "Maria Souza", cargo: "Cabo" },
-      "11223": { nome: "Carlos Pereira", cargo: "Sargento" },
-      "44556": { nome: "Ana Oliveira", cargo: "Tenente" }
-    },
-    carregar() {
-      const dados = localStorage.getItem(this.key);
-      return dados ? JSON.parse(dados) : JSON.parse(JSON.stringify(this.dadosPadrao));
-    },
-    salvar(dados) {
-      localStorage.setItem(this.key, JSON.stringify(dados));
-    }
+  // Pega os dados do localStorage ou usa os padrões iniciais
+  let jogadores = JSON.parse(localStorage.getItem('jogadores')) || {
+    "12345": { nome: "João Silva", cargo: "Soldado" },
+    "67890": { nome: "Maria Souza", cargo: "Cabo" },
+    "11223": { nome: "Carlos Pereira", cargo: "Sargento" },
+    "44556": { nome: "Ana Oliveira", cargo: "Tenente" }
   };
 
-  let jogadores = bancoJogadores.carregar();
   let idAtual = null;
 
-  // Preenche o select de cargos na área de novo jogador
-  function preencherSelectCargo() {
-    const select = document.getElementById('novoCargo');
-    select.innerHTML = ''; // limpa
-    cargos.forEach(cargo => {
-      const option = document.createElement('option');
-      option.value = cargo;
-      option.textContent = cargo;
-      select.appendChild(option);
-    });
-  }
-
-  preencherSelectCargo();
+  // Popula o select de cargos no campo de novo jogador
+  const selectNovoCargo = document.getElementById('novoCargo');
+  cargos.forEach(cargo => {
+    const option = document.createElement('option');
+    option.value = cargo;
+    option.textContent = cargo;
+    selectNovoCargo.appendChild(option);
+  });
 
   function salvarLocalStorage() {
-    bancoJogadores.salvar(jogadores);
+    localStorage.setItem('jogadores', JSON.stringify(jogadores));
   }
 
   function pesquisar() {
@@ -206,24 +174,23 @@
     const novoCargo = document.getElementById('novoCargo').value;
 
     if (!novoID || !novoNome) {
-      alert('Por favor, preencha o ID e o nome do jogador.');
+      alert('Por favor, preencha todos os campos!');
       return;
     }
 
     if (novoID in jogadores) {
-      alert('Esse ID já existe. Use outro.');
+      alert('Esse ID já existe!');
       return;
     }
 
     jogadores[novoID] = { nome: novoNome, cargo: novoCargo };
     salvarLocalStorage();
-
     alert(`Jogador ${novoNome} adicionado com sucesso!`);
 
-    // Limpa os campos após adicionar
+    // Limpa os campos
     document.getElementById('novoID').value = '';
     document.getElementById('novoNome').value = '';
-    document.getElementById('novoCargo').selectedIndex = 0;
+    document.getElementById('novoCargo').value = cargos[0];
   }
 </script>
 
