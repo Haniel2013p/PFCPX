@@ -1,7 +1,137 @@
-<script>
-// RESET AUTOMÁTICO DOS DADOS AO ENTRAR NO SITE (remova depois de testar)
-localStorage.removeItem('jogadores');
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Painel de Controle SSP</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #222;
+      color: #eee;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      color: #00ccff;
+      margin-bottom: 30px;
+    }
+    input[type="text"], input[type="password"] {
+      padding: 10px;
+      font-size: 1.1em;
+      border-radius: 5px;
+      border: none;
+      width: 250px;
+      margin: 5px 0;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1.1em;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+      background-color: #00ccff;
+      color: #222;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #0099cc;
+      color: white;
+    }
+    #resultado, #novo-jogador, #login {
+      margin-top: 30px;
+      background-color: #333;
+      padding: 20px;
+      border-radius: 8px;
+      width: 350px;
+      text-align: center;
+    }
+    #acoes button {
+      width: 100px;
+    }
+    #btnToggleCadastro {
+      font-size: 0.9em;
+      color: #00ccff;
+      background: none;
+      border: none;
+      cursor: pointer;
+      margin-top: 10px;
+      text-decoration: underline;
+    }
+    #user-info {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background-color: #333;
+      padding: 10px 20px;
+      border-radius: 8px;
+      display: none;
+      color: #00ccff;
+      font-weight: bold;
+      user-select: none;
+    }
+    #pesquisa {
+      margin-top: 30px;
+      text-align: center;
+    }
+    #pesquisa input {
+      padding: 10px;
+      font-size: 1.1em;
+      border-radius: 5px;
+      border: none;
+      width: 250px;
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
 
+  <h1>Painel de Controle SSP</h1>
+
+  <!-- Login -->
+  <div id="login">
+    <input type="text" id="loginID" placeholder="Digite seu ID" />
+    <input type="password" id="loginSenha" placeholder="Digite sua senha" />
+    <button onclick="fazerLogin()">Entrar</button>
+
+    <button id="btnToggleCadastro">Ou cadastre-se abaixo</button>
+  </div>
+
+  <!-- Cadastro -->
+  <div id="novo-jogador" style="display:none;">
+    <h2>Adicionar Novo Jogador</h2>
+    <input type="text" id="novoID" placeholder="Digite o novo ID" />
+    <input type="text" id="novoNome" placeholder="Digite o nome" />
+    <input type="password" id="novaSenha" placeholder="Digite a senha" />
+    <button onclick="adicionarJogador()">Adicionar Jogador</button>
+  </div>
+
+  <!-- Pesquisa jogador -->
+  <div id="pesquisa" style="display:none;">
+    <input type="text" id="inputID" placeholder="Digite o ID do jogador" />
+    <button onclick="pesquisar()">Pesquisar</button>
+  </div>
+
+  <!-- Resultado -->
+  <div id="resultado" style="display:none;">
+    <p><strong>Nome:</strong> <span id="nome"></span></p>
+    <p><strong>Cargo:</strong> <span id="cargo"></span></p>
+    <div id="acoes">
+      <button id="btnPromover" onclick="promover()">Promover</button>
+      <button id="btnRebaixar" onclick="rebaixar()">Rebaixar</button>
+      <button id="btnExpulsar" onclick="expulsar()">Expulsar</button>
+    </div>
+  </div>
+
+  <!-- Info usuário logado -->
+  <div id="user-info"></div>
+
+<script>
 const cargos = [
   "Estagiário",
   "Investigador operacional",
@@ -57,11 +187,22 @@ function mostrarPainel() {
   document.getElementById('pesquisa').style.display = 'block';
 }
 
+function indiceCargo(cargo) {
+  return cargos.indexOf(cargo);
+}
+
+function podeModificar(id1, id2) {
+  const ind1 = indiceCargo(jogadores[id1].cargo);
+  const ind2 = indiceCargo(jogadores[id2].cargo);
+  return ind1 > ind2;
+}
+
 function pesquisar() {
   if (!idAtual) {
     alert('Faça login primeiro!');
     return;
   }
+
   const id = document.getElementById('inputID').value.trim();
   const resultadoDiv = document.getElementById('resultado');
 
@@ -76,7 +217,10 @@ function pesquisar() {
 
   const pode = podeModificar(idAtual, id);
 
-  document.getElementById('acoes').style.display = pode ? 'block' : 'none';
+  document.getElementById('btnPromover').style.display = pode ? 'inline-block' : 'none';
+  document.getElementById('btnRebaixar').style.display = pode ? 'inline-block' : 'none';
+  document.getElementById('btnExpulsar').style.display = pode ? 'inline-block' : 'none';
+
   resultadoDiv.style.display = 'block';
 }
 
@@ -85,70 +229,38 @@ function atualizarExibicao(id) {
   document.getElementById('cargo').innerText = jogadores[id].cargo;
 }
 
-function indiceCargo(cargo) {
-  return cargos.indexOf(cargo);
-}
-
-function podeModificar(id1, id2) {
-  const ind1 = indiceCargo(jogadores[id1].cargo);
-  const ind2 = indiceCargo(jogadores[id2].cargo);
-  return ind1 > ind2;
-}
-
 function promover() {
   if (!idAtualSelecionado) return;
-  let cargoAtual = jogadores[idAtualSelecionado].cargo;
-  let indice = indiceCargo(cargoAtual);
-
+  let indice = indiceCargo(jogadores[idAtualSelecionado].cargo);
   if (indice >= cargos.length - 1) {
-    alert(`${jogadores[idAtualSelecionado].nome} já está no cargo máximo (${cargoAtual})!`);
+    alert('Cargo máximo alcançado.');
     return;
   }
-
-  if (!podeModificar(idAtual, idAtualSelecionado)) {
-    alert('Você não tem permissão para promover este jogador.');
-    return;
-  }
-
   jogadores[idAtualSelecionado].cargo = cargos[indice + 1];
   salvarLocalStorage();
   atualizarExibicao(idAtualSelecionado);
-  alert(`${jogadores[idAtualSelecionado].nome} foi promovido para ${jogadores[idAtualSelecionado].cargo}!`);
+  alert('Jogador promovido!');
 }
 
 function rebaixar() {
   if (!idAtualSelecionado) return;
-  let cargoAtual = jogadores[idAtualSelecionado].cargo;
-  let indice = indiceCargo(cargoAtual);
-
+  let indice = indiceCargo(jogadores[idAtualSelecionado].cargo);
   if (indice <= 0) {
-    alert(`${jogadores[idAtualSelecionado].nome} já está no cargo mínimo (${cargoAtual})!`);
+    alert('Cargo mínimo alcançado.');
     return;
   }
-
-  if (!podeModificar(idAtual, idAtualSelecionado)) {
-    alert('Você não tem permissão para rebaixar este jogador.');
-    return;
-  }
-
   jogadores[idAtualSelecionado].cargo = cargos[indice - 1];
   salvarLocalStorage();
   atualizarExibicao(idAtualSelecionado);
-  alert(`${jogadores[idAtualSelecionado].nome} foi rebaixado para ${jogadores[idAtualSelecionado].cargo}!`);
+  alert('Jogador rebaixado!');
 }
 
 function expulsar() {
   if (!idAtualSelecionado) return;
-
-  if (!podeModificar(idAtual, idAtualSelecionado)) {
-    alert('Você não tem permissão para expulsar este jogador.');
-    return;
-  }
-
   let nome = jogadores[idAtualSelecionado].nome;
   delete jogadores[idAtualSelecionado];
   salvarLocalStorage();
-  alert(`${nome} foi expulso da organização!`);
+  alert(`${nome} foi expulso.`);
   document.getElementById('resultado').style.display = 'none';
   idAtualSelecionado = null;
   document.getElementById('inputID').value = '';
@@ -160,7 +272,7 @@ function adicionarJogador() {
   const novaSenha = document.getElementById('novaSenha').value;
 
   if (!novoID || !novoNome || !novaSenha) {
-    alert('Por favor, preencha todos os campos!');
+    alert('Preencha todos os campos!');
     return;
   }
 
@@ -170,10 +282,9 @@ function adicionarJogador() {
   }
 
   const cargoInicial = cargos[0];
-
   jogadores[novoID] = { nome: novoNome, cargo: cargoInicial, senha: novaSenha };
   salvarLocalStorage();
-  alert(`Jogador ${novoNome} adicionado com sucesso com o cargo ${cargoInicial}!`);
+  alert(`Jogador ${novoNome} cadastrado com cargo ${cargoInicial}.`);
 
   document.getElementById('novoID').value = '';
   document.getElementById('novoNome').value = '';
@@ -185,3 +296,6 @@ document.getElementById('btnToggleCadastro').addEventListener('click', () => {
   cadastroDiv.style.display = cadastroDiv.style.display === 'none' ? 'block' : 'none';
 });
 </script>
+
+</body>
+</html>
