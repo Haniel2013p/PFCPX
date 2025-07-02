@@ -1,62 +1,79 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Painel de Controle SSP</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #222;
-      color: #eee;
-      padding: 40px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-    }
-    h1 {
-      color: #00ccff;
-      margin-bottom: 30px;
-    }
-    input[type="text"], select {
-      padding: 10px;
-      font-size: 1.1em;
-      border-radius: 5px;
-      border: none;
-      width: 250px;
-      margin: 5px 0;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 1.1em;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      margin: 5px;
-      background-color: #00ccff;
-      color: #222;
-      transition: background-color 0.3s;
-    }
-    button:hover {
-      background-color: #0099cc;
-      color: white;
-    }
-    #resultado, #novo-jogador {
-      margin-top: 30px;
-      background-color: #333;
-      padding: 20px;
-      border-radius: 8px;
-      width: 350px;
-      text-align: center;
-    }
-    #acoes button {
-      width: 100px;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Login - Painel SSP</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #222;
+    color: #eee;
+    margin: 0;
+    padding: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+  #login, #painel {
+    background-color: #333;
+    padding: 20px;
+    border-radius: 8px;
+    width: 350px;
+    display: none;
+    flex-direction: column;
+  }
+  input, select, button {
+    margin: 10px 0;
+    padding: 10px;
+    font-size: 1em;
+    border-radius: 5px;
+    border: none;
+  }
+  button {
+    cursor: pointer;
+    background-color: #00ccff;
+    color: #222;
+    transition: background-color 0.3s;
+  }
+  button:hover {
+    background-color: #0099cc;
+    color: white;
+  }
+  #userInfo {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: #444;
+    padding: 10px 20px;
+    border-radius: 8px;
+  }
+  #resultado {
+    margin-top: 20px;
+    background-color: #222;
+    padding: 15px;
+    border-radius: 8px;
+  }
+  #acoes button {
+    width: 100px;
+    margin: 5px;
+  }
+</style>
 </head>
 <body>
+
+<!-- Tela de login -->
+<div id="login" style="display:flex; flex-direction:column;">
+  <h2>Login / Cadastro</h2>
+  <input type="text" id="loginID" placeholder="Digite seu ID" />
+  <input type="password" id="loginSenha" placeholder="Digite sua senha" />
+  <button onclick="fazerLogin()">Entrar</button>
+  <p id="msgLogin" style="color:#f44;"></p>
+</div>
+
+<!-- Painel -->
+<div id="painel" style="display:flex; flex-direction:column;">
   <h1>Painel de Controle SSP</h1>
 
   <div>
@@ -74,131 +91,152 @@
     </div>
   </div>
 
-  <div id="novo-jogador">
+  <div id="novo-jogador" style="margin-top:30px;">
     <h2>Adicionar Novo Jogador</h2>
     <input type="text" id="novoID" placeholder="Digite o novo ID" />
     <input type="text" id="novoNome" placeholder="Digite o nome" />
+    <input type="password" id="novoSenha" placeholder="Digite a senha" />
     <select id="novoCargo"></select>
     <button onclick="adicionarJogador()">Adicionar Jogador</button>
   </div>
+</div>
+
+<!-- Informação do usuário logado -->
+<div id="userInfo" style="display:none;">
+  <span id="userNome"></span> - <span id="userCargo"></span> 
+  <button onclick="logout()" style="margin-left:15px; background:#f44; color:#fff;">Sair</button>
+</div>
 
 <script>
-const cargos = [
-  "Estagiário",
-  "Investigador operacional",
-  "Agente especializado",
-  "Inspetor",
-  "Inspetor chefe",
-  "Chefe de inteligência"
-];
+  const cargos = [
+    "Estagiário",
+    "Investigador operacional",
+    "Agente especializado",
+    "Inspetor",
+    "Inspetor chefe",
+    "Chefe de inteligência"
+  ];
 
-// Tenta carregar os dados do localStorage ou usa os padrões
-let jogadores = JSON.parse(localStorage.getItem('jogadores')) || {
-  "1": { nome: "Rodrigo", cargo: "Inspetor chefe" },
-  "2": { nome: "Japa", cargo: "Inspetor" },
-  "3": { nome: "Haniel", cargo: "Chefe de inteligência" },
-  "4": { nome: "Luis", cargo: "Estagiário" }
-};
+  // Pega jogadores do localStorage ou cria padrão vazio
+  let jogadores = JSON.parse(localStorage.getItem('jogadores')) || {};
+  // Pega usuários (login) do localStorage ou cria padrão vazio
+  let usuarios = JSON.parse(localStorage.getItem('usuarios')) || {};
 
-let idAtual = null;
+  let usuarioLogado = null;
+  let idAtual = null;
 
-// Preenche o select de cargos
-const selectNovoCargo = document.getElementById('novoCargo');
-cargos.forEach(cargo => {
-  const option = document.createElement('option');
-  option.value = cargo;
-  option.textContent = cargo;
-  selectNovoCargo.appendChild(option);
-});
+  // Preenche select de cargos em novo jogador
+  const selectNovoCargo = document.getElementById('novoCargo');
+  cargos.forEach(cargo => {
+    const opt = document.createElement('option');
+    opt.value = cargo;
+    opt.textContent = cargo;
+    selectNovoCargo.appendChild(opt);
+  });
 
-function salvarLocalStorage() {
-  localStorage.setItem('jogadores', JSON.stringify(jogadores));
-}
+  // Mostrar tela de login ao entrar
+  document.getElementById('login').style.display = 'flex';
 
-function pesquisar() {
-  const id = document.getElementById('inputID').value.trim();
-  const resultadoDiv = document.getElementById('resultado');
+  // Função para salvar dados no localStorage
+  function salvarDados() {
+    localStorage.setItem('jogadores', JSON.stringify(jogadores));
+    localStorage.setItem('usuarios', JSON.stringify(usuarios));
+  }
 
-  if (id in jogadores) {
-    idAtual = id;
-    atualizarExibicao();
-    resultadoDiv.style.display = 'block';
-  } else {
-    alert('Jogador não encontrado!');
-    resultadoDiv.style.display = 'none';
+  // Login
+  function fazerLogin() {
+    const id = document.getElementById('loginID').value.trim();
+    const senha = document.getElementById('loginSenha').value;
+
+    if (!id || !senha) {
+      document.getElementById('msgLogin').innerText = "Preencha ID e senha!";
+      return;
+    }
+
+    if (!(id in usuarios)) {
+      // Cadastrar novo usuário com cargo inicial "Estagiário"
+      usuarios[id] = { senha: senha };
+      jogadores[id] = { nome: "Usuário " + id, cargo: "Estagiário" };
+      salvarDados();
+      alert("Conta criada com sucesso! Agora faça login novamente.");
+      document.getElementById('msgLogin').innerText = "";
+      return;
+    }
+
+    // Verificar senha
+    if (usuarios[id].senha !== senha) {
+      document.getElementById('msgLogin').innerText = "Senha incorreta!";
+      return;
+    }
+
+    // Login ok
+    usuarioLogado = id;
+    mostrarPainel();
+  }
+
+  // Mostra painel e info do usuário logado
+  function mostrarPainel() {
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('painel').style.display = 'flex';
+    document.getElementById('userInfo').style.display = 'block';
+    document.getElementById('userNome').innerText = jogadores[usuarioLogado].nome;
+    document.getElementById('userCargo').innerText = jogadores[usuarioLogado].cargo;
+  }
+
+  // Logout
+  function logout() {
+    usuarioLogado = null;
     idAtual = null;
-  }
-}
-
-function atualizarExibicao() {
-  if (!idAtual) return;
-  document.getElementById('nome').innerText = jogadores[idAtual].nome;
-  document.getElementById('cargo').innerText = jogadores[idAtual].cargo;
-}
-
-function promover() {
-  if (!idAtual) return;
-  let cargoAtual = jogadores[idAtual].cargo;
-  let indice = cargos.indexOf(cargoAtual);
-  if (indice < cargos.length - 1) {
-    jogadores[idAtual].cargo = cargos[indice + 1];
-    atualizarExibicao();
-    salvarLocalStorage();
-    alert(`${jogadores[idAtual].nome} foi promovido para ${jogadores[idAtual].cargo}!`);
-  } else {
-    alert(`${jogadores[idAtual].nome} já está no cargo máximo (${cargoAtual})!`);
-  }
-}
-
-function rebaixar() {
-  if (!idAtual) return;
-  let cargoAtual = jogadores[idAtual].cargo;
-  let indice = cargos.indexOf(cargoAtual);
-  if (indice > 0) {
-    jogadores[idAtual].cargo = cargos[indice - 1];
-    atualizarExibicao();
-    salvarLocalStorage();
-    alert(`${jogadores[idAtual].nome} foi rebaixado para ${jogadores[idAtual].cargo}!`);
-  } else {
-    alert(`${jogadores[idAtual].nome} já está no cargo mínimo (${cargoAtual})!`);
-  }
-}
-
-function expulsar() {
-  if (!idAtual) return;
-  let nome = jogadores[idAtual].nome;
-  delete jogadores[idAtual];
-  salvarLocalStorage();
-  alert(`${nome} foi expulso da organização!`);
-  document.getElementById('resultado').style.display = 'none';
-  idAtual = null;
-  document.getElementById('inputID').value = '';
-}
-
-function adicionarJogador() {
-  const novoID = document.getElementById('novoID').value.trim();
-  const novoNome = document.getElementById('novoNome').value.trim();
-  const novoCargo = document.getElementById('novoCargo').value;
-
-  if (!novoID || !novoNome) {
-    alert('Por favor, preencha todos os campos!');
-    return;
+    document.getElementById('painel').style.display = 'none';
+    document.getElementById('userInfo').style.display = 'none';
+    document.getElementById('login').style.display = 'flex';
+    document.getElementById('loginID').value = '';
+    document.getElementById('loginSenha').value = '';
+    document.getElementById('msgLogin').innerText = '';
   }
 
-  if (novoID in jogadores) {
-    alert('Esse ID já existe!');
-    return;
+  // Função para verificar se usuário logado pode agir sobre outro jogador
+  function podeAgirSobre(outroID) {
+    if (!usuarioLogado || !jogadores[usuarioLogado] || !jogadores[outroID]) return false;
+    const cargoUsuario = jogadores[usuarioLogado].cargo;
+    const cargoOutro = jogadores[outroID].cargo;
+    return cargos.indexOf(cargoUsuario) > cargos.indexOf(cargoOutro);
   }
 
-  jogadores[novoID] = { nome: novoNome, cargo: novoCargo };
-  salvarLocalStorage();
-  alert(`Jogador ${novoNome} adicionado com sucesso!`);
+  // Pesquisar jogador
+  function pesquisar() {
+    const id = document.getElementById('inputID').value.trim();
+    const resultadoDiv = document.getElementById('resultado');
 
-  document.getElementById('novoID').value = '';
-  document.getElementById('novoNome').value = '';
-  document.getElementById('novoCargo').value = cargos[0];
-}
-</script>
+    if (id in jogadores) {
+      if (!podeAgirSobre(id) && id !== usuarioLogado) {
+        alert("Você não tem permissão para ver ou agir sobre esse jogador.");
+        resultadoDiv.style.display = 'none';
+        idAtual = null;
+        return;
+      }
+      idAtual = id;
+      atualizarExibicao();
+      resultadoDiv.style.display = 'block';
+    } else {
+      alert('Jogador não encontrado!');
+      resultadoDiv.style.display = 'none';
+      idAtual = null;
+    }
+  }
 
-</body>
-</html>
+  // Atualizar dados na tela
+  function atualizarExibicao() {
+    if (!idAtual) return;
+    document.getElementById('nome').innerText = jogadores[idAtual].nome;
+    document.getElementById('cargo').innerText = jogadores[idAtual].cargo;
+
+    // Ativa ou desativa botões baseado na permissão
+    const podeAgir = podeAgirSobre(idAtual);
+    document.querySelectorAll('#acoes button').forEach(btn => {
+      btn.disabled = !podeAgir;
+    });
+
+    // Usuário pode agir sobre ele mesmo só para ver, não para mexer
+    if (idAtual === usuarioLogado) {
+      document.querySelectorAll('#acoes button').
