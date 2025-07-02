@@ -20,13 +20,14 @@
       color: #00ccff;
       margin-bottom: 30px;
     }
-    input[type="text"] {
+    input[type="text"], select {
       padding: 10px;
       font-size: 1.1em;
       border-radius: 5px;
       border: none;
       width: 250px;
       margin-right: 10px;
+      margin-bottom: 10px;
     }
     button {
       padding: 10px 20px;
@@ -55,6 +56,18 @@
     #acoes button {
       width: 100px;
     }
+    #novo-jogador {
+      margin-top: 40px;
+      background-color: #333;
+      padding: 20px;
+      border-radius: 8px;
+      width: 350px;
+      text-align: center;
+    }
+    #novo-jogador h2 {
+      margin-bottom: 15px;
+      color: #00ccff;
+    }
   </style>
 </head>
 <body>
@@ -75,29 +88,32 @@
     </div>
   </div>
 
+  <!-- Área para inserir novo jogador -->
+  <div id="novo-jogador">
+    <h2>Adicionar Novo Jogador</h2>
+    <input type="text" id="novoID" placeholder="Digite o novo ID" /><br />
+    <input type="text" id="novoNome" placeholder="Digite o nome" /><br />
+    <select id="novoCargo">
+      <!-- Opções criadas dinamicamente pelo script -->
+    </select><br />
+    <button onclick="adicionarJogador()">Adicionar Jogador</button>
+  </div>
+
 <script>
   const cargos = ["Soldado", "Cabo", "Sargento", "Tenente", "Capitão"];
 
-  // Banco de dados local com funções para manipular o localStorage
   const bancoJogadores = {
     key: 'jogadores',
-
-    // Dados padrão, caso não exista nada salvo
     dadosPadrao: {
       "12345": { nome: "João Silva", cargo: "Soldado" },
       "67890": { nome: "Maria Souza", cargo: "Cabo" },
       "11223": { nome: "Carlos Pereira", cargo: "Sargento" },
       "44556": { nome: "Ana Oliveira", cargo: "Tenente" }
     },
-
-    // Pega os dados do localStorage ou usa padrão
     carregar() {
       const dados = localStorage.getItem(this.key);
       return dados ? JSON.parse(dados) : JSON.parse(JSON.stringify(this.dadosPadrao));
-      // JSON.parse(JSON.stringify()) clona o objeto para evitar alterações no padrão original
     },
-
-    // Salva os dados no localStorage
     salvar(dados) {
       localStorage.setItem(this.key, JSON.stringify(dados));
     }
@@ -105,6 +121,20 @@
 
   let jogadores = bancoJogadores.carregar();
   let idAtual = null;
+
+  // Preenche o select de cargos na área de novo jogador
+  function preencherSelectCargo() {
+    const select = document.getElementById('novoCargo');
+    select.innerHTML = ''; // limpa
+    cargos.forEach(cargo => {
+      const option = document.createElement('option');
+      option.value = cargo;
+      option.textContent = cargo;
+      select.appendChild(option);
+    });
+  }
+
+  preencherSelectCargo();
 
   function salvarLocalStorage() {
     bancoJogadores.salvar(jogadores);
@@ -168,6 +198,32 @@
     document.getElementById('resultado').style.display = 'none';
     idAtual = null;
     document.getElementById('inputID').value = '';
+  }
+
+  function adicionarJogador() {
+    const novoID = document.getElementById('novoID').value.trim();
+    const novoNome = document.getElementById('novoNome').value.trim();
+    const novoCargo = document.getElementById('novoCargo').value;
+
+    if (!novoID || !novoNome) {
+      alert('Por favor, preencha o ID e o nome do jogador.');
+      return;
+    }
+
+    if (novoID in jogadores) {
+      alert('Esse ID já existe. Use outro.');
+      return;
+    }
+
+    jogadores[novoID] = { nome: novoNome, cargo: novoCargo };
+    salvarLocalStorage();
+
+    alert(`Jogador ${novoNome} adicionado com sucesso!`);
+
+    // Limpa os campos após adicionar
+    document.getElementById('novoID').value = '';
+    document.getElementById('novoNome').value = '';
+    document.getElementById('novoCargo').selectedIndex = 0;
   }
 </script>
 
