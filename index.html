@@ -198,6 +198,13 @@ function adicionarJogador() {
   document.getElementById('novoNome').value = '';
   document.getElementById('novoCargo').value = cargos[0];
 }
+function resetarBanco() {
+  if (confirm("Tem certeza que deseja resetar todos os dados?")) {
+    localStorage.removeItem('jogadores');
+    location.reload(); // Recarrega a página para aplicar
+  }
+}
+
 </script>
 
 </body>
