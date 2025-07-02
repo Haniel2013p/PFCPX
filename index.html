@@ -78,18 +78,36 @@
 <script>
   const cargos = ["Soldado", "Cabo", "Sargento", "Tenente", "Capitão"];
 
-  // Tenta carregar do localStorage; se não tiver, usa padrão inicial
-  let jogadores = JSON.parse(localStorage.getItem('jogadores')) || {
-    "12345": { nome: "João Silva", cargo: "Soldado" },
-    "67890": { nome: "Maria Souza", cargo: "Cabo" },
-    "11223": { nome: "Carlos Pereira", cargo: "Sargento" },
-    "44556": { nome: "Ana Oliveira", cargo: "Tenente" }
+  // Banco de dados local com funções para manipular o localStorage
+  const bancoJogadores = {
+    key: 'jogadores',
+
+    // Dados padrão, caso não exista nada salvo
+    dadosPadrao: {
+      "12345": { nome: "João Silva", cargo: "Soldado" },
+      "67890": { nome: "Maria Souza", cargo: "Cabo" },
+      "11223": { nome: "Carlos Pereira", cargo: "Sargento" },
+      "44556": { nome: "Ana Oliveira", cargo: "Tenente" }
+    },
+
+    // Pega os dados do localStorage ou usa padrão
+    carregar() {
+      const dados = localStorage.getItem(this.key);
+      return dados ? JSON.parse(dados) : JSON.parse(JSON.stringify(this.dadosPadrao));
+      // JSON.parse(JSON.stringify()) clona o objeto para evitar alterações no padrão original
+    },
+
+    // Salva os dados no localStorage
+    salvar(dados) {
+      localStorage.setItem(this.key, JSON.stringify(dados));
+    }
   };
 
+  let jogadores = bancoJogadores.carregar();
   let idAtual = null;
 
   function salvarLocalStorage() {
-    localStorage.setItem('jogadores', JSON.stringify(jogadores));
+    bancoJogadores.salvar(jogadores);
   }
 
   function pesquisar() {
