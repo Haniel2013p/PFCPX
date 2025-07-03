@@ -58,7 +58,7 @@
 <body>
   <div class="container" id="tela-login">
     <h2>Login</h2>
-    <input type="text" id="login-id" placeholder="ID do Usuário" />
+    <input type="text" id="login-id" placeholder="ID" />
     <input type="password" id="login-senha" placeholder="Senha" />
     <button onclick="login()">Entrar</button>
     <button onclick="mostrarCadastro()">Cadastrar</button>
@@ -75,7 +75,7 @@
 
   <div class="container hidden" id="painel">
     <h2 id="boas-vindas">Bem-vindo</h2>
-    <p>Você está acessando o Painel do Serviço Secreto Municipal. Toda ação será monitorada.</p>
+    <p id="mensagem-servico" style="margin-top:10px;"></p>
     <button onclick="mostrarLista()">Lista de registros</button>
     <button onclick="mostrarBanco()">Banco criminais</button>
     <button onclick="logout()">Sair</button>
@@ -85,7 +85,9 @@
     <h3>Lista de registros</h3>
     <table>
       <thead>
-        <tr><th>ID</th><th>Nome</th><th>Cargo</th><th>Ações</th></tr>
+        <tr>
+          <th>ID</th><th>Nome</th><th>Cargo</th><th>Ações</th>
+        </tr>
       </thead>
       <tbody id="corpo-registros"></tbody>
     </table>
@@ -103,15 +105,19 @@
       <option>Fugitivo</option>
       <option>Em liberdade</option>
     </select>
+    <label>Foi preso?</label>
+    <select id="banco-foi-preso">
+      <option>Não</option>
+      <option>Sim</option>
+    </select>
+    <input type="text" id="filtro-rg" placeholder="Pesquisar RG específico..." />
     <button onclick="adicionarCriminal()">Adicionar</button>
-    <input type="text" id="pesquisar-rg" placeholder="Pesquisar por RG" />
     <button onclick="pesquisarCriminal()">Pesquisar</button>
     <button onclick="voltarPainel()">Voltar</button>
-
     <h4>Resultados:</h4>
     <table>
       <thead>
-        <tr><th>Nome</th><th>RG</th><th>Histórico</th><th>Total de Prisões</th><th>Status</th><th id="coluna-acoes">Ação</th></tr>
+        <tr><th>Nome</th><th>RG</th><th>Histórico</th><th>Total de Prisões</th><th>Status</th><th id="acao-th">Ação</th></tr>
       </thead>
       <tbody id="resultado-criminais"></tbody>
     </table>
@@ -136,7 +142,7 @@
       const nome = document.getElementById("cadastro-nome").value;
       const senha = document.getElementById("cadastro-senha").value;
       const usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
-      if (usuarios.find(u => u.id === id)) return alert("ID já cadastrado.");
+      if (usuarios.find(u => u.id === id)) return alert("ID já existe!");
       usuarios.push({ id, nome, senha, cargo: "Estagiário" });
       localStorage.setItem("usuarios", JSON.stringify(usuarios));
       alert("Cadastrado com sucesso!");
@@ -150,9 +156,10 @@
       const encontrado = usuarios.find(u => u.id === id && u.senha === senha);
       if (encontrado) {
         usuarioLogado = encontrado;
-        document.querySelectorAll(".container").forEach(div => div.classList.add("hidden"));
+        document.getElementById("tela-login").classList.add("hidden");
         document.getElementById("painel").classList.remove("hidden");
         document.getElementById("boas-vindas").innerText = "Bem-vindo, " + usuarioLogado.nome;
+        document.getElementById("mensagem-servico").innerText = "Você entrou no Painel do Serviço Secreto Municipal. Use com responsabilidade.";
       } else {
         alert("ID ou senha incorretos.");
       }
@@ -168,6 +175,11 @@
       document.querySelectorAll(".container").forEach(div => div.classList.add("hidden"));
       document.getElementById("tela-lista").classList.remove("hidden");
       carregarListaRegistros();
+    }
+
+    function voltarPainel() {
+      document.querySelectorAll(".container").forEach(div => div.classList.add("hidden"));
+      document.getElementById("painel").classList.remove("hidden");
     }
 
     function carregarListaRegistros() {
@@ -229,42 +241,36 @@
       const rg = document.getElementById("banco-rg").value;
       const historico = document.getElementById("banco-historico").value;
       const status = document.getElementById("banco-status").value;
-      let prisoes = 0;
-      if (status === "Em liberdade") {
-        prisoes = (historico.match(/prisao|cadeia|preso/gi) || []).length;
-      }
+      const foiPreso = document.getElementById("banco-foi-preso").value;
       const registros = JSON.parse(localStorage.getItem("registrosCriminais")) || [];
+      const prisoes = foiPreso === "Sim" ? 1 : 0;
       registros.push({ nome, rg, historico, status, prisoes });
       localStorage.setItem("registrosCriminais", JSON.stringify(registros));
-      alert("Registro adicionado!");
     }
 
     function pesquisarCriminal() {
-      const filtroRG = document.getElementById("pesquisar-rg").value.trim();
+      const filtroRG = document.getElementById("filtro-rg").value.trim();
       const registros = JSON.parse(localStorage.getItem("registrosCriminais")) || [];
       const tabela = document.getElementById("resultado-criminais");
       tabela.innerHTML = "";
-      registros.filter(r => !filtroRG || r.rg === filtroRG).forEach((r, i) => {
-        let acoes = "";
-        if (usuarioLogado?.cargo === "Administrador") {
-          acoes = `<button onclick="apagarRegistro(${i})">Apagar</button>`;
+      const admin = usuarioLogado?.cargo === "Administrador";
+      registros.forEach((r, i) => {
+        if (!filtroRG || r.rg === filtroRG) {
+          let acoes = admin ? `<td><button onclick="removerRegistro(${i})">Remover</button></td>` : "<td></td>";
+          tabela.innerHTML += `
+            <tr>
+              <td>${r.nome}</td><td>${r.rg}</td><td>${r.historico}</td>
+              <td>${r.prisoes}</td><td>${r.status}</td>${acoes}
+            </tr>`;
         }
-        tabela.innerHTML += `<tr>
-          <td>${r.nome}</td><td>${r.rg}</td><td>${r.historico}</td><td>${r.prisoes}</td><td>${r.status}</td><td>${acoes}</td>
-        </tr>`;
       });
     }
 
-    function apagarRegistro(index) {
-      let registros = JSON.parse(localStorage.getItem("registrosCriminais")) || [];
+    function removerRegistro(index) {
+      const registros = JSON.parse(localStorage.getItem("registrosCriminais")) || [];
       registros.splice(index, 1);
       localStorage.setItem("registrosCriminais", JSON.stringify(registros));
       pesquisarCriminal();
-    }
-
-    function voltarPainel() {
-      document.querySelectorAll(".container").forEach(div => div.classList.add("hidden"));
-      document.getElementById("painel").classList.remove("hidden");
     }
 
     // Criar admin se não existir
