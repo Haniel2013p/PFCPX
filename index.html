@@ -85,9 +85,7 @@
     <h3>Lista de registros</h3>
     <table>
       <thead>
-        <tr>
-          <th>ID</th><th>Nome</th><th>Cargo</th><th>Ações</th>
-        </tr>
+        <tr><th>ID</th><th>Nome</th><th>Cargo</th><th>Ações</th></tr>
       </thead>
       <tbody id="corpo-registros"></tbody>
     </table>
@@ -110,14 +108,14 @@
       <option>Não</option>
       <option>Sim</option>
     </select>
-    <input type="text" id="filtro-rg" placeholder="Pesquisar RG específico..." />
     <button onclick="adicionarCriminal()">Adicionar</button>
+    <input type="text" id="filtro-rg" placeholder="Pesquisar RG específico..." />
     <button onclick="pesquisarCriminal()">Pesquisar</button>
     <button onclick="voltarPainel()">Voltar</button>
     <h4>Resultados:</h4>
     <table>
       <thead>
-        <tr><th>Nome</th><th>RG</th><th>Histórico</th><th>Total de Prisões</th><th>Status</th><th id="acao-th">Ação</th></tr>
+        <tr><th>Nome</th><th>RG</th><th>Histórico</th><th>Foi Preso?</th><th>Status</th><th id="acao-th">Ação</th></tr>
       </thead>
       <tbody id="resultado-criminais"></tbody>
     </table>
@@ -243,8 +241,7 @@
       const status = document.getElementById("banco-status").value;
       const foiPreso = document.getElementById("banco-foi-preso").value;
       const registros = JSON.parse(localStorage.getItem("registrosCriminais")) || [];
-      const prisoes = foiPreso === "Sim" ? 1 : 0;
-      registros.push({ nome, rg, historico, status, prisoes });
+      registros.push({ nome, rg, historico, status, foiPreso });
       localStorage.setItem("registrosCriminais", JSON.stringify(registros));
     }
 
@@ -254,13 +251,14 @@
       const tabela = document.getElementById("resultado-criminais");
       tabela.innerHTML = "";
       const admin = usuarioLogado?.cargo === "Administrador";
+
       registros.forEach((r, i) => {
         if (!filtroRG || r.rg === filtroRG) {
           let acoes = admin ? `<td><button onclick="removerRegistro(${i})">Remover</button></td>` : "<td></td>";
           tabela.innerHTML += `
             <tr>
               <td>${r.nome}</td><td>${r.rg}</td><td>${r.historico}</td>
-              <td>${r.prisoes}</td><td>${r.status}</td>${acoes}
+              <td>${r.foiPreso}</td><td>${r.status}</td>${acoes}
             </tr>`;
         }
       });
