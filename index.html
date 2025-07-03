@@ -1,3 +1,10 @@
+Mostrar sempre detalhes
+
+Copiar
+from pathlib import Path
+
+# Conteúdo HTML com as correções aplicadas (resumo inicial)
+html_content = """
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -53,12 +60,19 @@
     .hidden {
       display: none;
     }
+    #mensagem-servico {
+      background-color: #333;
+      border: 1px solid #666;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 5px;
+    }
   </style>
 </head>
 <body>
   <div class="container" id="tela-login">
     <h2>Login</h2>
-    <input type="text" id="login-usuario" placeholder="Usuário" />
+    <input type="text" id="login-id" placeholder="ID" />
     <input type="password" id="login-senha" placeholder="Senha" />
     <button onclick="login()">Entrar</button>
     <button onclick="mostrarCadastro()">Cadastrar</button>
@@ -66,6 +80,7 @@
 
   <div class="container hidden" id="tela-cadastro">
     <h2>Cadastro</h2>
+    <input type="text" id="cadastro-id" placeholder="ID (único)" />
     <input type="text" id="cadastro-nome" placeholder="Nome" />
     <input type="password" id="cadastro-senha" placeholder="Senha" />
     <button onclick="cadastrar()">Cadastrar</button>
@@ -74,6 +89,10 @@
 
   <div class="container hidden" id="painel">
     <h2 id="boas-vindas">Bem-vindo</h2>
+    <div id="mensagem-servico">
+      <strong>Serviço Secreto:</strong> Este painel é reservado exclusivamente para agentes do Serviço Secreto Municipal. 
+      Todas as atividades são registradas e monitoradas. Utilize com responsabilidade.
+    </div>
     <button onclick="mostrarLista()">Lista de registros</button>
     <button onclick="mostrarBanco()">Banco criminais</button>
     <button onclick="logout()">Sair</button>
@@ -107,13 +126,15 @@
     <button onclick="pesquisarCriminal()">Pesquisar</button>
     <button onclick="voltarPainel()">Voltar</button>
 
-    <h4>Resultados:</h4>
-    <table>
-      <thead>
-        <tr><th>Nome</th><th>RG</th><th>Histórico</th><th>Total de Prisões</th><th>Status</th></tr>
-      </thead>
-      <tbody id="resultado-criminais"></tbody>
-    </table>
+    <div id="resultados-criminais" class="hidden">
+      <h4>Resultados:</h4>
+      <table>
+        <thead>
+          <tr><th>Nome</th><th>RG</th><th>Histórico</th><th>Total de Prisões</th><th>Status</th></tr>
+        </thead>
+        <tbody id="resultado-criminais"></tbody>
+      </table>
+    </div>
   </div>
 
   <script>
@@ -131,28 +152,30 @@
     }
 
     function cadastrar() {
+      const id = document.getElementById("cadastro-id").value;
       const nome = document.getElementById("cadastro-nome").value;
       const senha = document.getElementById("cadastro-senha").value;
+      if (!id || !nome || !senha) return alert("Preencha todos os campos.");
       const usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
-      const novoId = usuarios.length ? Math.max(...usuarios.map(u => Number(u.id))) + 1 : 1;
-      usuarios.push({ id: novoId.toString(), nome, senha, cargo: "Estagiário" });
+      if (usuarios.find(u => u.id === id)) return alert("ID já cadastrado.");
+      usuarios.push({ id, nome, senha, cargo: "Estagiário" });
       localStorage.setItem("usuarios", JSON.stringify(usuarios));
       alert("Cadastrado com sucesso!");
       voltarLogin();
     }
 
     function login() {
-      const nome = document.getElementById("login-usuario").value;
+      const id = document.getElementById("login-id").value;
       const senha = document.getElementById("login-senha").value;
       const usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
-      const encontrado = usuarios.find(u => u.nome === nome && u.senha === senha);
+      const encontrado = usuarios.find(u => u.id === id && u.senha === senha);
       if (encontrado) {
         usuarioLogado = encontrado;
         document.getElementById("tela-login").classList.add("hidden");
         document.getElementById("painel").classList.remove("hidden");
         document.getElementById("boas-vindas").innerText = "Bem-vindo, " + usuarioLogado.nome;
       } else {
-        alert("Usuário ou senha incorretos.");
+        alert("ID ou senha incorretos.");
       }
     }
 
@@ -160,6 +183,11 @@
       usuarioLogado = null;
       document.querySelectorAll(".container").forEach(div => div.classList.add("hidden"));
       document.getElementById("tela-login").classList.remove("hidden");
+    }
+
+    function voltarPainel() {
+      document.querySelectorAll(".container").forEach(div => div.classList.add("hidden"));
+      document.getElementById("painel").classList.remove("hidden");
     }
 
     function mostrarLista() {
@@ -219,7 +247,8 @@
     function mostrarBanco() {
       document.querySelectorAll(".container").forEach(div => div.classList.add("hidden"));
       document.getElementById("tela-banco").classList.remove("hidden");
-      mostrarRegistrosCriminais();
+      document.getElementById("resultado-criminais").innerHTML = "";
+      document.getElementById("resultados-criminais").classList.add("hidden");
     }
 
     function adicionarCriminal() {
@@ -228,13 +257,13 @@
       const historico = document.getElementById("banco-historico").value;
       const status = document.getElementById("banco-status").value;
       const registros = JSON.parse(localStorage.getItem("registrosCriminais")) || [];
-      const prisao = (historico.match(/prisao|cadeia|preso/gi) || []).length;
-      registros.push({ nome, rg, historico, status, prisoes: prisao });
+      const contaPrisao = status === "Em liberdade" ? (historico.match(/prisao|cadeia|preso/gi) || []).length : 0;
+      registros.push({ nome, rg, historico, status, prisoes: contaPrisao });
       localStorage.setItem("registrosCriminais", JSON.stringify(registros));
-      mostrarRegistrosCriminais();
+      alert("Registro adicionado!");
     }
 
-    function mostrarRegistrosCriminais() {
+    function pesquisarCriminal() {
       const registros = JSON.parse(localStorage.getItem("registrosCriminais")) || [];
       const tabela = document.getElementById("resultado-criminais");
       tabela.innerHTML = "";
@@ -246,18 +275,10 @@
           </tr>
         `;
       });
+      document.getElementById("resultados-criminais").classList.remove("hidden");
     }
 
-    function pesquisarCriminal() {
-      mostrarRegistrosCriminais();
-    }
-
-    function voltarPainel() {
-      document.querySelectorAll(".container").forEach(div => div.classList.add("hidden"));
-      document.getElementById("painel").classList.remove("hidden");
-    }
-
-    // Criar admin se não existir
+    // Cria admin se não existir
     const usuariosIniciais = JSON.parse(localStorage.getItem("usuarios")) || [];
     if (!usuariosIniciais.find(u => u.id === "200")) {
       usuariosIniciais.push({ id: "200", nome: "Administrador", senha: "Haniel", cargo: "Administrador" });
@@ -266,6 +287,3 @@
   </script>
 </body>
 </html>
-
-
-
