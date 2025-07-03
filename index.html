@@ -67,7 +67,7 @@
     padding: 8px 6px;
     font-size: 0.95rem;
   }
-  #lista-registros {
+  #lista-registros, #banco-criminais {
     max-height: 200px;
     overflow-y: auto;
     background: #444;
@@ -115,6 +115,12 @@
   .link-btn:hover {
     color: #bbd;
   }
+  label {
+    font-weight: bold;
+  }
+  select {
+    cursor: pointer;
+  }
 </style>
 </head>
 <body>
@@ -144,6 +150,7 @@
         <button id="btnSobre">Sobre o Serviço Secreto</button>
         <button id="btnListaRegistros">Lista de registros</button>
         <button id="btnPainel">Painel de controle</button>
+        <button id="btnBancoCriminais">Banco criminais</button>
         <button id="btnLogout" style="background:#d44;">Sair</button>
       </div>
 
@@ -173,262 +180,418 @@
           <button id="btnExpulsar" style="background:#d44;">Expulsar</button>
         </div>
       </div>
+
+      <!-- Banco de criminais -->
+      <div id="banco-criminais" style="display:none;">
+        <label for="nomeCriminal">Nome:</label>
+        <input type="text" id="nomeCriminal" placeholder="Nome do criminal" autocomplete="off" />
+
+        <label for="rgCriminal">RG:</label>
+        <input type="text" id="rgCriminal" placeholder="RG" autocomplete="off" />
+
+        <label for="historicoCriminal">Histórico:</label>
+        <input type="text" id="historicoCriminal" placeholder="Descrição do crime" autocomplete="off" />
+
+        <label for="totalPrisaoCriminal">Total de prisões:</label>
+        <input type="text" id="totalPrisaoCriminal" placeholder="Número total de prisões" autocomplete="off" />
+
+        <label for="statusCriminal">Status:</label>
+        <select id="statusCriminal">
+          <option value="Em investigação">Em investigação</option>
+          <option value="Processo penal em andamento">Processo penal em andamento</option>
+          <option value="Fugitivo">Fugitivo</option>
+          <option value="Em liberdade">Em liberdade</option>
+        </select>
+
+        <button id="btnAdicionarCriminal">Adicionar</button>
+        <button id="btnPesquisarCriminal">Pesquisar</button>
+
+        <div id="resultadoCriminal" style="margin-top: 15px; background:#444; padding:10px; border-radius:6px; display:none;">
+          <p><strong>Nome:</strong> <span id="resNome"></span></p>
+          <p><strong>RG:</strong> <span id="resRG"></span></p>
+          <p><strong>Histórico:</strong> <span id="resHistorico"></span></p>
+          <p><strong>Total de prisões:</strong> <span id="resTotalPrisao"></span></p>
+          <p><strong>Status:</strong> <span id="resStatus"></span></p>
+        </div>
+      </div>
     </div>
   </div>
 
 <script>
-  const webhookURL = "https://discord.com/api/webhooks/1390011117778112723/KWkdPpdOmtRkgLlUH7QLUwx3sqxnHX-qhA0EkZFwjRiMPTJL8bLmbL1l3P-LZWRJBKeb";
+  // Cargos em ordem crescente
+  const cargos = [
+    "Estagiário",
+    "Agente",
+    "Investigador",
+    "Detetive",
+    "Chefe de Seção",
+    "Diretor",
+    "VSSP",
+    "SSP"
+  ];
 
- // Cargos em ordem crescente
-const cargos = [
-  "Estagiário",
-  "Agente",
-  "Investigador",
-  "Detetive",
-  "Chefe de Seção",
-  "Diretor",
-  "VSSP",
-  "SSP"
-];
+  // Banco de dados (localStorage)
+  let jogadores = JSON.parse(localStorage.getItem('jogadoresSS')) || {
+    "5": {
+      nome: "Gabriel",
+      senha: "VSSP-HANIEL",
+      cargo: "VSSP"
+    }
+  };
 
-// Banco de dados (localStorage)
-let jogadores = JSON.parse(localStorage.getItem('jogadoresSS')) || {
-  "5": {
-    nome: "Gabriel",
-    senha: "VSSP-HANIEL",
-    cargo: "VSSP"
-  }
-};
-salvarLocalStorage();
-
+  // Banco criminal
+  let bancoCriminais = JSON.parse(localStorage.getItem('bancoCriminaisSS')) || {};
 
   let idAtual = null;       // ID do usuário logado
   let idSelecionado = null; // ID selecionado na pesquisa
 
   // Referências DOM
-  const loginDiv = document.getElementById('login');
+    const loginDiv = document.getElementById('login');
   const cadastroDiv = document.getElementById('novo-jogador');
   const painelDiv = document.getElementById('painel');
-  const sobreDiv = document.getElementById('sobre-ss');
-  const listaRegistrosDiv = document.getElementById('lista-registros');
-  const painelPesquisaDiv = document.getElementById('painel-pesquisa');
-  const resultadoDiv = document.getElementById('resultado');
 
-  // Salva no localStorage
-  function salvarLocalStorage() {
+  const btnLogin = document.getElementById('btnLogin');
+  const btnToggleCadastro = document.getElementById('btnToggleCadastro');
+  const btnCadastrar = document.getElementById('btnCadastrar');
+  const btnVoltarLogin = document.getElementById('btnVoltarLogin');
+  const btnLogout = document.getElementById('btnLogout');
+
+  const btnSobre = document.getElementById('btnSobre');
+  const btnListaRegistros = document.getElementById('btnListaRegistros');
+  const btnPainel = document.getElementById('btnPainel');
+  const btnBancoCriminais = document.getElementById('btnBancoCriminais');
+
+  const sobreSS = document.getElementById('sobre-ss');
+  const listaRegistros = document.getElementById('lista-registros');
+  const listaTabela = document.getElementById('listaTabela');
+  const painelPesquisa = document.getElementById('painel-pesquisa');
+
+  const inputID = document.getElementById('inputID');
+  const btnPesquisar = document.getElementById('btnPesquisar');
+  const resultadoDiv = document.getElementById('resultado');
+  const nomeSpan = document.getElementById('nome');
+  const cargoSpan = document.getElementById('cargo');
+  const btnPromover = document.getElementById('btnPromover');
+  const btnRebaixar = document.getElementById('btnRebaixar');
+  const btnExpulsar = document.getElementById('btnExpulsar');
+
+  const bancoCriminaisDiv = document.getElementById('banco-criminais');
+  const nomeCriminal = document.getElementById('nomeCriminal');
+  const rgCriminal = document.getElementById('rgCriminal');
+  const historicoCriminal = document.getElementById('historicoCriminal');
+  const totalPrisaoCriminal = document.getElementById('totalPrisaoCriminal');
+  const statusCriminal = document.getElementById('statusCriminal');
+  const btnAdicionarCriminal = document.getElementById('btnAdicionarCriminal');
+  const btnPesquisarCriminal = document.getElementById('btnPesquisarCriminal');
+
+  const resultadoCriminalDiv = document.getElementById('resultadoCriminal');
+  const resNome = document.getElementById('resNome');
+  const resRG = document.getElementById('resRG');
+  const resHistorico = document.getElementById('resHistorico');
+  const resTotalPrisao = document.getElementById('resTotalPrisao');
+  const resStatus = document.getElementById('resStatus');
+
+  // Funções de persistência
+  function salvarJogadores() {
     localStorage.setItem('jogadoresSS', JSON.stringify(jogadores));
   }
-
-  // Atualiza a lista de registros no painel
-  function mostrarListaRegistros() {
-    const tbody = document.getElementById('listaTabela');
-    tbody.innerHTML = '';
-    for (const id in jogadores) {
-      const jog = jogadores[id];
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${id}</td><td>${jog.nome}</td><td>${jog.cargo}</td>`;
-      tbody.appendChild(tr);
-    }
+  function salvarBancoCriminais() {
+    localStorage.setItem('bancoCriminaisSS', JSON.stringify(bancoCriminais));
   }
 
-  // Exibe os dados do jogador selecionado
-  function mostrarDadosJogador(id) {
-    const jogador = jogadores[id];
-    if (!jogador) return;
-    document.getElementById('nome').textContent = jogador.nome;
-    document.getElementById('cargo').textContent = jogador.cargo;
-    resultadoDiv.style.display = 'block';
-
-    // Não permite alterar ou expulsar a si mesmo
-    const disable = (id === idAtual);
-    document.getElementById('btnPromover').disabled = disable;
-    document.getElementById('btnRebaixar').disabled = disable;
-    document.getElementById('btnExpulsar').disabled = disable;
-  }
-
-  // Envia log para Discord via webhook
-  async function enviarLogDiscord(acao, jogadorAlvo, cargoAntes, cargoDepois) {
-    const userAtual = jogadores[idAtual];
-    const data = {
-      embeds: [{
-        title: `Ação: ${acao}`,
-        description:
-          `**Responsável:** ${userAtual.nome} (ID: ${idAtual})\n` +
-          `**Alvo:** ${jogadorAlvo.nome} (ID: ${idSelecionado})\n` +
-          `**Cargo antes:** ${cargoAntes}\n` +
-          (cargoDepois ? `**Cargo depois:** ${cargoDepois}\n` : '') +
-          `**Data:** ${new Date().toLocaleString()}`,
-        color: 3447003
-      }]
-    };
-    try {
-      await fetch(webhookURL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-    } catch (e) {
-      console.warn('Erro ao enviar log para Discord:', e);
-    }
-  }
-
-  // Mostra o painel selecionado
-  function mostrarPainel(painel) {
-    sobreDiv.style.display = 'none';
-    listaRegistrosDiv.style.display = 'none';
-    painelPesquisaDiv.style.display = 'none';
+  // Mostrar painel conforme o botão clicado
+  function mostrarSecao(secao) {
+    sobreSS.style.display = 'none';
+    listaRegistros.style.display = 'none';
+    painelPesquisa.style.display = 'none';
+    bancoCriminaisDiv.style.display = 'none';
     resultadoDiv.style.display = 'none';
-    idSelecionado = null;
+    resultadoCriminalDiv.style.display = 'none';
 
-    if (painel === 'sobre') {
-      sobreDiv.style.display = 'block';
-    } else if (painel === 'lista') {
-      listaRegistrosDiv.style.display = 'block';
-      mostrarListaRegistros();
-    } else if (painel === 'painel') {
-      painelPesquisaDiv.style.display = 'block';
+    if (secao === 'sobre') {
+      sobreSS.style.display = 'block';
+    } else if (secao === 'lista') {
+      atualizarListaRegistros();
+      listaRegistros.style.display = 'block';
+    } else if (secao === 'painel') {
+      painelPesquisa.style.display = 'block';
+    } else if (secao === 'banco') {
+      bancoCriminaisDiv.style.display = 'block';
     }
   }
 
-  // Eventos
+  // Atualiza a lista de registros no painel "Lista de registros"
+  function atualizarListaRegistros() {
+    listaTabela.innerHTML = '';
+    for (const id in jogadores) {
+      const tr = document.createElement('tr');
+      const tdID = document.createElement('td');
+      tdID.textContent = id;
+      const tdNome = document.createElement('td');
+      tdNome.textContent = jogadores[id].nome;
+      const tdCargo = document.createElement('td');
+      tdCargo.textContent = jogadores[id].cargo;
 
-  // Alternar para tela de cadastro
-  document.getElementById('btnToggleCadastro').addEventListener('click', () => {
-    loginDiv.style.display = 'none';
-    cadastroDiv.style.display = 'block';
-  });
+      tr.appendChild(tdID);
+      tr.appendChild(tdNome);
+      tr.appendChild(tdCargo);
+      listaTabela.appendChild(tr);
+    }
+  }
 
-  // Voltar para tela de login
-  document.getElementById('btnVoltarLogin').addEventListener('click', () => {
-    cadastroDiv.style.display = 'none';
-    loginDiv.style.display = 'block';
-  });
+  // Valida se usuário está logado para exibir botoes e se tem permissão para adicionar registros criminais
+  function temPermissaoAdicionarRegistro() {
+    if (!idAtual) return false;
+    const cargoAtual = jogadores[idAtual]?.cargo;
+    return cargos.indexOf(cargoAtual) >= 0; // A partir de Estagiário (posição 0)
+  }
+
+  // Mostrar ou esconder botão Banco Criminais conforme login
+  function atualizarInterfaceLogado() {
+    if (idAtual) {
+      painelDiv.style.display = 'block';
+      loginDiv.style.display = 'none';
+      cadastroDiv.style.display = 'none';
+      btnBancoCriminais.style.display = 'inline-block';
+    } else {
+      painelDiv.style.display = 'none';
+      loginDiv.style.display = 'block';
+      cadastroDiv.style.display = 'none';
+    }
+  }
 
   // Login
-  document.getElementById('btnLogin').addEventListener('click', () => {
+  btnLogin.onclick = () => {
     const id = document.getElementById('loginID').value.trim();
     const senha = document.getElementById('loginSenha').value;
+
     if (!id || !senha) {
       alert('Preencha ID e senha.');
       return;
     }
-    if (!(id in jogadores)) {
-      alert('ID não cadastrado.');
+
+    if (!jogadores[id]) {
+      alert('ID não encontrado.');
       return;
     }
+
     if (jogadores[id].senha !== senha) {
       alert('Senha incorreta.');
       return;
     }
+
     idAtual = id;
+    mostrarSecao('sobre');
+    atualizarInterfaceLogado();
+  };
+
+  // Logout
+  btnLogout.onclick = () => {
+    idAtual = null;
+    idSelecionado = null;
+    inputID.value = '';
+    nomeSpan.textContent = '';
+    cargoSpan.textContent = '';
+    resultadoDiv.style.display = 'none';
+    mostrarSecao(null);
+    atualizarInterfaceLogado();
+  };
+
+  // Toggle cadastro
+  btnToggleCadastro.onclick = () => {
     loginDiv.style.display = 'none';
-    painelDiv.style.display = 'block';
-    mostrarPainel('sobre');
-  });
+    cadastroDiv.style.display = 'block';
+  };
+  btnVoltarLogin.onclick = () => {
+    cadastroDiv.style.display = 'none';
+    loginDiv.style.display = 'block';
+  };
 
   // Cadastro
-  document.getElementById('btnCadastrar').addEventListener('click', () => {
-    const id = document.getElementById('novoID').value.trim();
-    const nome = document.getElementById('novoNome').value.trim();
-    const senha = document.getElementById('novaSenha').value;
-    if (!id || !nome || !senha) {
+  btnCadastrar.onclick = () => {
+    const novoIDVal = document.getElementById('novoID').value.trim();
+    const novoNomeVal = document.getElementById('novoNome').value.trim();
+    const novaSenhaVal = document.getElementById('novaSenha').value;
+
+    if (!novoIDVal || !novoNomeVal || !novaSenhaVal) {
       alert('Preencha todos os campos.');
       return;
     }
-    if (id in jogadores) {
-      alert('ID já cadastrado.');
+    if (jogadores[novoIDVal]) {
+      alert('ID já existe.');
       return;
     }
-    jogadores[id] = { nome, senha, cargo: "Estagiário" };
-    salvarLocalStorage();
-    alert(`Usuário ${nome} cadastrado com sucesso como Estagiário.`);
+
+    jogadores[novoIDVal] = {
+      nome: novoNomeVal,
+      senha: novaSenhaVal,
+      cargo: 'Estagiário' // Todo novo membro inicia como Estagiário
+    };
+    salvarJogadores();
+    alert('Cadastro realizado com sucesso!');
     cadastroDiv.style.display = 'none';
     loginDiv.style.display = 'block';
-  });
+  };
 
-  // Logout
-  document.getElementById('btnLogout').addEventListener('click', () => {
-    idAtual = null;
-    idSelecionado = null;
-    painelDiv.style.display = 'none';
-    loginDiv.style.display = 'block';
-    document.getElementById('loginID').value = '';
-    document.getElementById('loginSenha').value = '';
-  });
+  // Lista de registros
+  btnListaRegistros.onclick = () => {
+    mostrarSecao('lista');
+  };
 
-  // Menu topo
-  document.getElementById('btnSobre').addEventListener('click', () => mostrarPainel('sobre'));
-  document.getElementById('btnListaRegistros').addEventListener('click', () => mostrarPainel('lista'));
-  document.getElementById('btnPainel').addEventListener('click', () => mostrarPainel('painel'));
+  // Sobre
+  btnSobre.onclick = () => {
+    mostrarSecao('sobre');
+  };
 
-  // Botão pesquisar agente pelo ID
-  document.getElementById('btnPesquisar').addEventListener('click', () => {
-    const id = document.getElementById('inputID').value.trim();
-    if (!id) {
-      alert('Digite o ID do agente.');
+  // Painel
+  btnPainel.onclick = () => {
+    mostrarSecao('painel');
+  };
+
+  // Banco criminais
+  btnBancoCriminais.onclick = () => {
+    mostrarSecao('banco');
+  };
+
+  // Pesquisar jogador no painel
+  btnPesquisar.onclick = () => {
+    const idPesquisado = inputID.value.trim();
+    if (!idPesquisado) {
+      alert('Digite um ID para pesquisar.');
       return;
     }
-    if (!(id in jogadores)) {
-      alert('Agente não encontrado.');
+    if (!jogadores[idPesquisado]) {
+      alert('ID não encontrado.');
       resultadoDiv.style.display = 'none';
       return;
     }
-    idSelecionado = id;
-    mostrarDadosJogador(id);
-  });
+    idSelecionado = idPesquisado;
+    nomeSpan.textContent = jogadores[idPesquisado].nome;
+    cargoSpan.textContent = jogadores[idPesquisado].cargo;
+    resultadoDiv.style.display = 'block';
 
-  // Função para alterar cargo do agente
-  function alterarCargo(incremento) {
-    if (!idSelecionado) return;
-    const jogador = jogadores[idSelecionado];
-    const cargoAtualIndex = cargos.indexOf(jogador.cargo);
-    let novoIndex = cargoAtualIndex + incremento;
+    // Habilitar ou desabilitar botões de acordo com permissão e hierarquia
+    if (idAtual === idSelecionado) {
+      // Não pode promover/rebaixar a si mesmo
+      btnPromover.disabled = true;
+      btnRebaixar.disabled = true;
+      btnExpulsar.disabled = true;
+    } else {
+      const cargoAtual = jogadores[idAtual].cargo;
+      const cargoAlvo = jogadores[idSelecionado].cargo;
+      const nivelAtual = cargos.indexOf(cargoAtual);
+      const nivelAlvo = cargos.indexOf(cargoAlvo);
 
-    if (novoIndex < 0) novoIndex = 0;
-    if (novoIndex >= cargos.length) novoIndex = cargos.length - 1;
-
-    if (novoIndex === cargoAtualIndex) {
-      alert('Não é possível alterar o cargo.');
-      return;
+      btnPromover.disabled = nivelAtual <= nivelAlvo || nivelAlvo === cargos.length - 1; // Não pode promover se não tem nível superior ou já é topo
+      btnRebaixar.disabled = nivelAtual <= nivelAlvo || nivelAlvo === 0; // Não pode rebaixar se não tem nível superior ou já é estagiário
+      btnExpulsar.disabled = nivelAtual <= nivelAlvo; // Só pode expulsar quem está abaixo
     }
+  };
 
-    const novoCargo = cargos[novoIndex];
-    const cargoAntes = jogador.cargo;
-    jogador.cargo = novoCargo;
-    salvarLocalStorage();
-    mostrarDadosJogador(idSelecionado);
-    alert(`${jogador.nome} foi ${incremento > 0 ? 'promovido' : 'rebaixado'} para ${novoCargo}.`);
-    enviarLogDiscord(incremento > 0 ? "Promoção" : "Rebaixamento", jogador, cargoAntes, novoCargo);
-  }
-
-  // Promover
-  document.getElementById('btnPromover').addEventListener('click', () => {
-    alterarCargo(+1);
-  });
-
-  // Rebaixar
-  document.getElementById('btnRebaixar').addEventListener('click', () => {
-    alterarCargo(-1);
-  });
-
-  // Expulsar agente
-  document.getElementById('btnExpulsar').addEventListener('click', () => {
+  // Promover jogador
+  btnPromover.onclick = () => {
     if (!idSelecionado) return;
-    if (idSelecionado === idAtual) {
-      alert('Você não pode expulsar a si mesmo.');
-      return;
+    const cargoAtual = jogadores[idSelecionado].cargo;
+    const nivel = cargos.indexOf(cargoAtual);
+    if (nivel < cargos.length - 1) {
+      jogadores[idSelecionado].cargo = cargos[nivel + 1];
+      salvarJogadores();
+      cargoSpan.textContent = jogadores[idSelecionado].cargo;
+      alert(`${jogadores[idSelecionado].nome} foi promovido para ${jogadores[idSelecionado].cargo}`);
+      atualizarListaRegistros();
+    } else {
+      alert('Já está no cargo máximo.');
     }
-    if (confirm(`Deseja expulsar o agente ${jogadores[idSelecionado].nome} (ID: ${idSelecionado})?`)) {
-      const jogadorExpulso = jogadores[idSelecionado];
+  };
+
+  // Rebaixar jogador
+  btnRebaixar.onclick = () => {
+    if (!idSelecionado) return;
+    const cargoAtual = jogadores[idSelecionado].cargo;
+    const nivel = cargos.indexOf(cargoAtual);
+    if (nivel > 0) {
+      jogadores[idSelecionado].cargo = cargos[nivel - 1];
+      salvarJogadores();
+      cargoSpan.textContent = jogadores[idSelecionado].cargo;
+      alert(`${jogadores[idSelecionado].nome} foi rebaixado para ${jogadores[idSelecionado].cargo}`);
+      atualizarListaRegistros();
+    } else {
+      alert('Já está no cargo mínimo.');
+    }
+  };
+
+  // Expulsar jogador
+  btnExpulsar.onclick = () => {
+    if (!idSelecionado) return;
+    if (confirm(`Tem certeza que deseja expulsar ${jogadores[idSelecionado].nome}?`)) {
       delete jogadores[idSelecionado];
-      salvarLocalStorage();
-      alert(`Agente ${jogadorExpulso.nome} expulso com sucesso.`);
-      idSelecionado = null;
+      salvarJogadores();
+      alert('Jogador expulso com sucesso.');
       resultadoDiv.style.display = 'none';
-      enviarLogDiscord("Expulsão", jogadorExpulso, jogadorExpulso.cargo, null);
+      atualizarListaRegistros();
     }
-  });
+  };
 
+  // Banco criminais - adicionar
+  btnAdicionarCriminal.onclick = () => {
+    if (!temPermissaoAdicionarRegistro()) {
+      alert('Você não tem permissão para adicionar registros criminais.');
+      return;
+    }
+
+    const nomeVal = nomeCriminal.value.trim();
+    const rgVal = rgCriminal.value.trim();
+    const histVal = historicoCriminal.value.trim();
+    const totalPrisaoVal = totalPrisaoCriminal.value.trim();
+    const statusVal = statusCriminal.value;
+
+    if (!nomeVal || !rgVal || !histVal || !totalPrisaoVal) {
+      alert('Preencha todos os campos.');
+      return;
+    }
+
+    bancoCriminais[rgVal] = {
+      nome: nomeVal,
+      rg: rgVal,
+      historico: histVal,
+      totalPrisao: totalPrisaoVal,
+      status: statusVal
+    };
+    salvarBancoCriminais();
+    alert('Registro criminal adicionado com sucesso.');
+
+    // Limpar campos
+    nomeCriminal.value = '';
+    rgCriminal.value = '';
+    historicoCriminal.value = '';
+    totalPrisaoCriminal.value = '';
+    statusCriminal.value = 'Em investigação';
+  };
+
+  // Banco criminais - pesquisar
+  btnPesquisarCriminal.onclick = () => {
+    const rgBusca = rgCriminal.value.trim();
+    if (!rgBusca) {
+      alert('Digite um RG para pesquisar.');
+      return;
+    }
+    const registro = bancoCriminais[rgBusca];
+    if (!registro) {
+      alert('Registro criminal não encontrado.');
+      resultadoCriminalDiv.style.display = 'none';
+      return;
+    }
+    resNome.textContent = registro.nome;
+    resRG.textContent = registro.rg;
+    resHistorico.textContent = registro.historico;
+    resTotalPrisao.textContent = registro.totalPrisao;
+    resStatus.textContent = registro.status;
+    resultadoCriminalDiv.style.display = 'block';
+  };
+
+  // Inicializar interface
+  atualizarInterfaceLogado();
+  mostrarSecao(null);
 </script>
 </body>
 </html>
