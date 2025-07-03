@@ -227,7 +227,8 @@
     "Chefe de Seção",
     "Diretor",
     "VSSP",
-    "SSP"
+    "SSP",
+    "PREFEITO"
   ];
 
   // Banco de dados (localStorage)
@@ -236,6 +237,14 @@
       nome: "Gabriel",
       senha: "VSSP-HANIEL",
       cargo: "VSSP"
+    }
+  };
+
+ let jogadores = JSON.parse(localStorage.getItem('jogadoresSS')) || {
+    "444": {
+      nome: "ADM",
+      senha: "123",
+      cargo: "PREFEITO"
     }
   };
 
