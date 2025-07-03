@@ -2,6 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Painel Secreto</title>
   <style>
     body {
@@ -33,7 +34,9 @@
       border: none;
       cursor: pointer;
     }
-    button.red { background-color: darkred; }
+    button.red {
+      background-color: darkred;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -44,14 +47,18 @@
       padding: 10px;
       text-align: left;
     }
-    th { background-color: #444; }
-    .hidden { display: none; }
+    th {
+      background-color: #444;
+    }
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
   <div class="container" id="tela-login">
     <h2>Login</h2>
-    <input type="text" id="login-id" placeholder="ID" />
+    <input type="text" id="login-id" placeholder="ID do Usuário" />
     <input type="password" id="login-senha" placeholder="Senha" />
     <button onclick="login()">Entrar</button>
     <button onclick="mostrarCadastro()">Cadastrar</button>
@@ -68,7 +75,7 @@
 
   <div class="container hidden" id="painel">
     <h2 id="boas-vindas">Bem-vindo</h2>
-    <p>Você está logado no painel do <strong>Serviço Secreto Municipal</strong>. Aqui você pode gerenciar registros de pessoal e dados criminais.</p>
+    <p>Você está acessando o Painel do Serviço Secreto Municipal. Toda ação será monitorada.</p>
     <button onclick="mostrarLista()">Lista de registros</button>
     <button onclick="mostrarBanco()">Banco criminais</button>
     <button onclick="logout()">Sair</button>
@@ -77,7 +84,9 @@
   <div class="container hidden" id="tela-lista">
     <h3>Lista de registros</h3>
     <table>
-      <thead><tr><th>ID</th><th>Nome</th><th>Cargo</th><th>Ações</th></tr></thead>
+      <thead>
+        <tr><th>ID</th><th>Nome</th><th>Cargo</th><th>Ações</th></tr>
+      </thead>
       <tbody id="corpo-registros"></tbody>
     </table>
     <button onclick="voltarPainel()">Voltar</button>
@@ -95,14 +104,14 @@
       <option>Em liberdade</option>
     </select>
     <button onclick="adicionarCriminal()">Adicionar</button>
-    <input type="text" id="pesquisa-rg" placeholder="Pesquisar RG..." />
+    <input type="text" id="pesquisar-rg" placeholder="Pesquisar por RG" />
     <button onclick="pesquisarCriminal()">Pesquisar</button>
     <button onclick="voltarPainel()">Voltar</button>
 
     <h4>Resultados:</h4>
     <table>
       <thead>
-        <tr><th>Nome</th><th>RG</th><th>Histórico</th><th>Prisões</th><th>Status</th><th>Ação</th></tr>
+        <tr><th>Nome</th><th>RG</th><th>Histórico</th><th>Total de Prisões</th><th>Status</th><th id="coluna-acoes">Ação</th></tr>
       </thead>
       <tbody id="resultado-criminais"></tbody>
     </table>
@@ -143,7 +152,7 @@
         usuarioLogado = encontrado;
         document.querySelectorAll(".container").forEach(div => div.classList.add("hidden"));
         document.getElementById("painel").classList.remove("hidden");
-        document.getElementById("boas-vindas").innerText = `Bem-vindo, ${usuarioLogado.nome}`;
+        document.getElementById("boas-vindas").innerText = "Bem-vindo, " + usuarioLogado.nome;
       } else {
         alert("ID ou senha incorretos.");
       }
@@ -163,27 +172,29 @@
 
     function carregarListaRegistros() {
       const usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
-      const corpo = document.getElementById("corpo-registros");
-      corpo.innerHTML = "";
-      const meuNivel = cargos.indexOf(usuarioLogado?.cargo);
+      const corpoTabela = document.getElementById("corpo-registros");
+      corpoTabela.innerHTML = "";
       usuarios.forEach(u => {
-        const nivel = cargos.indexOf(u.cargo);
-        let acoes = "";
-        if (meuNivel > nivel && u.id !== "200") {
-          acoes += `<button onclick="promoverUsuario('${u.id}')">Promover</button>`;
-          if (nivel > 0) acoes += `<button onclick="rebaixarUsuario('${u.id}')">Rebaixar</button>`;
-          acoes += `<button class="red" onclick="expulsarUsuario('${u.id}')">Expulsar</button>`;
+        const tr = document.createElement("tr");
+        const acoes = [];
+        const seuCargoIndex = cargos.indexOf(usuarioLogado?.cargo);
+        const cargoIndex = cargos.indexOf(u.cargo);
+        if (usuarioLogado && seuCargoIndex > cargoIndex && u.id !== "200") {
+          acoes.push(`<button onclick="promoverUsuario('${u.id}')">Promover</button>`);
+          if (cargoIndex > 0) acoes.push(`<button onclick="rebaixarUsuario('${u.id}')">Rebaixar</button>`);
+          acoes.push(`<button class='red' onclick="expulsarUsuario('${u.id}')">Expulsar</button>`);
         }
-        corpo.innerHTML += `<tr><td>${u.id}</td><td>${u.nome}</td><td>${u.cargo}</td><td>${acoes}</td></tr>`;
+        tr.innerHTML = `<td>${u.id}</td><td>${u.nome}</td><td>${u.cargo}</td><td>${acoes.join("<br>")}</td>`;
+        corpoTabela.appendChild(tr);
       });
     }
 
     function promoverUsuario(id) {
       const usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
-      const i = usuarios.findIndex(u => u.id === id);
-      const atual = cargos.indexOf(usuarios[i].cargo);
+      const index = usuarios.findIndex(u => u.id === id);
+      const atual = cargos.indexOf(usuarios[index].cargo);
       if (atual < cargos.length - 2) {
-        usuarios[i].cargo = cargos[atual + 1];
+        usuarios[index].cargo = cargos[atual + 1];
         localStorage.setItem("usuarios", JSON.stringify(usuarios));
         carregarListaRegistros();
       }
@@ -191,10 +202,10 @@
 
     function rebaixarUsuario(id) {
       const usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
-      const i = usuarios.findIndex(u => u.id === id);
-      const atual = cargos.indexOf(usuarios[i].cargo);
+      const index = usuarios.findIndex(u => u.id === id);
+      const atual = cargos.indexOf(usuarios[index].cargo);
       if (atual > 0) {
-        usuarios[i].cargo = cargos[atual - 1];
+        usuarios[index].cargo = cargos[atual - 1];
         localStorage.setItem("usuarios", JSON.stringify(usuarios));
         carregarListaRegistros();
       }
@@ -225,21 +236,22 @@
       const registros = JSON.parse(localStorage.getItem("registrosCriminais")) || [];
       registros.push({ nome, rg, historico, status, prisoes });
       localStorage.setItem("registrosCriminais", JSON.stringify(registros));
-      alert("Registro adicionado.");
+      alert("Registro adicionado!");
     }
 
     function pesquisarCriminal() {
-      const rgBusca = document.getElementById("pesquisa-rg").value.trim();
+      const filtroRG = document.getElementById("pesquisar-rg").value.trim();
       const registros = JSON.parse(localStorage.getItem("registrosCriminais")) || [];
       const tabela = document.getElementById("resultado-criminais");
       tabela.innerHTML = "";
-      const filtrados = registros.filter(r => r.rg.includes(rgBusca));
-      filtrados.forEach((r, index) => {
-        let acao = "";
+      registros.filter(r => !filtroRG || r.rg === filtroRG).forEach((r, i) => {
+        let acoes = "";
         if (usuarioLogado?.cargo === "Administrador") {
-          acao = `<button class="red" onclick="apagarRegistro(${index})">Apagar</button>`;
+          acoes = `<button onclick="apagarRegistro(${i})">Apagar</button>`;
         }
-        tabela.innerHTML += `<tr><td>${r.nome}</td><td>${r.rg}</td><td>${r.historico}</td><td>${r.prisoes}</td><td>${r.status}</td><td>${acao}</td></tr>`;
+        tabela.innerHTML += `<tr>
+          <td>${r.nome}</td><td>${r.rg}</td><td>${r.historico}</td><td>${r.prisoes}</td><td>${r.status}</td><td>${acoes}</td>
+        </tr>`;
       });
     }
 
@@ -250,7 +262,12 @@
       pesquisarCriminal();
     }
 
-    // Criar admin padrão se não existir
+    function voltarPainel() {
+      document.querySelectorAll(".container").forEach(div => div.classList.add("hidden"));
+      document.getElementById("painel").classList.remove("hidden");
+    }
+
+    // Criar admin se não existir
     const usuariosIniciais = JSON.parse(localStorage.getItem("usuarios")) || [];
     if (!usuariosIniciais.find(u => u.id === "200")) {
       usuariosIniciais.push({ id: "200", nome: "Administrador", senha: "Haniel", cargo: "Administrador" });
