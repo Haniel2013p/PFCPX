@@ -1,606 +1,355 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Painel Serviço Secreto Municipal</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    margin: 0; padding: 0;
-    background: #222;
-    color: #eee;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
-  }
-  #container {
-    background: #333;
-    width: 360px;
-    margin: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 15px #000;
-    padding: 20px;
-  }
-  h1 {
-    text-align: center;
-    margin-bottom: 15px;
-    color: #aaf;
-  }
-  input[type=text], input[type=password], select {
-    width: 100%;
-    padding: 8px 6px;
-    margin: 6px 0 12px 0;
-    border: none;
-    border-radius: 4px;
-    font-size: 1rem;
-  }
-  button {
-    background: #5588ee;
-    color: white;
-    padding: 10px;
-    width: 100%;
-    border: none;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 1rem;
-    margin-bottom: 10px;
-  }
-  button:hover:not(:disabled) {
-    background: #4477dd;
-  }
-  button:disabled {
-    background: #444;
-    cursor: default;
-  }
-  #menuTopo {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 15px;
-    flex-wrap: wrap;
-  }
-  #menuTopo button {
-    flex: 1;
-    min-width: 70px;
-    padding: 8px 6px;
-    font-size: 0.95rem;
-  }
-  #lista-registros, #banco-criminais {
-    max-height: 200px;
-    overflow-y: auto;
-    background: #444;
-    padding: 10px;
-    border-radius: 6px;
-    margin-bottom: 15px;
-  }
-  #lista-registros table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  #lista-registros th, #lista-registros td {
-    border: 1px solid #666;
-    padding: 6px 4px;
-    font-size: 0.9rem;
-  }
-  #sobre-ss {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  #resultado {
-    background: #444;
-    padding: 15px;
-    border-radius: 6px;
-    margin-top: 10px;
-  }
-  #resultado p {
-    margin: 8px 0;
-    font-size: 1rem;
-  }
-  #inputID {
-    font-size: 1rem;
-    padding: 6px;
-  }
-  .link-btn {
-    background: none;
-    border: none;
-    color: #88aaff;
-    cursor: pointer;
-    padding: 0;
-    font-size: 0.95rem;
-    text-decoration: underline;
-    margin-top: 10px;
-  }
-  .link-btn:hover {
-    color: #bbd;
-  }
-  label {
-    font-weight: bold;
-  }
-  select {
-    cursor: pointer;
-  }
+  body { font-family: Arial, sans-serif; background: #222; color: #eee; margin: 0; padding: 0; }
+  #login, #painel, #registros, #banco-criminal { max-width: 700px; margin: 30px auto; background: #333; padding: 20px; border-radius: 8px; display: none; }
+  input, select, button { padding: 8px; margin: 6px 0; width: 100%; border-radius: 4px; border: none; }
+  button { background: #0a74da; color: white; cursor: pointer; }
+  button:hover { background: #065aab; }
+  #menu { display: flex; justify-content: space-between; margin-bottom: 20px; }
+  #menu button { width: auto; padding: 10px 20px; margin: 0 5px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  th, td { border: 1px solid #555; padding: 8px; text-align: left; }
+  th { background: #444; }
+  .hidden { display: none; }
 </style>
 </head>
 <body>
-  <div id="container">
-    <h1>Serviço Secreto Municipal</h1>
 
-    <!-- Login -->
-    <div id="login">
-      <input type="text" id="loginID" placeholder="Digite seu ID" autocomplete="off" />
-      <input type="password" id="loginSenha" placeholder="Digite sua senha" autocomplete="off" />
-      <button id="btnLogin">Entrar</button>
-      <button class="link-btn" id="btnToggleCadastro">Cadastrar novo membro</button>
-    </div>
+<div id="login">
+  <h2>Login - Serviço Secreto Municipal</h2>
+  <input id="inputUsuario" type="text" placeholder="Usuário" autocomplete="off" />
+  <input id="inputSenha" type="password" placeholder="Senha" autocomplete="off" />
+  <button id="btnLogin">Entrar</button>
+  <p id="msgLogin" style="color:#f44;"></p>
+</div>
 
-    <!-- Cadastro -->
-    <div id="novo-jogador" style="display:none;">
-      <input type="text" id="novoID" placeholder="Novo ID (único)" autocomplete="off" />
-      <input type="text" id="novoNome" placeholder="Nome completo" autocomplete="off" />
-      <input type="password" id="novaSenha" placeholder="Senha" autocomplete="off" />
-      <button id="btnCadastrar">Cadastrar</button>
-      <button class="link-btn" id="btnVoltarLogin">Voltar ao login</button>
-    </div>
-
-    <!-- Área logado -->
-    <div id="painel" style="display:none;">
-      <div id="menuTopo">
-        <button id="btnSobre">Sobre o Serviço Secreto</button>
-        <button id="btnListaRegistros">Lista de registros</button>
-        <button id="btnPainel">Painel de controle</button>
-        <button id="btnBancoCriminais">Banco criminais</button>
-        <button id="btnLogout" style="background:#d44;">Sair</button>
-      </div>
-
-      <!-- Texto explicativo sobre o Serviço Secreto -->
-      <div id="sobre-ss" style="display:none;">
-        <p>Bem-vindo ao Serviço Secreto Municipal, onde protegemos a integridade da prefeitura e a segurança dos cidadãos. Aqui você pode pesquisar membros, promover, rebaixar ou expulsar agentes com base nas necessidades da equipe.</p>
-      </div>
-
-      <!-- Lista de registros -->
-      <div id="lista-registros" style="display:none;">
-        <table>
-          <thead><tr><th>ID</th><th>Nome</th><th>Cargo</th></tr></thead>
-          <tbody id="listaTabela"></tbody>
-        </table>
-      </div>
-
-      <!-- Painel de pesquisa e ações -->
-      <div id="painel-pesquisa" style="display:none;">
-        <input type="text" id="inputID" placeholder="Digite ID do agente" autocomplete="off" />
-        <button id="btnPesquisar">Pesquisar</button>
-
-        <div id="resultado" style="display:none;">
-          <p><strong>Nome:</strong> <span id="nome"></span></p>
-          <p><strong>Cargo:</strong> <span id="cargo"></span></p>
-          <button id="btnPromover">Promover</button>
-          <button id="btnRebaixar">Rebaixar</button>
-          <button id="btnExpulsar" style="background:#d44;">Expulsar</button>
-        </div>
-      </div>
-
-      <!-- Banco de criminais -->
-      <div id="banco-criminais" style="display:none;">
-        <label for="nomeCriminal">Nome:</label>
-        <input type="text" id="nomeCriminal" placeholder="Nome do criminal" autocomplete="off" />
-
-        <label for="rgCriminal">RG:</label>
-        <input type="text" id="rgCriminal" placeholder="RG" autocomplete="off" />
-
-        <label for="historicoCriminal">Histórico:</label>
-        <input type="text" id="historicoCriminal" placeholder="Descrição do crime" autocomplete="off" />
-
-        <label for="totalPrisaoCriminal">Total de prisões:</label>
-        <input type="text" id="totalPrisaoCriminal" placeholder="Número total de prisões" autocomplete="off" />
-
-        <label for="statusCriminal">Status:</label>
-        <select id="statusCriminal">
-          <option value="Em investigação">Em investigação</option>
-          <option value="Processo penal em andamento">Processo penal em andamento</option>
-          <option value="Fugitivo">Fugitivo</option>
-          <option value="Em liberdade">Em liberdade</option>
-        </select>
-
-        <button id="btnAdicionarCriminal">Adicionar</button>
-        <button id="btnPesquisarCriminal">Pesquisar</button>
-
-        <div id="resultadoCriminal" style="margin-top: 15px; background:#444; padding:10px; border-radius:6px; display:none;">
-          <p><strong>Nome:</strong> <span id="resNome"></span></p>
-          <p><strong>RG:</strong> <span id="resRG"></span></p>
-          <p><strong>Histórico:</strong> <span id="resHistorico"></span></p>
-          <p><strong>Total de prisões:</strong> <span id="resTotalPrisao"></span></p>
-          <p><strong>Status:</strong> <span id="resStatus"></span></p>
-        </div>
-      </div>
-    </div>
+<div id="painel">
+  <div id="menu">
+    <button id="btnLista">Lista de registros</button>
+    <button id="btnBancoCriminal">Banco criminais</button>
+    <button id="btnLogout" style="background:#b22222;">Sair</button>
   </div>
+  <div id="explicacao" style="text-align:center; margin-bottom: 20px;">
+    <p>Bem-vindo ao Painel do Serviço Secreto Municipal. Aqui você pode gerenciar membros, registros criminais e controlar cargos.</p>
+  </div>
+</div>
+
+<div id="registros">
+  <h3>Lista de registros</h3>
+  <table>
+    <thead><tr><th>ID</th><th>Nome</th><th>Cargo</th><th>Ações</th></tr></thead>
+    <tbody id="tabelaRegistros"></tbody>
+  </table>
+  <button id="btnVoltarRegistros">Voltar</button>
+</div>
+
+<div id="banco-criminal">
+  <h3>Banco de Registros Criminais</h3>
+  <input id="inputPesquisarRG" placeholder="Pesquisar por RG..." autocomplete="off" />
+  <br />
+  <input id="inputNomeCriminal" placeholder="Nome" autocomplete="off" />
+  <input id="inputRGCriminal" placeholder="RG" autocomplete="off" />
+  <textarea id="inputHistorico" placeholder="Histórico" rows="3"></textarea>
+  <select id="selectStatus">
+    <option value="Em investigação">Em investigação</option>
+    <option value="Processo penal em andamento">Processo penal em andamento</option>
+    <option value="Fugitivo">Fugitivo</option>
+    <option value="Em liberdade">Em liberdade</option>
+  </select>
+  <button id="btnAdicionarCriminal">Adicionar</button>
+  <button id="btnPesquisarCriminal">Pesquisar</button>
+  <button id="btnVoltarBanco">Voltar</button>
+
+  <h4>Resultados:</h4>
+  <table>
+    <thead><tr><th>Nome</th><th>RG</th><th>Histórico</th><th>Total de Prisões</th><th>Status</th></tr></thead>
+    <tbody id="tabelaCriminais"></tbody>
+  </table>
+</div>
 
 <script>
-  // Cargos em ordem crescente
-  const cargos = [
-    "Estagiário",
-    "Agente",
-    "Investigador",
-    "Detetive",
-    "Chefe de Seção",
-    "Diretor",
-    "VSSP",
-    "SSP",
-    "PREFEITO"
-  ];
+// Cargos na ordem crescente (0 = Estagiário, 8 = Administrador)
+const cargos = [
+  "Estagiário",
+  "Agente",
+  "Investigador",
+  "Detetive",
+  "Chefe de Seção",
+  "Diretor",
+  "VSSP",
+  "SSP",
+  "Administrador"
+];
 
-  // Banco de dados (localStorage)
-  let jogadores = JSON.parse(localStorage.getItem('jogadoresSS')) || {
-    "5": {
-      nome: "Gabriel",
-      senha: "VSSP-HANIEL",
-      cargo: "VSSP"
-    }
-  };
+// Usuários com cargos e senhas (id, nome, senha, cargo)
+const usuarios = [
+  { id: 200, nome: "Administrador", senha: "Haniel", cargo: "Administrador" },
+  { id: 1, nome: "Fulano", senha: "123", cargo: "Estagiário" },
+  { id: 2, nome: "Ciclano", senha: "abc", cargo: "Agente" }
+  // você pode adicionar outros aqui
+];
 
- let jogadores = JSON.parse(localStorage.getItem('jogadoresSS')) || {
-    "444": {
-      nome: "ADM",
-      senha: "123",
-      cargo: "PREFEITO"
-    }
-  };
+// Variável que guarda o usuário logado
+let usuarioLogado = null;
 
-  // Banco criminal
-  let bancoCriminais = JSON.parse(localStorage.getItem('bancoCriminaisSS')) || {};
+// Dados dos membros (igual usuarios para a lista)
+let membros = [...usuarios];
 
-  let idAtual = null;       // ID do usuário logado
-  let idSelecionado = null; // ID selecionado na pesquisa
+// Banco de dados criminais
+let bancoCriminal = JSON.parse(localStorage.getItem('bancoCriminal') || '[]');
 
-  // Referências DOM
-    const loginDiv = document.getElementById('login');
-  const cadastroDiv = document.getElementById('novo-jogador');
-  const painelDiv = document.getElementById('painel');
+// Webhook para logs Discord (exemplo)
+const webhookURL = 'https://discord.com/api/webhooks/1390011117778112723/KWkdPpdOmtRkgLlUH7QLUwx3sqxnHX-qhA0EkZFwjRiMPTJL8bLmbL1l3P-LZWRJBKeb';
 
-  const btnLogin = document.getElementById('btnLogin');
-  const btnToggleCadastro = document.getElementById('btnToggleCadastro');
-  const btnCadastrar = document.getElementById('btnCadastrar');
-  const btnVoltarLogin = document.getElementById('btnVoltarLogin');
-  const btnLogout = document.getElementById('btnLogout');
+// Função para log no webhook Discord (fetch POST)
+function enviarLogDiscord(mensagem) {
+  fetch(webhookURL, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({content: mensagem})
+  });
+}
 
-  const btnSobre = document.getElementById('btnSobre');
-  const btnListaRegistros = document.getElementById('btnListaRegistros');
-  const btnPainel = document.getElementById('btnPainel');
-  const btnBancoCriminais = document.getElementById('btnBancoCriminais');
+// Mostrar e esconder telas
+function mostrarTela(id) {
+  ['login','painel','registros','banco-criminal'].forEach(div => {
+    document.getElementById(div).style.display = (div === id) ? 'block' : 'none';
+  });
+}
 
-  const sobreSS = document.getElementById('sobre-ss');
-  const listaRegistros = document.getElementById('lista-registros');
-  const listaTabela = document.getElementById('listaTabela');
-  const painelPesquisa = document.getElementById('painel-pesquisa');
+// Login
+document.getElementById('btnLogin').addEventListener('click', () => {
+  const user = document.getElementById('inputUsuario').value.trim();
+  const pass = document.getElementById('inputSenha').value;
+  const encontrado = usuarios.find(u => u.nome.toLowerCase() === user.toLowerCase() && u.senha === pass);
+  const msg = document.getElementById('msgLogin');
 
-  const inputID = document.getElementById('inputID');
-  const btnPesquisar = document.getElementById('btnPesquisar');
-  const resultadoDiv = document.getElementById('resultado');
-  const nomeSpan = document.getElementById('nome');
-  const cargoSpan = document.getElementById('cargo');
-  const btnPromover = document.getElementById('btnPromover');
-  const btnRebaixar = document.getElementById('btnRebaixar');
-  const btnExpulsar = document.getElementById('btnExpulsar');
-
-  const bancoCriminaisDiv = document.getElementById('banco-criminais');
-  const nomeCriminal = document.getElementById('nomeCriminal');
-  const rgCriminal = document.getElementById('rgCriminal');
-  const historicoCriminal = document.getElementById('historicoCriminal');
-  const totalPrisaoCriminal = document.getElementById('totalPrisaoCriminal');
-  const statusCriminal = document.getElementById('statusCriminal');
-  const btnAdicionarCriminal = document.getElementById('btnAdicionarCriminal');
-  const btnPesquisarCriminal = document.getElementById('btnPesquisarCriminal');
-
-  const resultadoCriminalDiv = document.getElementById('resultadoCriminal');
-  const resNome = document.getElementById('resNome');
-  const resRG = document.getElementById('resRG');
-  const resHistorico = document.getElementById('resHistorico');
-  const resTotalPrisao = document.getElementById('resTotalPrisao');
-  const resStatus = document.getElementById('resStatus');
-
-  // Funções de persistência
-  function salvarJogadores() {
-    localStorage.setItem('jogadoresSS', JSON.stringify(jogadores));
+  if(encontrado) {
+    usuarioLogado = encontrado;
+    msg.textContent = '';
+    document.getElementById('inputUsuario').value = '';
+    document.getElementById('inputSenha').value = '';
+    carregarPainel();
+  } else {
+    msg.textContent = 'Usuário ou senha incorretos.';
   }
-  function salvarBancoCriminais() {
-    localStorage.setItem('bancoCriminaisSS', JSON.stringify(bancoCriminais));
+});
+
+function carregarPainel() {
+  mostrarTela('painel');
+  carregarListaRegistros();
+}
+
+// Lista de registros
+document.getElementById('btnLista').addEventListener('click', () => {
+  mostrarTela('registros');
+  carregarListaRegistros();
+});
+document.getElementById('btnVoltarRegistros').addEventListener('click', () => {
+  mostrarTela('painel');
+});
+
+// Banco Criminal
+document.getElementById('btnBancoCriminal').addEventListener('click', () => {
+  mostrarTela('banco-criminal');
+  limparFormularioCriminal();
+  carregarTabelaCriminal(bancoCriminal);
+});
+document.getElementById('btnVoltarBanco').addEventListener('click', () => {
+  mostrarTela('painel');
+});
+
+// Logout
+document.getElementById('btnLogout').addEventListener('click', () => {
+  usuarioLogado = null;
+  mostrarTela('login');
+});
+
+// Carrega tabela registros com ações promover, rebaixar, expulsar
+function carregarListaRegistros() {
+  const tbody = document.getElementById('tabelaRegistros');
+  tbody.innerHTML = '';
+
+  membros.forEach(user => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${user.id}</td>
+      <td>${user.nome}</td>
+      <td>${user.cargo}</td>
+      <td>
+        ${podePromover(usuarioLogado, user) ? `<button data-id="${user.id}" class="btnPromover">Promover</button>` : ''}
+        ${podeRebaixar(usuarioLogado, user) ? `<button data-id="${user.id}" class="btnRebaixar">Rebaixar</button>` : ''}
+        ${podeExpulsar(usuarioLogado, user) ? `<button data-id="${user.id}" class="btnExpulsar" style="background:#b22222;">Expulsar</button>` : ''}
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Eventos dos botões
+  document.querySelectorAll('.btnPromover').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = parseInt(btn.getAttribute('data-id'));
+      promoverMembro(id);
+    });
+  });
+  document.querySelectorAll('.btnRebaixar').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = parseInt(btn.getAttribute('data-id'));
+      rebaixarMembro(id);
+    });
+  });
+  document.querySelectorAll('.btnExpulsar').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = parseInt(btn.getAttribute('data-id'));
+      expulsarMembro(id);
+    });
+  });
+}
+
+// Funções de permissão (cargo maior pode agir em menor)
+function cargoIndex(nomeCargo) {
+  return cargos.indexOf(nomeCargo);
+}
+function podePromover(quemPromove, quemRecebe) {
+  if(!quemPromove) return false;
+  return cargoIndex(quemPromove.cargo) > cargoIndex(quemRecebe.cargo) && cargoIndex(quemRecebe.cargo) < cargos.length - 1;
+}
+function podeRebaixar(quemRebaixa, quemRecebe) {
+  if(!quemRebaixa) return false;
+  return cargoIndex(quemRebaixa.cargo) > cargoIndex(quemRecebe.cargo) && cargoIndex(quemRecebe.cargo) > 0;
+}
+function podeExpulsar(quemExpulsa, quemRecebe) {
+  if(!quemExpulsa) return false;
+  return cargoIndex(quemExpulsa.cargo) > cargoIndex(quemRecebe.cargo);
+}
+
+// Promover
+function promoverMembro(id) {
+  const user = membros.find(m => m.id === id);
+  if(!user) return alert("Membro não encontrado");
+  if(!podePromover(usuarioLogado, user)) return alert("Você não pode promover este membro");
+
+  let idx = cargoIndex(user.cargo);
+  if(idx < cargos.length - 1) {
+    user.cargo = cargos[idx+1];
+    carregarListaRegistros();
+    alert(`${user.nome} foi promovido para ${user.cargo}`);
+    enviarLogDiscord(`**PROMOÇÃO**: ${usuarioLogado.nome} promoveu ${user.nome} para ${user.cargo}`);
+  }
+}
+
+// Rebaixar
+function rebaixarMembro(id) {
+  const user = membros.find(m => m.id === id);
+  if(!user) return alert("Membro não encontrado");
+  if(!podeRebaixar(usuarioLogado, user)) return alert("Você não pode rebaixar este membro");
+
+  let idx = cargoIndex(user.cargo);
+  if(idx > 0) {
+    user.cargo = cargos[idx-1];
+    carregarListaRegistros();
+    alert(`${user.nome} foi rebaixado para ${user.cargo}`);
+    enviarLogDiscord(`**REBAIXAMENTO**: ${usuarioLogado.nome} rebaixou ${user.nome} para ${user.cargo}`);
+  }
+}
+
+// Expulsar
+function expulsarMembro(id) {
+  const userIndex = membros.findIndex(m => m.id === id);
+  if(userIndex === -1) return alert("Membro não encontrado");
+  const user = membros[userIndex];
+  if(!podeExpulsar(usuarioLogado, user)) return alert("Você não pode expulsar este membro");
+  if(user.id === usuarioLogado.id) return alert("Você não pode expulsar você mesmo");
+
+  if(confirm(`Tem certeza que deseja expulsar ${user.nome}?`)) {
+    membros.splice(userIndex,1);
+    carregarListaRegistros();
+    alert(`${user.nome} foi expulso.`);
+    enviarLogDiscord(`**EXPULSÃO**: ${usuarioLogado.nome} expulsou ${user.nome}`);
+  }
+}
+
+// Banco Criminal funções
+function limparFormularioCriminal() {
+  document.getElementById('inputNomeCriminal').value = '';
+  document.getElementById('inputRGCriminal').value = '';
+  document.getElementById('inputHistorico').value = '';
+  document.getElementById('selectStatus').value = 'Em investigação';
+  document.getElementById('inputPesquisarRG').value = '';
+}
+
+function carregarTabelaCriminal(lista) {
+  const tbody = document.getElementById('tabelaCriminais');
+  tbody.innerHTML = '';
+  lista.forEach(item => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${item.nome}</td>
+      <td>${item.rg}</td>
+      <td>${item.historico}</td>
+      <td>${item.totalPrisao}</td>
+      <td>${item.status}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+document.getElementById('btnAdicionarCriminal').addEventListener('click', () => {
+  if(!usuarioLogado) {
+    alert('Você precisa estar logado para adicionar registros criminais.');
+    return;
+  }
+  const nome = document.getElementById('inputNomeCriminal').value.trim();
+  const rg = document.getElementById('inputRGCriminal').value.trim();
+  const historico = document.getElementById('inputHistorico').value.trim();
+  const status = document.getElementById('selectStatus').value;
+
+  if(!nome || !rg || !historico) {
+    alert('Preencha todos os campos.');
+    return;
   }
 
-  // Mostrar painel conforme o botão clicado
-  function mostrarSecao(secao) {
-    sobreSS.style.display = 'none';
-    listaRegistros.style.display = 'none';
-    painelPesquisa.style.display = 'none';
-    bancoCriminaisDiv.style.display = 'none';
-    resultadoDiv.style.display = 'none';
-    resultadoCriminalDiv.style.display = 'none';
+  // Verifica se RG já existe para atualizar prisões e histórico
+  let registroExistente = bancoCriminal.find(item => item.rg === rg);
 
-    if (secao === 'sobre') {
-      sobreSS.style.display = 'block';
-    } else if (secao === 'lista') {
-      atualizarListaRegistros();
-      listaRegistros.style.display = 'block';
-    } else if (secao === 'painel') {
-      painelPesquisa.style.display = 'block';
-    } else if (secao === 'banco') {
-      bancoCriminaisDiv.style.display = 'block';
-    }
+  if(registroExistente) {
+    registroExistente.totalPrisao++;
+    registroExistente.historico += `\n${historico}`;
+    registroExistente.status = status;
+  } else {
+    bancoCriminal.push({
+      nome,
+      rg,
+      historico,
+      totalPrisao: 1,
+      status
+    });
   }
 
-  // Atualiza a lista de registros no painel "Lista de registros"
-  function atualizarListaRegistros() {
-    listaTabela.innerHTML = '';
-    for (const id in jogadores) {
-      const tr = document.createElement('tr');
-      const tdID = document.createElement('td');
-      tdID.textContent = id;
-      const tdNome = document.createElement('td');
-      tdNome.textContent = jogadores[id].nome;
-      const tdCargo = document.createElement('td');
-      tdCargo.textContent = jogadores[id].cargo;
+  localStorage.setItem('bancoCriminal', JSON.stringify(bancoCriminal));
+  carregarTabelaCriminal(bancoCriminal);
+  limparFormularioCriminal();
+  alert('Registro criminal adicionado/atualizado com sucesso!');
+});
 
-      tr.appendChild(tdID);
-      tr.appendChild(tdNome);
-      tr.appendChild(tdCargo);
-      listaTabela.appendChild(tr);
-    }
+document.getElementById('btnPesquisarCriminal').addEventListener('click', () => {
+  const rgPesquisa = document.getElementById('inputPesquisarRG').value.trim();
+  if(!rgPesquisa) {
+    carregarTabelaCriminal(bancoCriminal);
+    return;
   }
+  const resultados = bancoCriminal.filter(item => item.rg.includes(rgPesquisa));
+  carregarTabelaCriminal(resultados);
+});
 
-  // Valida se usuário está logado para exibir botoes e se tem permissão para adicionar registros criminais
-  function temPermissaoAdicionarRegistro() {
-    if (!idAtual) return false;
-    const cargoAtual = jogadores[idAtual]?.cargo;
-    return cargos.indexOf(cargoAtual) >= 0; // A partir de Estagiário (posição 0)
-  }
-
-  // Mostrar ou esconder botão Banco Criminais conforme login
-  function atualizarInterfaceLogado() {
-    if (idAtual) {
-      painelDiv.style.display = 'block';
-      loginDiv.style.display = 'none';
-      cadastroDiv.style.display = 'none';
-      btnBancoCriminais.style.display = 'inline-block';
-    } else {
-      painelDiv.style.display = 'none';
-      loginDiv.style.display = 'block';
-      cadastroDiv.style.display = 'none';
-    }
-  }
-
-  // Login
-  btnLogin.onclick = () => {
-    const id = document.getElementById('loginID').value.trim();
-    const senha = document.getElementById('loginSenha').value;
-
-    if (!id || !senha) {
-      alert('Preencha ID e senha.');
-      return;
-    }
-
-    if (!jogadores[id]) {
-      alert('ID não encontrado.');
-      return;
-    }
-
-    if (jogadores[id].senha !== senha) {
-      alert('Senha incorreta.');
-      return;
-    }
-
-    idAtual = id;
-    mostrarSecao('sobre');
-    atualizarInterfaceLogado();
-  };
-
-  // Logout
-  btnLogout.onclick = () => {
-    idAtual = null;
-    idSelecionado = null;
-    inputID.value = '';
-    nomeSpan.textContent = '';
-    cargoSpan.textContent = '';
-    resultadoDiv.style.display = 'none';
-    mostrarSecao(null);
-    atualizarInterfaceLogado();
-  };
-
-  // Toggle cadastro
-  btnToggleCadastro.onclick = () => {
-    loginDiv.style.display = 'none';
-    cadastroDiv.style.display = 'block';
-  };
-  btnVoltarLogin.onclick = () => {
-    cadastroDiv.style.display = 'none';
-    loginDiv.style.display = 'block';
-  };
-
-  // Cadastro
-  btnCadastrar.onclick = () => {
-    const novoIDVal = document.getElementById('novoID').value.trim();
-    const novoNomeVal = document.getElementById('novoNome').value.trim();
-    const novaSenhaVal = document.getElementById('novaSenha').value;
-
-    if (!novoIDVal || !novoNomeVal || !novaSenhaVal) {
-      alert('Preencha todos os campos.');
-      return;
-    }
-    if (jogadores[novoIDVal]) {
-      alert('ID já existe.');
-      return;
-    }
-
-    jogadores[novoIDVal] = {
-      nome: novoNomeVal,
-      senha: novaSenhaVal,
-      cargo: 'Estagiário' // Todo novo membro inicia como Estagiário
-    };
-    salvarJogadores();
-    alert('Cadastro realizado com sucesso!');
-    cadastroDiv.style.display = 'none';
-    loginDiv.style.display = 'block';
-  };
-
-  // Lista de registros
-  btnListaRegistros.onclick = () => {
-    mostrarSecao('lista');
-  };
-
-  // Sobre
-  btnSobre.onclick = () => {
-    mostrarSecao('sobre');
-  };
-
-  // Painel
-  btnPainel.onclick = () => {
-    mostrarSecao('painel');
-  };
-
-  // Banco criminais
-  btnBancoCriminais.onclick = () => {
-    mostrarSecao('banco');
-  };
-
-  // Pesquisar jogador no painel
-  btnPesquisar.onclick = () => {
-    const idPesquisado = inputID.value.trim();
-    if (!idPesquisado) {
-      alert('Digite um ID para pesquisar.');
-      return;
-    }
-    if (!jogadores[idPesquisado]) {
-      alert('ID não encontrado.');
-      resultadoDiv.style.display = 'none';
-      return;
-    }
-    idSelecionado = idPesquisado;
-    nomeSpan.textContent = jogadores[idPesquisado].nome;
-    cargoSpan.textContent = jogadores[idPesquisado].cargo;
-    resultadoDiv.style.display = 'block';
-
-    // Habilitar ou desabilitar botões de acordo com permissão e hierarquia
-    if (idAtual === idSelecionado) {
-      // Não pode promover/rebaixar a si mesmo
-      btnPromover.disabled = true;
-      btnRebaixar.disabled = true;
-      btnExpulsar.disabled = true;
-    } else {
-      const cargoAtual = jogadores[idAtual].cargo;
-      const cargoAlvo = jogadores[idSelecionado].cargo;
-      const nivelAtual = cargos.indexOf(cargoAtual);
-      const nivelAlvo = cargos.indexOf(cargoAlvo);
-
-      btnPromover.disabled = nivelAtual <= nivelAlvo || nivelAlvo === cargos.length - 1; // Não pode promover se não tem nível superior ou já é topo
-      btnRebaixar.disabled = nivelAtual <= nivelAlvo || nivelAlvo === 0; // Não pode rebaixar se não tem nível superior ou já é estagiário
-      btnExpulsar.disabled = nivelAtual <= nivelAlvo; // Só pode expulsar quem está abaixo
-    }
-  };
-
-  // Promover jogador
-  btnPromover.onclick = () => {
-    if (!idSelecionado) return;
-    const cargoAtual = jogadores[idSelecionado].cargo;
-    const nivel = cargos.indexOf(cargoAtual);
-    if (nivel < cargos.length - 1) {
-      jogadores[idSelecionado].cargo = cargos[nivel + 1];
-      salvarJogadores();
-      cargoSpan.textContent = jogadores[idSelecionado].cargo;
-      alert(`${jogadores[idSelecionado].nome} foi promovido para ${jogadores[idSelecionado].cargo}`);
-      atualizarListaRegistros();
-    } else {
-      alert('Já está no cargo máximo.');
-    }
-  };
-
-  // Rebaixar jogador
-  btnRebaixar.onclick = () => {
-    if (!idSelecionado) return;
-    const cargoAtual = jogadores[idSelecionado].cargo;
-    const nivel = cargos.indexOf(cargoAtual);
-    if (nivel > 0) {
-      jogadores[idSelecionado].cargo = cargos[nivel - 1];
-      salvarJogadores();
-      cargoSpan.textContent = jogadores[idSelecionado].cargo;
-      alert(`${jogadores[idSelecionado].nome} foi rebaixado para ${jogadores[idSelecionado].cargo}`);
-      atualizarListaRegistros();
-    } else {
-      alert('Já está no cargo mínimo.');
-    }
-  };
-
-  // Expulsar jogador
-  btnExpulsar.onclick = () => {
-    if (!idSelecionado) return;
-    if (confirm(`Tem certeza que deseja expulsar ${jogadores[idSelecionado].nome}?`)) {
-      delete jogadores[idSelecionado];
-      salvarJogadores();
-      alert('Jogador expulso com sucesso.');
-      resultadoDiv.style.display = 'none';
-      atualizarListaRegistros();
-    }
-  };
-
-  // Banco criminais - adicionar
-  btnAdicionarCriminal.onclick = () => {
-    if (!temPermissaoAdicionarRegistro()) {
-      alert('Você não tem permissão para adicionar registros criminais.');
-      return;
-    }
-
-    const nomeVal = nomeCriminal.value.trim();
-    const rgVal = rgCriminal.value.trim();
-    const histVal = historicoCriminal.value.trim();
-    const totalPrisaoVal = totalPrisaoCriminal.value.trim();
-    const statusVal = statusCriminal.value;
-
-    if (!nomeVal || !rgVal || !histVal || !totalPrisaoVal) {
-      alert('Preencha todos os campos.');
-      return;
-    }
-
-    bancoCriminais[rgVal] = {
-      nome: nomeVal,
-      rg: rgVal,
-      historico: histVal,
-      totalPrisao: totalPrisaoVal,
-      status: statusVal
-    };
-    salvarBancoCriminais();
-    alert('Registro criminal adicionado com sucesso.');
-
-    // Limpar campos
-    nomeCriminal.value = '';
-    rgCriminal.value = '';
-    historicoCriminal.value = '';
-    totalPrisaoCriminal.value = '';
-    statusCriminal.value = 'Em investigação';
-  };
-
-  // Banco criminais - pesquisar
-  btnPesquisarCriminal.onclick = () => {
-    const rgBusca = rgCriminal.value.trim();
-    if (!rgBusca) {
-      alert('Digite um RG para pesquisar.');
-      return;
-    }
-    const registro = bancoCriminais[rgBusca];
-    if (!registro) {
-      alert('Registro criminal não encontrado.');
-      resultadoCriminalDiv.style.display = 'none';
-      return;
-    }
-    resNome.textContent = registro.nome;
-    resRG.textContent = registro.rg;
-    resHistorico.textContent = registro.historico;
-    resTotalPrisao.textContent = registro.totalPrisao;
-    resStatus.textContent = registro.status;
-    resultadoCriminalDiv.style.display = 'block';
-  };
-
-  // Inicializar interface
-  atualizarInterfaceLogado();
-  mostrarSecao(null);
+// Iniciar página mostrando login
+mostrarTela('login');
 </script>
+
 </body>
 </html>
