@@ -189,7 +189,7 @@
         const acoes = [];
         const seuCargoIndex = cargos.indexOf(usuarioLogado?.cargo);
         const cargoIndex = cargos.indexOf(u.cargo);
-        if (usuarioLogado && seuCargoIndex > cargoIndex && u.id !== "200") {
+    if (usuarioLogado && seuCargoIndex > cargoIndex && (cargoIndex + 1) < seuCargoIndex && u.id !== "200") {
           acoes.push(`<button onclick="promoverUsuario('${u.id}')">Promover</button>`);
           if (cargoIndex > 0) acoes.push(`<button onclick="rebaixarUsuario('${u.id}')">Rebaixar</button>`);
           acoes.push(`<button class='red' onclick="expulsarUsuario('${u.id}')">Expulsar</button>`);
