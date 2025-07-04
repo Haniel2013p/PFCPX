@@ -1,202 +1,171 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Painel do Serviço Secreto Municipal</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel - Serviço Secreto Municipal</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #f2f2f2; }
-    .hidden { display: none; }
-    .container { background: white; padding: 20px; border-radius: 10px; max-width: 1000px; margin: auto; box-shadow: 0 0 10px #ccc; }
-    h2 { margin-top: 0; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-    th { background-color: #f4f4f4; }
-    button { margin: 5px; padding: 5px 10px; border-radius: 5px; border: none; background: #007bff; color: white; cursor: pointer; }
-    button:hover { background: #0056b3; }
-    select, input { margin: 5px; padding: 5px; }
+    body {
+      margin: 0;
+      background-color: #000;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      padding: 20px;
+    }
+    h1, h2, h3 {
+      color: #00aaff;
+    }
+    button {
+      background-color: #007BFF;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    input, select {
+      padding: 8px;
+      margin: 5px;
+    }
+    .hidden {
+      display: none;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div id="login">
-      <h2>Login</h2>
-      <input type="text" id="loginId" placeholder="ID do Usuário"><br>
-      <input type="password" id="loginSenha" placeholder="Senha"><br>
-      <button onclick="logar()">Entrar</button>
-    </div>
+  <div class="container" id="login-section">
+    <h1>Login - Serviço Secreto Municipal</h1>
+    <input type="text" id="login-id" placeholder="ID" />
+    <input type="password" id="login-password" placeholder="Senha" />
+    <button onclick="login()">Entrar</button>
+    <p>Não tem conta? <button onclick="showRegister()">Cadastrar</button></p>
+  </div>
 
-    <div id="cadastro" class="hidden">
-      <h2>Cadastro</h2>
-      <input type="text" id="cadastroId" placeholder="ID do Usuário"><br>
-      <input type="text" id="cadastroNome" placeholder="Nome do Usuário"><br>
-      <input type="password" id="cadastroSenha" placeholder="Senha"><br>
-      <select id="cadastroDivisao">
-        <option value="Segurança">Segurança</option>
-        <option value="Inteligência">Inteligência</option>
-        <option value="Operações Táticas">Operações Táticas</option>
-      </select><br>
-      <button onclick="cadastrar()">Cadastrar</button>
-    </div>
+  <div class="container hidden" id="register-section">
+    <h1>Cadastro</h1>
+    <input type="text" id="register-id" placeholder="ID" />
+    <input type="password" id="register-password" placeholder="Senha" />
+    <select id="register-divisao">
+      <option value="Segurança">Segurança</option>
+      <option value="Inteligência">Inteligência</option>
+      <option value="Operações Táticas">Operações Táticas</option>
+    </select>
+    <button onclick="register()">Cadastrar</button>
+    <button onclick="showLogin()">Voltar</button>
+  </div>
 
-    <div id="painel" class="hidden">
-      <h2>Painel do Serviço Secreto Municipal</h2>
-      <p id="mensagem"></p>
-      <button onclick="mostrarLista()">Lista de registros</button>
-      <button onclick="mostrarCadastro()">Novo Cadastro</button>
-      <button onclick="logout()">Sair</button>
+  <div class="container hidden" id="main-panel">
+    <div class="header">
+      <h2 id="welcome-message"></h2>
+      <div>
+        <button onclick="showListaRegistros()">Lista de registros</button>
+        <button onclick="logout()">Sair</button>
+      </div>
     </div>
+    <p>Bem-vindo ao painel do Serviço Secreto Municipal. Utilize as funções disponíveis conforme sua permissão.</p>
+  </div>
 
-    <div id="lista" class="hidden">
-      <h2>Lista de Membros</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th><th>Nome</th><th>Divisão</th><th>Patente</th><th>Ações</th>
-          </tr>
-        </thead>
-        <tbody id="tabelaUsuarios"></tbody>
-      </table>
-      <button onclick="voltarPainel()">Voltar</button>
-    </div>
+  <div class="container hidden" id="lista-registros">
+    <h2>Lista de Registros</h2>
+    <table id="tabela-registros" border="1" style="color:white">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Divisão</th>
+          <th>Cargo</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <button onclick="voltarPainel()">Voltar</button>
   </div>
 
   <script>
-    const divisoes = {
-      "Segurança": ["Estagiário", "Agente", "Oficial", "Comandante de Segurança"],
-      "Inteligência": ["Analista", "Investigador", "Supervisor", "Chefe de Inteligência"],
-      "Operações Táticas": ["Recruta", "Operador", "Veterano", "Coordenador de Operações Táticas"],
-      "Comando": ["Inspetor Geral", "Diretor Executivo", "Corregedor"],
-      "Geral": ["VSSP", "SSP", "Administrador"]
+    const cargosPorDivisao = {
+      "Segurança": ["Estagiário de Segurança", "Agente de Segurança", "Supervisor de Segurança", "Comandante de Segurança"],
+      "Inteligência": ["Estagiário de Inteligência", "Analista", "Supervisor de Inteligência", "Chefe de Inteligência"],
+      "Operações Táticas": ["Estagiário Tático", "Operador Tático", "Supervisor Tático", "Coordenador de Operações Táticas"],
+      "Comando": ["Inspetor Geral", "VSSP", "SSP", "Administrador"]
     };
 
     let usuarios = JSON.parse(localStorage.getItem("usuarios") || "[]");
-    let usuarioLogado = null;
+    let usuarioAtual = null;
 
-    function salvarUsuarios() {
-      localStorage.setItem("usuarios", JSON.stringify(usuarios));
+    function showRegister() {
+      document.getElementById("login-section").classList.add("hidden");
+      document.getElementById("register-section").classList.remove("hidden");
     }
 
-    function logar() {
-      const id = document.getElementById("loginId").value;
-      const senha = document.getElementById("loginSenha").value;
-      const usuario = usuarios.find(u => u.id === id && u.senha === senha);
-      if (usuario) {
-        usuarioLogado = usuario;
-        document.getElementById("login").classList.add("hidden");
-        document.getElementById("painel").classList.remove("hidden");
-        document.getElementById("mensagem").innerText = `Bem-vindo ao Serviço Secreto Municipal, ${usuario.nome}.`;
-      } else {
-        alert("ID ou senha incorretos.");
+    function showLogin() {
+      document.getElementById("register-section").classList.add("hidden");
+      document.getElementById("login-section").classList.remove("hidden");
+    }
+
+    function register() {
+      const id = document.getElementById("register-id").value;
+      const senha = document.getElementById("register-password").value;
+      const divisao = document.getElementById("register-divisao").value;
+      if (usuarios.find(u => u.id === id)) {
+        alert("ID já cadastrado!");
+        return;
       }
+      const primeiroCargo = cargosPorDivisao[divisao][0];
+      usuarios.push({ id, senha, divisao, cargo: primeiroCargo });
+      localStorage.setItem("usuarios", JSON.stringify(usuarios));
+      alert("Cadastrado com sucesso!");
+      showLogin();
+    }
+
+    function login() {
+      const id = document.getElementById("login-id").value;
+      const senha = document.getElementById("login-password").value;
+      const user = usuarios.find(u => u.id === id && u.senha === senha);
+      if (!user) {
+        alert("ID ou senha inválidos.");
+        return;
+      }
+      usuarioAtual = user;
+      document.getElementById("login-section").classList.add("hidden");
+      document.getElementById("main-panel").classList.remove("hidden");
+      document.getElementById("welcome-message").innerText = `Bem-vindo, ${user.id} - ${user.divisao} (${user.cargo})`;
     }
 
     function logout() {
-      usuarioLogado = null;
-      document.getElementById("painel").classList.add("hidden");
-      document.getElementById("login").classList.remove("hidden");
-      document.getElementById("lista").classList.add("hidden");
-      document.getElementById("cadastro").classList.add("hidden");
+      usuarioAtual = null;
+      document.getElementById("main-panel").classList.add("hidden");
+      document.getElementById("login-section").classList.remove("hidden");
     }
 
-    function mostrarLista() {
-      document.getElementById("painel").classList.add("hidden");
-      document.getElementById("lista").classList.remove("hidden");
-      atualizarTabela();
+    function showListaRegistros() {
+      document.getElementById("main-panel").classList.add("hidden");
+      document.getElementById("lista-registros").classList.remove("hidden");
+      atualizarTabelaRegistros();
     }
 
     function voltarPainel() {
-      document.getElementById("lista").classList.add("hidden");
-      document.getElementById("painel").classList.remove("hidden");
+      document.getElementById("lista-registros").classList.add("hidden");
+      document.getElementById("main-panel").classList.remove("hidden");
     }
 
-    function mostrarCadastro() {
-      document.getElementById("cadastro").classList.remove("hidden");
-      document.getElementById("painel").classList.add("hidden");
-    }
-
-    function cadastrar() {
-      const id = document.getElementById("cadastroId").value;
-      const nome = document.getElementById("cadastroNome").value;
-      const senha = document.getElementById("cadastroSenha").value;
-      const divisao = document.getElementById("cadastroDivisao").value;
-      const patente = divisoes[divisao][0];
-      if (usuarios.find(u => u.id === id)) {
-        alert("ID já cadastrado.");
-        return;
-      }
-      usuarios.push({ id, nome, senha, divisao, patente });
-      salvarUsuarios();
-      alert("Usuário cadastrado com sucesso!");
-    }
-
-    function atualizarTabela() {
-      const tabela = document.getElementById("tabelaUsuarios");
-      tabela.innerHTML = "";
+    function atualizarTabelaRegistros() {
+      const tbody = document.querySelector("#tabela-registros tbody");
+      tbody.innerHTML = "";
       usuarios.forEach(u => {
         const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${u.id}</td><td>${u.nome}</td><td>${u.divisao}</td><td>${u.patente}</td>`;
-        if (usuarioLogado && usuarioLogado.id !== u.id && temPermissao(usuarioLogado, u)) {
-          tr.innerHTML += `<td>
-            <button onclick="promover('${u.id}')">Promover</button>
-            <button onclick="rebaixar('${u.id}')">Rebaixar</button>
-            <button onclick="expulsar('${u.id}')">Expulsar</button>
-          </td>`;
-        } else {
-          tr.innerHTML += `<td></td>`;
-        }
-        tabela.appendChild(tr);
+        tr.innerHTML = `<td>${u.id}</td><td>${u.divisao}</td><td>${u.cargo}</td>`;
+        tbody.appendChild(tr);
       });
-    }
-
-    function getHierarquia(divisao, patente) {
-      if (divisoes["Geral"].includes(patente)) return 100 + divisoes["Geral"].indexOf(patente);
-      if (divisoes[divisao]) return divisoes[divisao].indexOf(patente);
-      return -1;
-    }
-
-    function temPermissao(quem, alvo) {
-      if (quem.id === alvo.id) return false;
-      const hierarquiaQuem = getHierarquia(quem.divisao, quem.patente);
-      const hierarquiaAlvo = getHierarquia(alvo.divisao, alvo.patente);
-      if (hierarquiaQuem <= hierarquiaAlvo) return false;
-      if (quem.divisao !== alvo.divisao && quem.divisao !== "Comando" && !divisoes["Geral"].includes(quem.patente)) return false;
-      return true;
-    }
-
-    function promover(id) {
-      const u = usuarios.find(u => u.id === id);
-      if (!temPermissao(usuarioLogado, u)) return alert("Sem permissão.");
-      const patentes = divisoes[u.divisao];
-      let i = patentes.indexOf(u.patente);
-      if (i < patentes.length - 1) {
-        u.patente = patentes[i + 1];
-      } else if (u.divisao !== "Comando") {
-        u.divisao = "Comando";
-        u.patente = divisoes["Comando"][0];
-      }
-      salvarUsuarios();
-      atualizarTabela();
-    }
-
-    function rebaixar(id) {
-      const u = usuarios.find(u => u.id === id);
-      if (!temPermissao(usuarioLogado, u)) return alert("Sem permissão.");
-      const patentes = divisoes[u.divisao];
-      let i = patentes.indexOf(u.patente);
-      if (i > 0) {
-        u.patente = patentes[i - 1];
-      }
-      salvarUsuarios();
-      atualizarTabela();
-    }
-
-    function expulsar(id) {
-      const i = usuarios.findIndex(u => u.id === id);
-      if (i !== -1 && temPermissao(usuarioLogado, usuarios[i])) {
-        usuarios.splice(i, 1);
-        salvarUsuarios();
-        atualizarTabela();
-      }
     }
   </script>
 </body>
