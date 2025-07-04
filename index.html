@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Painel Serviço Secreto Municipal</title>
   <style>
     body {
@@ -11,251 +11,258 @@
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
-      text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
     }
     .container {
+      width: 90%;
       max-width: 800px;
-      margin: 0 auto;
+      background-color: #111;
       padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,255,0.5);
     }
-    h1, h2 {
-      color: #00aaff;
-    }
-    input, select, button, textarea {
-      display: block;
-      margin: 10px auto;
+    input, select, button {
+      width: 100%;
       padding: 10px;
-      width: 80%;
-      border-radius: 8px;
+      margin: 5px 0;
+      border-radius: 5px;
+      border: none;
     }
     button {
-      background-color: #00aaff;
+      background-color: #007bff;
       color: white;
-      border: none;
       cursor: pointer;
     }
     button:hover {
-      background-color: #0077aa;
+      background-color: #0056b3;
+    }
+    .center-text {
+      text-align: center;
     }
     .hidden {
       display: none;
     }
-    .actions button {
-      margin: 5px;
-    }
     table {
-      margin: 20px auto;
+      width: 100%;
       border-collapse: collapse;
-      width: 90%;
+      margin-top: 10px;
     }
     th, td {
-      border: 1px solid white;
+      border: 1px solid #ccc;
       padding: 8px;
+      text-align: left;
     }
     th {
-      background-color: #111;
+      background-color: #333;
     }
   </style>
 </head>
 <body>
-  <div class="container" id="main-container">
-    <h1>Painel do Serviço Secreto Municipal</h1>
-    <div id="login-section">
-      <h2>Login</h2>
-      <input type="text" id="login-id" placeholder="Seu ID">
-      <input type="password" id="login-password" placeholder="Senha">
+  <div class="container">
+    <div id="loginSection">
+      <h2 class="center-text">Login</h2>
+      <input type="text" id="loginID" placeholder="Seu ID">
+      <input type="password" id="loginSenha" placeholder="Sua senha">
       <button onclick="login()">Entrar</button>
-      <p>Não tem conta? <a href="#" onclick="mostrarCadastro()">Cadastre-se</a></p>
+      <p class="center-text">ou</p>
+      <button onclick="showCadastro()">Cadastrar-se</button>
     </div>
 
-    <div id="cadastro-section" class="hidden">
-      <h2>Cadastro</h2>
-      <input type="text" id="cadastro-nome" placeholder="Seu nome completo">
-      <input type="text" id="cadastro-id" placeholder="ID desejado">
-      <input type="password" id="cadastro-senha" placeholder="Senha">
-      <select id="cadastro-divisao">
-        <option value="Segurança">Divisão de Segurança</option>
-        <option value="Inteligência">Divisão de Inteligência</option>
-        <option value="Tática">Divisão Tática</option>
+    <div id="cadastroSection" class="hidden">
+      <h2 class="center-text">Cadastro</h2>
+      <input type="text" id="cadID" placeholder="ID">
+      <input type="text" id="cadNome" placeholder="Nome">
+      <input type="password" id="cadSenha" placeholder="Senha">
+      <select id="cadDivisao">
+        <option value="Segurança">Segurança</option>
+        <option value="Inteligência">Inteligência</option>
+        <option value="Operações Táticas">Operações Táticas</option>
       </select>
       <button onclick="cadastrar()">Cadastrar</button>
-      <button onclick="voltarLogin()">Voltar ao Login</button>
+      <button onclick="voltarLogin()">Voltar</button>
     </div>
 
-    <div id="painel-section" class="hidden">
-      <h2 id="boas-vindas"></h2>
-      <div id="painel-buttons">
-        <button onclick="mostrarListaRegistros()">Lista de Registros</button>
-        <button onclick="mostrarBancoCriminal()">Banco Criminais</button>
+    <div id="painelSection" class="hidden">
+      <h2 class="center-text" id="bemVindoTexto">Bem-vindo!</h2>
+      <div class="center-text">
+        <button onclick="mostrarLista()">Lista de registros</button>
+        <button onclick="mostrarCrimes()">Banco criminais</button>
         <button onclick="logout()">Sair</button>
       </div>
-      <div id="mensagem-inicial">
-        <p>Bem-vindo ao Painel do Serviço Secreto Municipal.<br> Aqui você poderá visualizar e gerenciar os membros conforme sua hierarquia e divisão.</p>
+
+      <div id="listaRegistros" class="hidden">
+        <h3 class="center-text">Membros Registrados</h3>
+        <table id="tabelaMembros">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nome</th>
+              <th>Divisão</th>
+              <th>Patente</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <button onclick="voltarPainel()">Voltar</button>
       </div>
-    </div>
 
-    <div id="lista-section" class="hidden">
-      <h2>Lista de Registros</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nome</th>
-            <th>Divisão</th>
-            <th>Cargo</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody id="tabela-registros"></tbody>
-      </table>
-      <button onclick="voltarPainel()">Voltar</button>
-    </div>
-
-    <div id="criminal-section" class="hidden">
-      <h2>Banco de Dados Criminais</h2>
-      <input type="text" id="crime-nome" placeholder="Nome do suspeito">
-      <input type="text" id="crime-rg" placeholder="RG do suspeito">
-      <textarea id="crime-historico" placeholder="Histórico"></textarea>
-      <select id="crime-status">
-        <option value="Em investigação">Em investigação</option>
-        <option value="Processo penal em andamento">Processo penal em andamento</option>
-        <option value="Fugitivo">Fugitivo</option>
-        <option value="Em liberdade">Em liberdade</option>
-      </select>
-      <select id="crime-preso">
-        <option value="Sim">Foi preso? Sim</option>
-        <option value="Não">Foi preso? Não</option>
-      </select>
-      <button onclick="adicionarCrime()">Adicionar</button>
-      <input type="text" id="pesquisar-crime" placeholder="Pesquisar por RG">
-      <button onclick="pesquisarCrime()">Pesquisar</button>
-      <div id="resultado-crime"></div>
-      <button onclick="voltarPainel()">Voltar</button>
+      <div id="bancoCrimes" class="hidden">
+        <h3 class="center-text">Banco de Dados Criminais</h3>
+        <input type="text" id="crimeNome" placeholder="Nome">
+        <input type="text" id="crimeRG" placeholder="RG">
+        <textarea id="crimeHistorico" placeholder="Histórico"></textarea>
+        <select id="crimeStatus">
+          <option>Em investigação</option>
+          <option>Processo penal em andamento</option>
+          <option>Fugitivo</option>
+          <option>Em liberdade</option>
+        </select>
+        <select id="crimePreso">
+          <option>Sim</option>
+          <option>Não</option>
+        </select>
+        <button onclick="adicionarCrime()">Adicionar</button>
+        <button onclick="pesquisarCrime()">Pesquisar</button>
+        <table id="resultadoCrimes" class="hidden">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>RG</th>
+              <th>Histórico</th>
+              <th>Total de Prisões</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <button onclick="voltarPainel()">Voltar</button>
+      </div>
     </div>
   </div>
 
   <script>
-    // Simulação de banco de dados
-    let usuarios = [];
-    let crimes = [];
-    let usuarioLogado = null;
+    let usuarios = JSON.parse(localStorage.getItem('usuarios') || '{}');
+    let crimes = JSON.parse(localStorage.getItem('crimes') || '[]');
+    let usuarioAtual = null;
 
-    function mostrarCadastro() {
-      document.getElementById("login-section").classList.add("hidden");
-      document.getElementById("cadastro-section").classList.remove("hidden");
+    const patentes = {
+      "Segurança": ["Estagiário", "Agente", "Supervisor", "Comandante de Segurança"],
+      "Inteligência": ["Estagiário", "Analista", "Investigador", "Chefe de Inteligência"],
+      "Operações Táticas": ["Estagiário", "Soldado", "Especialista", "Coordenador de Operações Táticas"],
+      "Divisão Comando": ["Inspetor Geral", "Diretor", "VSSP", "SSP", "Administrador"]
+    };
+
+    function showCadastro() {
+      document.getElementById('loginSection').classList.add('hidden');
+      document.getElementById('cadastroSection').classList.remove('hidden');
     }
 
     function voltarLogin() {
-      document.getElementById("cadastro-section").classList.add("hidden");
-      document.getElementById("login-section").classList.remove("hidden");
+      document.getElementById('cadastroSection').classList.add('hidden');
+      document.getElementById('loginSection').classList.remove('hidden');
     }
 
     function cadastrar() {
-      const nome = document.getElementById("cadastro-nome").value;
-      const id = document.getElementById("cadastro-id").value;
-      const senha = document.getElementById("cadastro-senha").value;
-      const divisao = document.getElementById("cadastro-divisao").value;
-      if (!nome || !id || !senha) return alert("Preencha todos os campos");
-
-      let cargoInicial = "Estagiário";
-      usuarios.push({ nome, id, senha, divisao, cargo: cargoInicial });
-      alert("Cadastro realizado!");
+      const id = cadID.value.trim();
+      const nome = cadNome.value.trim();
+      const senha = cadSenha.value;
+      const divisao = cadDivisao.value;
+      if (!id || !nome || !senha) return alert("Preencha todos os campos.");
+      if (usuarios[id]) return alert("ID já cadastrado.");
+      usuarios[id] = {
+        nome,
+        senha,
+        divisao,
+        patente: patentes[divisao][0]
+      };
+      localStorage.setItem('usuarios', JSON.stringify(usuarios));
+      alert("Cadastrado com sucesso!");
       voltarLogin();
     }
 
     function login() {
-      const id = document.getElementById("login-id").value;
-      const senha = document.getElementById("login-password").value;
-      const usuario = usuarios.find(u => u.id === id && u.senha === senha);
-      if (!usuario) return alert("ID ou senha incorretos");
-
-      usuarioLogado = usuario;
-      document.getElementById("login-section").classList.add("hidden");
-      document.getElementById("painel-section").classList.remove("hidden");
-      document.getElementById("boas-vindas").innerText = `Bem-vindo, ${usuario.nome}`;
+      const id = loginID.value.trim();
+      const senha = loginSenha.value;
+      if (!usuarios[id] || usuarios[id].senha !== senha) return alert("ID ou senha incorretos.");
+      usuarioAtual = id;
+      document.getElementById('loginSection').classList.add('hidden');
+      document.getElementById('painelSection').classList.remove('hidden');
+      document.getElementById('bemVindoTexto').innerText = `Bem-vindo, ${usuarios[id].nome}!`;
     }
 
     function logout() {
-      usuarioLogado = null;
-      location.reload();
+      usuarioAtual = null;
+      document.getElementById('painelSection').classList.add('hidden');
+      document.getElementById('loginSection').classList.remove('hidden');
     }
 
-    function mostrarListaRegistros() {
-      document.getElementById("painel-section").classList.add("hidden");
-      document.getElementById("lista-section").classList.remove("hidden");
-      atualizarTabelaRegistros();
-    }
-
-    function mostrarBancoCriminal() {
-      document.getElementById("painel-section").classList.add("hidden");
-      document.getElementById("criminal-section").classList.remove("hidden");
+    function mostrarLista() {
+      document.getElementById('listaRegistros').classList.remove('hidden');
+      document.getElementById('bancoCrimes').classList.add('hidden');
+      const tbody = document.querySelector('#tabelaMembros tbody');
+      tbody.innerHTML = '';
+      for (let id in usuarios) {
+        const u = usuarios[id];
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${id}</td><td>${u.nome}</td><td>${u.divisao}</td><td>${u.patente}</td>
+        <td>
+          <button onclick="promover('${id}')">Promover</button>
+          <button onclick="rebaixar('${id}')">Rebaixar</button>
+          <button onclick="demitir('${id}')">Demitir</button>
+        </td>`;
+        tbody.appendChild(tr);
+      }
     }
 
     function voltarPainel() {
-      document.getElementById("lista-section").classList.add("hidden");
-      document.getElementById("criminal-section").classList.add("hidden");
-      document.getElementById("painel-section").classList.remove("hidden");
+      document.getElementById('listaRegistros').classList.add('hidden');
+      document.getElementById('bancoCrimes').classList.add('hidden');
     }
 
-    function atualizarTabelaRegistros() {
-      const tbody = document.getElementById("tabela-registros");
-      tbody.innerHTML = "";
-      usuarios.forEach(u => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${u.id}</td>
-          <td>${u.nome}</td>
-          <td>${u.divisao}</td>
-          <td>${u.cargo}</td>
-          <td class="actions">
-            <button onclick="promover('${u.id}')">🔺</button>
-            <button onclick="rebaixar('${u.id}')">🔻</button>
-            <button onclick="demitir('${u.id}')">❌</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function promover(id) {
-      alert("Promoção lógica será aplicada aqui conforme hierarquia");
-    }
-
-    function rebaixar(id) {
-      alert("Rebaixamento lógica será aplicada aqui conforme hierarquia");
-    }
-
-    function demitir(id) {
-      if (usuarioLogado.id === id) return alert("Você não pode se demitir");
-      usuarios = usuarios.filter(u => u.id !== id);
-      atualizarTabelaRegistros();
+    function mostrarCrimes() {
+      document.getElementById('bancoCrimes').classList.remove('hidden');
+      document.getElementById('listaRegistros').classList.add('hidden');
     }
 
     function adicionarCrime() {
-      const nome = document.getElementById("crime-nome").value;
-      const rg = document.getElementById("crime-rg").value;
-      const historico = document.getElementById("crime-historico").value;
-      const status = document.getElementById("crime-status").value;
-      const preso = document.getElementById("crime-preso").value;
-      let total = 0;
-      if (status === "Em liberdade" && preso === "Sim") total = 1;
+      const nome = crimeNome.value.trim();
+      const rg = crimeRG.value.trim();
+      const historico = crimeHistorico.value.trim();
+      const status = crimeStatus.value;
+      const preso = crimePreso.value;
+      if (!nome || !rg || !historico) return alert("Preencha todos os campos do crime.");
+      const total = (status === "Em liberdade" && preso === "Sim") ? 1 : 0;
       crimes.push({ nome, rg, historico, status, preso, total });
-      alert("Registro criminal adicionado");
+      localStorage.setItem('crimes', JSON.stringify(crimes));
+      alert("Crime adicionado.");
     }
 
     function pesquisarCrime() {
-      const rg = document.getElementById("pesquisar-crime").value;
-      const crime = crimes.find(c => c.rg === rg);
-      const div = document.getElementById("resultado-crime");
-      if (!crime) return div.innerHTML = "<p>Nenhum registro encontrado.</p>";
-      div.innerHTML = `
-        <p><strong>Nome:</strong> ${crime.nome}</p>
-        <p><strong>RG:</strong> ${crime.rg}</p>
-        <p><strong>Histórico:</strong> ${crime.historico}</p>
-        <p><strong>Status:</strong> ${crime.status}</p>
-        <p><strong>Foi preso?:</strong> ${crime.preso}</p>
-        <p><strong>Total de prisões:</strong> ${crime.total}</p>
-      `;
+      const tbody = document.querySelector('#resultadoCrimes tbody');
+      tbody.innerHTML = '';
+      crimes.forEach(c => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${c.nome}</td><td>${c.rg}</td><td>${c.historico}</td><td>${c.total}</td><td>${c.status}</td>`;
+        tbody.appendChild(tr);
+      });
+      document.getElementById('resultadoCrimes').classList.remove('hidden');
+    }
+
+    function promover(id) {
+      alert("Promoção lógica será aplicada aqui com hierarquia e permissões.");
+    }
+
+    function rebaixar(id) {
+      alert("Rebaixamento lógica será aplicada aqui com hierarquia e permissões.");
+    }
+
+    function demitir(id) {
+      alert("Demissão lógica será aplicada aqui com permissões.");
     }
   </script>
 </body>
