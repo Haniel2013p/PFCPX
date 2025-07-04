@@ -21,7 +21,7 @@
     .hidden {
       display: none;
     }
-    input, select, button {
+    input, select, button, textarea {
       margin: 5px 0;
       padding: 10px;
       width: 100%;
@@ -63,6 +63,7 @@
     <h2 id="boas-vindas">Bem-vindo</h2>
     <p>Você entrou no Painel do Serviço Secreto Municipal. Use com responsabilidade.</p>
     <button onclick="mostrarLista()">Lista de registros</button>
+    <button onclick="mostrarBancoCriminais()">Banco criminais</button>
     <button onclick="logout()">Sair</button>
   </div>
 
@@ -75,228 +76,210 @@
     <button onclick="voltarPainel()">Voltar</button>
   </div>
 
+  <div class="container hidden" id="banco-criminais">
+    <h3>Banco de Dados Criminais</h3>
+    <input type="text" id="crime-nome" placeholder="Nome" />
+    <input type="text" id="crime-rg" placeholder="RG" />
+    <textarea id="crime-historico" placeholder="Histórico"></textarea>
+    <select id="crime-status">
+      <option value="Em investigação">Em investigação</option>
+      <option value="Processo penal em andamento">Processo penal em andamento</option>
+      <option value="Fugitivo">Fugitivo</option>
+      <option value="Em liberdade">Em liberdade</option>
+    </select>
+    <select id="crime-foi-preso">
+      <option value="Não">Foi preso? Não</option>
+      <option value="Sim">Foi preso? Sim</option>
+    </select>
+    <button onclick="adicionarCrime()">Adicionar</button>
+    <hr />
+    <input type="text" id="pesquisa-rg" placeholder="Pesquisar por RG" />
+    <button onclick="pesquisarCrimes()">Pesquisar</button>
+    <table id="tabela-crimes" class="hidden">
+      <thead><tr><th>Nome</th><th>RG</th><th>Status</th><th>Total Prisões</th><th>Histórico</th></tr></thead>
+      <tbody id="corpo-crimes"></tbody>
+    </table>
+    <button onclick="voltarPainel()">Voltar</button>
+  </div>
+
   <script>
     const divisoes = {
-      inteligencia: [
-        "Estagiário",
-        "Investigador Operacional",
-        "Agente de Inteligência",
-        "Agente Especializado",
-        "Inspetor",
-        "Inspetor Chefe",
-        "Chefe de Inteligência"
-      ],
-      operacoes: [
-        "Agente de Operações Especiais",
-        "Agente de Intervenção",
-        "Capitão",
-        "Coordenador de Operações Táticas"
-      ],
-      protecao: [
-        "Agente de Segurança Municipal",
-        "Agente de Proteção Avançada",
-        "Sub Comandante de Segurança",
-        "Comandante de Segurança"
-      ],
-      comando: [
-        "Inspetor Geral",
-        "Chefe de Operações",
-        "Sub Diretor do Serviço Secreto",
-        "Diretor do Serviço Secreto"
-      ]
+      inteligencia: ["Estagiário", "Investigador Operacional", "Agente de Inteligência", "Agente Especializado", "Inspetor", "Inspetor Chefe", "Chefe de Inteligência"],
+      operacoes: ["Agente de Operações Especiais", "Agente de Intervenção", "Capitão", "Coordenador de Operações Táticas"],
+      protecao: ["Agente de Segurança Municipal", "Agente de Proteção Avançada", "Sub Comandante de Segurança", "Comandante de Segurança"],
+      comando: ["Inspetor Geral", "Chefe de Operações", "Sub Diretor do Serviço Secreto", "Diretor do Serviço Secreto"]
     };
 
     const especiais = ["VSSP", "SSP", "ADMINISTRADOR"];
 
-    function salvarUsuarios(usuarios) {
-      localStorage.setItem("usuarios", JSON.stringify(usuarios));
-    }
+    function salvarUsuarios(arr) { localStorage.setItem("usuarios", JSON.stringify(arr)); }
+    function obterUsuarios() { return JSON.parse(localStorage.getItem("usuarios") || "[]"); }
 
-    function obterUsuarios() {
-      return JSON.parse(localStorage.getItem("usuarios") || "[]");
-    }
+    function salvarCrimes(arr) { localStorage.setItem("crimes", JSON.stringify(arr)); }
+    function obterCrimes() { return JSON.parse(localStorage.getItem("crimes") || "[]"); }
 
     function login() {
-      const id = document.getElementById("login-id").value.trim();
-      const senha = document.getElementById("login-senha").value.trim();
-      const usuarios = obterUsuarios();
-      const user = usuarios.find(u => u.id === id && u.senha === senha);
-      if (!user) return alert("ID ou senha incorretos!");
-      localStorage.setItem("logado", JSON.stringify(user));
+      const id = loginId.value.trim();
+      const senha = loginSenha.value.trim();
+      const u = obterUsuarios().find(u => u.id === id && u.senha === senha);
+      if (!u) return alert("ID ou senha incorretos!");
+      localStorage.setItem("logado", JSON.stringify(u));
       mostrarPainel();
     }
 
-    function logout() {
-      localStorage.removeItem("logado");
-      location.reload();
-    }
+    function logout() { localStorage.removeItem("logado"); location.reload(); }
 
     function mostrarCadastro() {
-      document.getElementById("login-container").classList.add("hidden");
-      document.getElementById("cadastro-container").classList.remove("hidden");
+      loginContainer.classList.add("hidden");
+      cadastroContainer.classList.remove("hidden");
     }
 
     function voltarLogin() {
-      document.getElementById("cadastro-container").classList.add("hidden");
-      document.getElementById("login-container").classList.remove("hidden");
+      cadastroContainer.classList.add("hidden");
+      loginContainer.classList.remove("hidden");
     }
 
     function cadastrar() {
-      const id = document.getElementById("cadastro-id").value.trim();
-      const nome = document.getElementById("cadastro-nome").value.trim();
-      const senha = document.getElementById("cadastro-senha").value.trim();
-      const divisao = document.getElementById("cadastro-divisao").value;
-
-      if (!id || !nome || !senha) return alert("Preencha todos os campos!");
-
+      const id = cadastroId.value.trim();
+      const nome = cadastroNome.value.trim();
+      const senha = cadastroSenha.value.trim();
+      const divisao = cadastroDivisao.value;
+      if (!id || !nome || !senha) return alert("Preencha tudo.");
       const usuarios = obterUsuarios();
       if (usuarios.some(u => u.id === id)) return alert("ID já existe!");
-
-      const cargo = divisoes[divisao][0];
-
-      usuarios.push({ id, nome, senha, divisao, cargo });
+      usuarios.push({ id, nome, senha, divisao, cargo: divisoes[divisao][0] });
       salvarUsuarios(usuarios);
-      alert("Cadastro realizado!");
+      alert("Cadastro feito.");
       voltarLogin();
     }
 
     function mostrarPainel() {
       const user = JSON.parse(localStorage.getItem("logado"));
       if (!user) return logout();
-      document.getElementById("login-container").classList.add("hidden");
-      document.getElementById("painel").classList.remove("hidden");
-      document.getElementById("boas-vindas").textContent = `Bem-vindo, ${user.nome} (${user.cargo})`;
+      loginContainer.classList.add("hidden");
+      painel.classList.remove("hidden");
+      boasVindas.textContent = `Bem-vindo, ${user.nome} (${user.cargo})`;
     }
 
     function mostrarLista() {
-      document.getElementById("painel").classList.add("hidden");
-      document.getElementById("lista-registros").classList.remove("hidden");
-
-      const usuarios = obterUsuarios();
-      const corpo = document.getElementById("corpo-registros");
+      painel.classList.add("hidden");
+      listaRegistros.classList.remove("hidden");
+      const corpo = corpoRegistros;
       corpo.innerHTML = "";
-
       const logado = JSON.parse(localStorage.getItem("logado"));
-
-      usuarios.forEach(u => {
+      obterUsuarios().forEach(u => {
         const tr = document.createElement("tr");
-        tr.innerHTML = \`
-          <td>\${u.id}</td>
-          <td>\${u.nome}</td>
-          <td>\${u.cargo}</td>
-          <td>\${formatarDivisao(u.divisao)}</td>
-          <td>\${gerarBotoesAcoes(logado, u)}</td>
-        \`;
+        tr.innerHTML = `
+          <td>${u.id}</td><td>${u.nome}</td><td>${u.cargo}</td>
+          <td>${formatarDivisao(u.divisao)}</td>
+          <td>${gerarBotoesAcoes(logado, u)}</td>`;
         corpo.appendChild(tr);
       });
     }
 
-    function voltarPainel() {
-      document.getElementById("lista-registros").classList.add("hidden");
-      document.getElementById("painel").classList.remove("hidden");
-    }
-
-    function formatarDivisao(div) {
-      return {
-        inteligencia: "Inteligência",
-        operacoes: "Operações Táticas",
-        protecao: "Proteção Executiva",
-        comando: "Comando"
-      }[div] || "Desconhecida";
-    }
-
     function gerarBotoesAcoes(logado, alvo) {
       if (logado.id === alvo.id) return "";
-      if (especiais.includes(logado.cargo)) {
-        return \`<button onclick="promover('\${alvo.id}')">Promover</button>
-                <button onclick="rebaixar('\${alvo.id}')">Rebaixar</button>
-                <button onclick="exonerar('\${alvo.id}')">Expulsar</button>\`;
-      }
-
-      const chefiaDivisao = {
+      if (especiais.includes(logado.cargo)) return `
+        <button onclick="promover('${alvo.id}')">Promover</button>
+        <button onclick="rebaixar('${alvo.id}')">Rebaixar</button>
+        <button onclick="exonerar('${alvo.id}')">Expulsar</button>`;
+      const chefia = {
         "Chefe de Inteligência": "inteligencia",
         "Coordenador de Operações Táticas": "operacoes",
         "Comandante de Segurança": "protecao"
       };
-
-      const podeGerenciar = chefiaDivisao[logado.cargo] === alvo.divisao;
-
-      if (podeGerenciar) {
-        const acoes = [];
-        if (!ehUltimoCargo(alvo)) acoes.push(\`<button onclick="promover('\${alvo.id}')">Promover</button>\`);
-        if (!ehPrimeiroCargo(alvo)) acoes.push(\`<button onclick="rebaixar('\${alvo.id}')">Rebaixar</button>\`);
-        acoes.push(\`<button onclick="exonerar('\${alvo.id}')">Expulsar</button>\`);
-        return acoes.join(" ");
+      const pode = chefia[logado.cargo] === alvo.divisao;
+      if (pode || (logado.divisao === "comando" && !especiais.includes(alvo.cargo))) {
+        return `
+          <button onclick="promover('${alvo.id}')">Promover</button>
+          <button onclick="rebaixar('${alvo.id}')">Rebaixar</button>
+          <button onclick="exonerar('${alvo.id}')">Expulsar</button>`;
       }
-
-      if (logado.divisao === "comando" && !especiais.includes(alvo.cargo)) {
-        const acoes = [];
-        if (!ehUltimoCargo(alvo)) acoes.push(\`<button onclick="promover('\${alvo.id}')">Promover</button>\`);
-        if (!ehPrimeiroCargo(alvo)) acoes.push(\`<button onclick="rebaixar('\${alvo.id}')">Rebaixar</button>\`);
-        acoes.push(\`<button onclick="exonerar('\${alvo.id}')">Expulsar</button>\`);
-        return acoes.join(" ");
-      }
-
       return "";
     }
 
-    function ehUltimoCargo(user) {
-      const lista = divisoes[user.divisao];
-      return lista && lista[lista.length - 1] === user.cargo;
-    }
-
-    function ehPrimeiroCargo(user) {
-      const lista = divisoes[user.divisao];
-      return lista && lista[0] === user.cargo;
-    }
-
     function promover(id) {
-      const usuarios = obterUsuarios();
-      const user = usuarios.find(u => u.id === id);
-      const lista = divisoes[user.divisao];
-      let index = lista.indexOf(user.cargo);
-      if (index === -1) return;
-
-      if (index + 1 >= lista.length) {
-        user.divisao = "comando";
-        user.cargo = divisoes.comando[0];
+      const users = obterUsuarios();
+      const u = users.find(u => u.id === id);
+      const lista = divisoes[u.divisao];
+      const i = lista.indexOf(u.cargo);
+      if (i + 1 >= lista.length) {
+        u.divisao = "comando";
+        u.cargo = divisoes.comando[0];
       } else {
-        user.cargo = lista[index + 1];
+        u.cargo = lista[i + 1];
       }
-
-      salvarUsuarios(usuarios);
+      salvarUsuarios(users);
       mostrarLista();
     }
 
     function rebaixar(id) {
-      const usuarios = obterUsuarios();
-      const user = usuarios.find(u => u.id === id);
-      const lista = divisoes[user.divisao];
-      let index = lista.indexOf(user.cargo);
-      if (index === -1) return;
-
-      if (user.divisao === "comando" && index === 0) {
-        alert("Não é possível rebaixar abaixo de Inspetor Geral automaticamente. Faça manualmente.");
-        return;
-      }
-
-      if (index - 1 >= 0) {
-        user.cargo = lista[index - 1];
-        salvarUsuarios(usuarios);
+      const users = obterUsuarios();
+      const u = users.find(u => u.id === id);
+      const lista = divisoes[u.divisao];
+      const i = lista.indexOf(u.cargo);
+      if (i > 0) {
+        u.cargo = lista[i - 1];
+        salvarUsuarios(users);
         mostrarLista();
       }
     }
 
     function exonerar(id) {
-      let usuarios = obterUsuarios();
-      usuarios = usuarios.filter(u => u.id !== id);
-      salvarUsuarios(usuarios);
+      const u = obterUsuarios().filter(u => u.id !== id);
+      salvarUsuarios(u);
       mostrarLista();
     }
 
-    if (localStorage.getItem("logado")) {
-      mostrarPainel();
+    function voltarPainel() {
+      listaRegistros.classList.add("hidden");
+      bancoCriminais.classList.add("hidden");
+      painel.classList.remove("hidden");
     }
+
+    function formatarDivisao(div) {
+      return { inteligencia: "Inteligência", operacoes: "Operações", protecao: "Proteção", comando: "Comando" }[div] || div;
+    }
+
+    function mostrarBancoCriminais() {
+      painel.classList.add("hidden");
+      bancoCriminais.classList.remove("hidden");
+      tabelaCrimes.classList.add("hidden");
+    }
+
+    function adicionarCrime() {
+      const nome = crimeNome.value.trim();
+      const rg = crimeRg.value.trim();
+      const historico = crimeHistorico.value.trim();
+      const status = crimeStatus.value;
+      const foiPreso = crimeFoiPreso.value;
+      if (!nome || !rg || !historico) return alert("Preencha todos os campos.");
+
+      let crimes = obterCrimes();
+      let totalPrisao = 0;
+      if (status === "Em liberdade" && foiPreso === "Sim") totalPrisao = 1;
+
+      crimes.push({ nome, rg, historico, status, foiPreso, totalPrisao });
+      salvarCrimes(crimes);
+      alert("Crime registrado.");
+      crimeNome.value = crimeRg.value = crimeHistorico.value = "";
+    }
+
+    function pesquisarCrimes() {
+      const rg = pesquisaRg.value.trim();
+      const resultados = obterCrimes().filter(c => c.rg === rg);
+      const corpo = corpoCrimes;
+      corpo.innerHTML = "";
+      if (!resultados.length) return alert("Nenhum registro encontrado.");
+      resultados.forEach(c => {
+        const total = (c.status === "Em liberdade" && c.foiPreso === "Sim") ? 1 : 0;
+        corpo.innerHTML += `<tr><td>${c.nome}</td><td>${c.rg}</td><td>${c.status}</td><td>${total}</td><td>${c.historico}</td></tr>`;
+      });
+      tabelaCrimes.classList.remove("hidden");
+    }
+
+    // Auto login
+    if (localStorage.getItem("logado")) mostrarPainel();
   </script>
 </body>
 </html>
