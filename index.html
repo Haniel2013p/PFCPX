@@ -1,1043 +1,916 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Painel da Polícia Federal - Sistema Completo</title>
-  <style>
-    /* CSS básico e limpo */
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f2f2f2;
-      margin: 0; padding: 0;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-    header {
-      background-color: #00224d;
-      color: white;
-      padding: 1rem;
-      text-align: center;
-      font-weight: bold;
-      font-size: 1.4rem;
-    }
-    main {
-      flex-grow: 1;
-      padding: 1rem;
-      max-width: 960px;
-      margin: 0 auto;
-      width: 100%;
-    }
-    section {
-      display: none;
-      background: white;
-      padding: 1rem;
-      margin-top: 1rem;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    .visible {
-      display: block;
-    }
-    nav {
-      margin-bottom: 1rem;
-    }
-    nav button {
-      margin: 0.25rem 0.5rem 0.25rem 0;
-      padding: 0.5rem 1rem;
-      background: #00224d;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background-color 0.3s;
-    }
-    nav button:hover {
-      background: #003366;
-    }
-    button {
-      cursor: pointer;
-      border-radius: 4px;
-      border: none;
-      padding: 0.5rem 1rem;
-      background-color: #00224d;
-      color: white;
-      font-weight: bold;
-      transition: background-color 0.3s;
-    }
-    button:hover {
-      background-color: #003366;
-    }
-    input, select, textarea {
-      margin: 0.25rem 0;
-      padding: 0.5rem;
-      width: 100%;
-      box-sizing: border-box;
-      font-size: 1rem;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      font-family: inherit;
-    }
-    textarea {
-      resize: vertical;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-      font-size: 0.9rem;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 0.5rem;
-      text-align: left;
-      vertical-align: middle;
-    }
-    th {
-      background-color: #e6e6e6;
-    }
-    .msg {
-      margin-top: 0.5rem;
-      color: red;
-      font-weight: bold;
-    }
-    .success {
-      color: green;
-    }
-    /* Scroll para tabelas se precisar */
-    .scrollable {
-      max-height: 250px;
-      overflow-y: auto;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PF - Sistema Integrado</title>
+<style>
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: Arial, sans-serif;
+    margin:0; padding:0;
+    background: #f0f2f5;
+  }
+  .hidden { display:none; }
+  header {
+    background:#003366;
+    color:#fff;
+    padding:15px;
+    text-align:center;
+  }
+  #loginScreen, #mainPanel {
+    max-width: 960px;
+    margin: 20px auto;
+    background:#fff;
+    box-shadow:0 0 8px rgba(0,0,0,0.2);
+    border-radius:6px;
+    padding:20px;
+  }
+  h2 {
+    margin-top:0;
+  }
+  input[type=text], input[type=password], select, textarea {
+    width: 100%;
+    padding:8px;
+    margin:6px 0 12px;
+    border:1px solid #ccc;
+    border-radius:4px;
+    font-size: 14px;
+  }
+  button {
+    background:#003366;
+    color:#fff;
+    border:none;
+    padding:10px 18px;
+    border-radius:4px;
+    cursor:pointer;
+    font-weight: bold;
+    font-size: 14px;
+  }
+  button:hover {
+    background:#0055a3;
+  }
+  nav {
+    float:left;
+    width:200px;
+    border-right:1px solid #ccc;
+    min-height:400px;
+  }
+  nav button {
+    display:block;
+    width:100%;
+    margin:4px 0;
+    text-align:left;
+    background:#0055a3;
+  }
+  nav button.active {
+    background:#003366;
+  }
+  section.content {
+    margin-left:210px;
+    min-height: 400px;
+    padding-left: 20px;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top:10px;
+  }
+  th, td {
+    border:1px solid #ccc;
+    padding:8px;
+    text-align:left;
+  }
+  th {
+    background:#003366;
+    color:#fff;
+  }
+  .log {
+    background:#e8e8e8;
+    height: 150px;
+    overflow-y: auto;
+    padding: 8px;
+    font-size: 12px;
+    border-radius: 4px;
+  }
+  textarea {
+    resize: vertical;
+  }
+  .status-em-servico {
+    color: green;
+    font-weight: bold;
+  }
+  .status-afastado {
+    color: red;
+    font-weight: bold;
+  }
+  .comunicado {
+    background:#d9edf7;
+    border:1px solid #bce8f1;
+    padding:10px;
+    margin-bottom:10px;
+    border-radius: 4px;
+  }
+  #userInfo {
+    margin-bottom: 15px;
+    font-weight: bold;
+  }
+</style>
 </head>
 <body>
 
 <header>
-  Painel da Polícia Federal - gov.br/PF
+  <h1>Polícia Federal - Sistema Integrado</h1>
 </header>
 
-<main>
+<div id="loginScreen">
+  <h2>Login</h2>
+  <label for="loginId">ID:</label>
+  <input type="text" id="loginId" placeholder="Informe seu ID" />
+  <label for="loginPassword">Senha:</label>
+  <input type="password" id="loginPassword" placeholder="Informe sua senha" />
+  <button id="btnLogin">Entrar</button>
+  <hr />
+  <h2>Cadastro</h2>
+  <label for="regName">Nome Completo:</label>
+  <input type="text" id="regName" placeholder="Nome completo" />
+  <label for="regId">ID desejado:</label>
+  <input type="text" id="regId" placeholder="ID único" />
+  <label for="regPassword">Senha:</label>
+  <input type="password" id="regPassword" placeholder="Senha" />
+  <button id="btnRegister">Cadastrar</button>
+</div>
 
-  <!-- Login -->
-  <section id="loginSection" class="visible">
-    <h2>Login</h2>
-    <input type="text" id="loginId" placeholder="ID" autocomplete="off" />
-    <input type="password" id="loginSenha" placeholder="Senha" autocomplete="off" />
-    <button onclick="login()">Entrar</button>
-    <p>Não tem cadastro? <a href="#" onclick="mostrarCadastro(event)">Cadastre-se</a></p>
-    <p id="msgLogin" class="msg"></p>
-  </section>
+<div id="mainPanel" class="hidden">
+  <div id="userInfo"></div>
+  <button id="btnLogout" style="float:right; background:#900;">Sair</button>
+  <nav>
+    <button data-section="dashboard" class="active">Dashboard</button>
+    <button data-section="agentes">Agentes</button>
+    <button data-section="escala">Escala e Ordens</button>
+    <button data-section="registros">Banco Criminal</button>
+    <button data-section="promocoes">Promoções/Rebaixamentos</button>
+    <button data-section="denuncias">Denúncias</button>
+    <button data-section="advertencias">Advertências/Punições</button>
+    <button data-section="boletins">Gerador B.O.</button>
+    <button data-section="comunicados">Comunicados Oficiais</button>
+    <button data-section="logs">Logs</button>
+  </nav>
+  <section class="content">
+    <div id="dashboard" class="section">
+      <h2>Bem-vindo ao Sistema da Polícia Federal</h2>
+      <p>Este sistema integra o controle interno, promoções, banco criminal, denúncias e comunicações oficiais da Polícia Federal. Utilize o menu lateral para navegar entre as funcionalidades.</p>
+      <p><strong>Seu cargo atual:</strong> <span id="cargoAtual"></span></p>
+    </div>
 
-  <!-- Cadastro -->
-  <section id="cadastroSection">
-    <h2>Cadastro</h2>
-    <input type="text" id="cadastroNome" placeholder="Nome completo" autocomplete="off" />
-    <input type="text" id="cadastroId" placeholder="ID (único)" autocomplete="off" />
-    <input type="password" id="cadastroSenha" placeholder="Senha" autocomplete="off" />
-    <select id="cadastroCargo">
-      <option value="Agente">Agente (cargo inicial)</option>
-      <option value="Chefe">Chefe</option>
-      <option value="Delegado">Delegado</option>
-      <option value="Diretor-Geral">Diretor-Geral</option>
-    </select>
-    <button onclick="cadastrar()">Cadastrar</button>
-    <p><a href="#" onclick="mostrarLogin(event)">Voltar ao login</a></p>
-    <p id="msgCadastro" class="msg"></p>
-  </section>
+    <div id="agentes" class="section hidden">
+      <h2>Gerenciamento de Agentes</h2>
+      <p>Editar informações dos agentes cadastrados.</p>
+      <table id="tableAgentes">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>ID</th>
+            <th>Cargo</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Agentes aqui -->
+        </tbody>
+      </table>
+    </div>
 
-  <!-- Painel Principal -->
-  <section id="painelPrincipal">
+    <div id="escala" class="section hidden">
+      <h2>Escala e Ordens de Missão</h2>
+      <p>Funcionalidade para visualização de escala e ordens (placeholder).</p>
+    </div>
 
-    <nav>
-      <button onclick="mostrarSecao('agentesSection')">Gerenciar Agentes</button>
-      <button onclick="mostrarSecao('registrosSection')">Banco de Registros Criminais</button>
-      <button onclick="mostrarSecao('denunciasSection')">Denúncias</button>
-      <button onclick="mostrarSecao('advertenciasSection')">Advertências</button>
-      <button onclick="mostrarSecao('comunicadosSection')">Comunicados</button>
-      <button onclick="mostrarSecao('boSection')">Gerar B.O.</button>
-      <button onclick="logout()">Sair</button>
-    </nav>
-
-    <!-- Gerenciar agentes -->
-    <section id="agentesSection">
-      <h2>Gerenciar Agentes</h2>
-      <div id="listaAgentes"></div>
-    </section>
-
-    <!-- Banco de registros criminais -->
-    <section id="registrosSection">
+    <div id="registros" class="section hidden">
       <h2>Banco de Registros Criminais</h2>
-      <input type="text" id="registroNome" placeholder="Nome" autocomplete="off" />
-      <input type="text" id="registroRG" placeholder="RG" autocomplete="off" />
-      <textarea id="registroHistorico" placeholder="Histórico"></textarea>
-      <select id="registroStatus">
-        <option>Em investigação</option>
-        <option>Processo penal em andamento</option>
-        <option>Fugitivo</option>
-        <option selected>Em liberdade</option>
-      </select>
-      <select id="registroPreso">
-        <option value="">Foi preso?</option>
-        <option value="Sim">Sim</option>
-        <option value="Não">Não</option>
-      </select>
-      <button onclick="adicionarRegistroCriminal()">Adicionar</button>
+      <form id="formAddRegistro">
+        <h3>Adicionar Registro</h3>
+        <label>Nome:</label>
+        <input type="text" id="registroNome" required />
+        <label>RG:</label>
+        <input type="text" id="registroRG" required />
+        <label>Histórico:</label>
+        <textarea id="registroHistorico" rows="3" required></textarea>
+        <label>Status:</label>
+        <select id="registroStatus" required>
+          <option value="Em investigação">Em investigação</option>
+          <option value="Processo penal em andamento">Processo penal em andamento</option>
+          <option value="Fugitivo">Fugitivo</option>
+          <option value="Em liberdade">Em liberdade</option>
+        </select>
+        <label>Foi preso?</label>
+        <select id="registroPreso" required>
+          <option value="Sim">Sim</option>
+          <option value="Não">Não</option>
+        </select>
+        <button type="submit">Adicionar Registro</button>
+      </form>
+
       <hr />
-      <input type="text" id="pesquisarRG" placeholder="Pesquisar por RG" autocomplete="off" />
-      <button onclick="pesquisarRegistro()">Pesquisar</button>
-      <div id="resultadoPesquisa"></div>
-      <p id="msgRegistro" class="msg"></p>
-    </section>
 
-    <!-- Denúncias -->
-    <section id="denunciasSection">
+      <h3>Pesquisar Registro</h3>
+      <input type="text" id="pesqNome" placeholder="Nome para pesquisar" />
+      <button id="btnPesqRegistro">Pesquisar</button>
+
+      <table id="tableRegistros" class="hidden">
+        <thead>
+          <tr><th>Nome</th><th>RG</th><th>Histórico</th><th>Status</th><th>Total Prisões</th><th>Foi Preso?</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div id="promocoes" class="section hidden">
+      <h2>Promoções e Rebaixamentos</h2>
+      <p>Gerencie promoções e rebaixamentos de agentes respeitando a hierarquia.</p>
+      <table id="tablePromocoes">
+        <thead>
+          <tr><th>Nome</th><th>ID</th><th>Cargo Atual</th><th>Nova Posição</th><th>Ação</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div id="denuncias" class="section hidden">
       <h2>Painel de Denúncias</h2>
-      <input type="text" id="denunciado" placeholder="Nome do denunciado" autocomplete="off" />
-      <input type="text" id="denunciante" placeholder="Seu nome (denunciante)" autocomplete="off" />
-      <textarea id="descricaoDenuncia" placeholder="Descrição da denúncia"></textarea>
-      <button onclick="enviarDenuncia()">Enviar Denúncia</button>
-      <div id="listaDenuncias" class="scrollable"></div>
-      <p id="msgDenuncia" class="msg"></p>
-    </section>
+      <form id="formDenuncia">
+        <label>Denunciado (Nome ou ID):</label>
+        <input type="text" id="denunciado" required />
+        <label>Descrição da denúncia:</label>
+        <textarea id="descDenuncia" rows="4" required></textarea>
+        <button type="submit">Registrar Denúncia</button>
+      </form>
+      <hr />
+      <h3>Lista de Denúncias</h3>
+      <table id="tableDenuncias">
+        <thead>
+          <tr><th>ID</th><th>Denunciado</th><th>Descrição</th><th>Data</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
 
-    <!-- Advertências -->
-    <section id="advertenciasSection">
-      <h2>Sistema de Advertências</h2>
-      <input type="text" id="nomeAdvertido" placeholder="Nome do Agente" autocomplete="off" />
-      <textarea id="motivoAdvertencia" placeholder="Motivo"></textarea>
-      <button onclick="registrarAdvertencia()">Registrar Advertência</button>
-      <div id="listaAdvertencias" class="scrollable"></div>
-      <p id="msgAdvertencia" class="msg"></p>
-    </section>
+    <div id="advertencias" class="section hidden">
+      <h2>Advertências e Punições</h2>
+      <form id="formAdvertencia">
+        <label>Agente (Nome ou ID):</label>
+        <input type="text" id="advAgente" required />
+        <label>Tipo:</label>
+        <select id="advTipo" required>
+          <option value="Advertência">Advertência</option>
+          <option value="Suspensão">Suspensão</option>
+          <option value="Demissão">Demissão</option>
+        </select>
+        <label>Descrição:</label>
+        <textarea id="advDescricao" rows="3" required></textarea>
+        <button type="submit">Registrar</button>
+      </form>
+      <hr />
+      <h3>Lista de Advertências/Punições</h3>
+      <table id="tableAdvertencias">
+        <thead>
+          <tr><th>ID</th><th>Agente</th><th>Tipo</th><th>Descrição</th><th>Data</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
 
-    <!-- Comunicados -->
-    <section id="comunicadosSection">
+    <div id="boletins" class="section hidden">
+      <h2>Gerador de Boletins de Ocorrência (B.O.)</h2>
+      <form id="formBO">
+        <label>Nome do Envolvido:</label>
+        <input type="text" id="boNome" required />
+        <label>Descrição do Ocorrido:</label>
+        <textarea id="boDescricao" rows="4" required></textarea>
+        <label>Data do Ocorrido:</label>
+        <input type="date" id="boData" required />
+        <button type="submit">Gerar B.O.</button>
+      </form>
+      <hr />
+      <div id="boletimGerado" style="white-space: pre-wrap; background:#eef; padding:10px; border-radius:4px;"></div>
+    </div>
+
+    <div id="comunicados" class="section hidden">
       <h2>Comunicados Oficiais</h2>
-      <textarea id="novoComunicado" placeholder="Digite um novo comunicado..."></textarea>
-      <button onclick="publicarComunicado()">Publicar</button>
-      <div id="listaComunicados" class="scrollable"></div>
-      <p id="msgComunicado" class="msg"></p>
-    </section>
+      <form id="formComunicado">
+        <label>Título:</label>
+        <input type="text" id="comTitulo" required />
+        <label>Mensagem:</label>
+        <textarea id="comMensagem" rows="4" required></textarea>
+        <button type="submit">Publicar Comunicado</button>
+      </form>
+      <hr />
+      <div id="listaComunicados"></div>
+    </div>
 
-    <!-- Gerar boletim de ocorrência -->
-    <section id="boSection">
-      <h2>Gerador de Boletins de Ocorrência</h2>
-      <input type="text" id="boNome" placeholder="Nome do envolvido" autocomplete="off" />
-      <textarea id="boDescricao" placeholder="Descrição da ocorrência"></textarea>
-      <button onclick="gerarBO()">Gerar B.O.</button>
-      <div id="listaBOs" class="scrollable"></div>
-      <p id="msgBO" class="msg"></p>
-    </section>
-
+    <div id="logs" class="section hidden">
+      <h2>Logs de Ações</h2>
+      <div class="log" id="logContent"></div>
+    </div>
   </section>
-
-</main>
-
+</div>
 <script>
-  // Dados armazenados no localStorage
-  // Estrutura:
-  // usuarios = [{id, nome, senha, cargo}]
-  // registros = [{nome, rg, historico, status, preso}]
-  // denuncias = [{denunciado, denunciante, descricao, data}]
-  // advertencias = [{nome, motivo, data}]
-  // comunicados = [{texto, data}]
-  // bos = [{nome, descricao, data}]
-  
-  const webhookURL = ''; // Coloque aqui sua URL do webhook Discord para logs, ou deixe vazio para desativar logs
+(() => {
+  // Hierarquia da PF (do maior para o menor)
+  const hierarchy = [
+    "Dono da PF",
+    "Diretor Geral",
+    "Delegado Federal",
+    "Superintendente",
+    "Agente Especial",
+    "Agente Federal",
+    "Agente",
+    "Recruta"
+  ];
 
-  // ----- Auxiliares -----
-  function salvarDados() {
-    localStorage.setItem('usuarios', JSON.stringify(usuarios));
-    localStorage.setItem('registros', JSON.stringify(registros));
-    localStorage.setItem('denuncias', JSON.stringify(denuncias));
-    localStorage.setItem('advertencias', JSON.stringify(advertencias));
-    localStorage.setItem('comunicados', JSON.stringify(comunicados));
-    localStorage.setItem('bos', JSON.stringify(bos));
-  }
-  function carregarDados() {
-    usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
-    registros = JSON.parse(localStorage.getItem('registros')) || [];
-    denuncias = JSON.parse(localStorage.getItem('denuncias')) || [];
-    advertencias = JSON.parse(localStorage.getItem('advertencias')) || [];
-    comunicados = JSON.parse(localStorage.getItem('comunicados')) || [];
-    bos = JSON.parse(localStorage.getItem('bos')) || [];
-  }
-  function enviarWebhook(mensagem) {
-    if (!webhookURL) return;
-    fetch(webhookURL, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({content: mensagem})
-    });
-  }
-  function formatarData(d) {
-    const dt = new Date(d);
-    return dt.toLocaleString('pt-BR');
-  }
-  function esconderTodasSecoes() {
-    document.querySelectorAll('main section').forEach(sec => sec.classList.remove('visible'));
-  }
-  function mostrarSecao(id) {
-    esconderTodasSecoes();
-    document.getElementById(id).classList.add('visible');
-    if(id === 'agentesSection') renderizarAgentes();
-    if(id === 'listaDenuncias') renderizarDenuncias();
-    if(id === 'listaAdvertencias') renderizarAdvertencias();
-    if(id === 'listaComunicados') renderizarComunicados();
-    if(id === 'listaBOs') renderizarBOs();
-    if(id === 'denunciasSection') renderizarDenuncias();
-    if(id === 'advertenciasSection') renderizarAdvertencias();
-    if(id === 'comunicadosSection') renderizarComunicados();
-    if(id === 'boSection') renderizarBOs();
-  }
-  function mostrarLogin(e) {
-    if(e) e.preventDefault();
-    esconderTodasSecoes();
-    document.getElementById('loginSection').classList.add('visible');
-    limparMensagens();
-  }
-  function mostrarCadastro(e) {
-    if(e) e.preventDefault();
-    esconderTodasSecoes();
-    document.getElementById('cadastroSection').classList.add('visible');
-    limparMensagens();
-  }
-  function limparMensagens() {
-    ['msgLogin', 'msgCadastro', 'msgRegistro', 'msgDenuncia', 'msgAdvertencia', 'msgComunicado', 'msgBO'].forEach(id => {
-      document.getElementById(id).textContent = '';
-    });
-  }
-    function cargoPodePromover(cargoAtual, cargoDestino) {
-    // Define a ordem dos cargos da PF
-    const cargos = ['Agente', 'Chefe', 'Delegado', 'Diretor-Geral'];
-    let idxAtual = cargos.indexOf(cargoAtual);
-    let idxDestino = cargos.indexOf(cargoDestino);
-    // Pode promover somente para cargo superior imediato
-    return (idxDestino === idxAtual + 1);
+  // Estados globais
+  let users = JSON.parse(localStorage.getItem("pf_users") || "[]"); 
+  let registros = JSON.parse(localStorage.getItem("pf_registros") || "[]"); 
+  let denuncias = JSON.parse(localStorage.getItem("pf_denuncias") || "[]"); 
+  let advertencias = JSON.parse(localStorage.getItem("pf_advertencias") || "[]"); 
+  let comunicados = JSON.parse(localStorage.getItem("pf_comunicados") || "[]"); 
+  let logs = JSON.parse(localStorage.getItem("pf_logs") || "[]"); 
+
+  let currentUser = null;
+
+  // Helpers
+  function saveAll() {
+    localStorage.setItem("pf_users", JSON.stringify(users));
+    localStorage.setItem("pf_registros", JSON.stringify(registros));
+    localStorage.setItem("pf_denuncias", JSON.stringify(denuncias));
+    localStorage.setItem("pf_advertencias", JSON.stringify(advertencias));
+    localStorage.setItem("pf_comunicados", JSON.stringify(comunicados));
+    localStorage.setItem("pf_logs", JSON.stringify(logs));
   }
 
-  // Variáveis globais
-  let usuarios = [];
-  let registros = [];
-  let denuncias = [];
-  let advertencias = [];
-  let comunicados = [];
-  let bos = [];
-  let usuarioLogado = null;
-
-  // Carrega dados do localStorage no início
-  carregarDados();
-
-  // Função de login
-  function login() {
-    limparMensagens();
-    const id = document.getElementById('loginId').value.trim();
-    const senha = document.getElementById('loginSenha').value.trim();
-    if (!id || !senha) {
-      document.getElementById('msgLogin').textContent = 'Preencha ID e senha.';
-      return;
-    }
-    const user = usuarios.find(u => u.id === id && u.senha === senha);
-    if (!user) {
-      document.getElementById('msgLogin').textContent = 'ID ou senha incorretos.';
-      return;
-    }
-    usuarioLogado = user;
-    document.getElementById('loginId').value = '';
-    document.getElementById('loginSenha').value = '';
-    mostrarPainel();
-    enviarWebhook(`[LOGIN] Usuário ${user.nome} (${user.cargo}) entrou no sistema.`);
+  function addLog(text) {
+    const now = new Date().toLocaleString();
+    logs.push(`[${now}] ${text}`);
+    if (logs.length > 100) logs.shift(); // manter logs limitados
+    saveAll();
+    renderLogs();
+    // Simula envio ao webhook:
+    console.log("LOG WEBHOOK:", text);
   }
 
-  // Função de cadastro
-  function cadastrar() {
-    limparMensagens();
-    const nome = document.getElementById('cadastroNome').value.trim();
-    const id = document.getElementById('cadastroId').value.trim();
-    const senha = document.getElementById('cadastroSenha').value.trim();
-    const cargo = document.getElementById('cadastroCargo').value;
-    if (!nome || !id || !senha) {
-      document.getElementById('msgCadastro').textContent = 'Preencha todos os campos.';
-      return;
-    }
-    if (usuarios.find(u => u.id === id)) {
-      document.getElementById('msgCadastro').textContent = 'ID já cadastrado.';
-      return;
-    }
-    const novoUsuario = { id, nome, senha, cargo };
-    usuarios.push(novoUsuario);
-    salvarDados();
-    document.getElementById('msgCadastro').textContent = 'Cadastro realizado com sucesso! Você já pode entrar.';
-    document.getElementById('cadastroNome').value = '';
-    document.getElementById('cadastroId').value = '';
-    document.getElementById('cadastroSenha').value = '';
-    // Volta para login após 2 segundos
-    setTimeout(() => mostrarLogin(), 2000);
+  function findUserById(id) {
+    return users.find(u => u.id === id);
   }
 
-  // Mostrar painel principal após login
-  function mostrarPainel() {
-    esconderTodasSecoes();
-    document.getElementById('painelPrincipal').classList.add('visible');
-    // Mostra mensagem de boas vindas e explicação
-    alert(`Bem-vindo(a) ${usuarioLogado.nome}!\n\nVocê está logado como: ${usuarioLogado.cargo}\n\nEste é o painel da Polícia Federal, onde você pode gerenciar agentes, consultar e cadastrar registros criminais, lidar com denúncias, advertências, comunicados e boletins de ocorrência.`);
-    mostrarSecao('agentesSection');
+  function isLoggedIn() {
+    return currentUser !== null;
   }
+
+  function checkHierarchyHigher(userA, userB) {
+    // Retorna true se userA tem cargo mais alto que userB
+    return hierarchy.indexOf(userA.cargo) < hierarchy.indexOf(userB.cargo);
+  }
+
+  // UI Elementos
+  const loginScreen = document.getElementById("loginScreen");
+  const mainPanel = document.getElementById("mainPanel");
+  const userInfo = document.getElementById("userInfo");
+  const cargoAtualSpan = document.getElementById("cargoAtual");
+  const logContent = document.getElementById("logContent");
+
+  // Login inputs/buttons
+  const loginId = document.getElementById("loginId");
+  const loginPassword = document.getElementById("loginPassword");
+  const btnLogin = document.getElementById("btnLogin");
+
+  // Cadastro inputs/buttons
+  const regName = document.getElementById("regName");
+  const regId = document.getElementById("regId");
+  const regPassword = document.getElementById("regPassword");
+  const btnRegister = document.getElementById("btnRegister");
 
   // Logout
-  function logout() {
-    enviarWebhook(`[LOGOUT] Usuário ${usuarioLogado.nome} (${usuarioLogado.cargo}) saiu do sistema.`);
-    usuarioLogado = null;
-    esconderTodasSecoes();
-    document.getElementById('loginSection').classList.add('visible');
+  const btnLogout = document.getElementById("btnLogout");
+
+  // Navegação
+  const navButtons = document.querySelectorAll("nav button");
+  const sections = document.querySelectorAll("section.content > div.section");
+
+  // Banco Criminal elementos
+  const formAddRegistro = document.getElementById("formAddRegistro");
+  const registroNome = document.getElementById("registroNome");
+  const registroRG = document.getElementById("registroRG");
+  const registroHistorico = document.getElementById("registroHistorico");
+  const registroStatus = document.getElementById("registroStatus");
+  const registroPreso = document.getElementById("registroPreso");
+
+  const pesqNome = document.getElementById("pesqNome");
+  const btnPesqRegistro = document.getElementById("btnPesqRegistro");
+  const tableRegistros = document.getElementById("tableRegistros");
+  const tbodyRegistros = tableRegistros.querySelector("tbody");
+
+  // Promoções/Rebaixamentos
+  const tablePromocoes = document.getElementById("tablePromocoes").querySelector("tbody");
+
+  // Agentes
+  const tableAgentes = document.getElementById("tableAgentes").querySelector("tbody");
+
+  // Denúncias
+  const formDenuncia = document.getElementById("formDenuncia");
+  const denuciadoInput = document.getElementById("denunciado");
+  const descDenunciaInput = document.getElementById("descDenuncia");
+  const tableDenuncias = document.getElementById("tableDenuncias").querySelector("tbody");
+
+  // Advertências
+  const formAdvertencia = document.getElementById("formAdvertencia");
+  const advAgenteInput = document.getElementById("advAgente");
+  const advTipoInput = document.getElementById("advTipo");
+  const advDescricaoInput = document.getElementById("advDescricao");
+  const tableAdvertencias = document.getElementById("tableAdvertencias").querySelector("tbody");
+
+  // Boletins de ocorrência
+  const formBO = document.getElementById("formBO");
+  const boNome = document.getElementById("boNome");
+  const boDescricao = document.getElementById("boDescricao");
+  const boData = document.getElementById("boData");
+  const boletimGerado = document.getElementById("boletimGerado");
+
+  // Comunicados oficiais
+  const formComunicado = document.getElementById("formComunicado");
+  const comTitulo = document.getElementById("comTitulo");
+  const comMensagem = document.getElementById("comMensagem");
+  const listaComunicados = document.getElementById("listaComunicados");
+
+  // Funções UI e lógica
+
+  function renderLogs() {
+    logContent.textContent = logs.slice().reverse().join("\n");
   }
 
-  // Renderiza lista de agentes
-  function renderizarAgentes() {
-    const div = document.getElementById('listaAgentes');
-    if (usuarios.length === 0) {
-      div.innerHTML = '<p>Nenhum agente cadastrado.</p>';
+  function showSection(name) {
+    sections.forEach(sec => {
+      if (sec.id === name) sec.classList.remove("hidden");
+      else sec.classList.add("hidden");
+    });
+    navButtons.forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.section === name);
+    });
+  }
+
+  function refreshUserInfo() {
+    userInfo.textContent = `Logado como: ${currentUser.nome} (ID: ${currentUser.id}) - Cargo: ${currentUser.cargo}`;
+    cargoAtualSpan.textContent = currentUser.cargo;
+  }
+
+  function refreshTableAgentes() {
+    tableAgentes.innerHTML = "";
+    users.forEach(u => {
+      let tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${u.nome}</td>
+        <td>${u.id}</td>
+        <td>${u.cargo}</td>
+        <td>${u.status || "Em serviço"}</td>
+        <td>
+          <button data-id="${u.id}" class="btnEdit">Editar</button>
+        </td>
+      `;
+      tableAgentes.appendChild(tr);
+    });
+    // Botões editar
+    tableAgentes.querySelectorAll(".btnEdit").forEach(btn => {
+      btn.onclick = () => openEditAgent(btn.dataset.id);
+    });
+  }
+
+  function openEditAgent(id) {
+    let user = findUserById(id);
+    if (!user) return alert("Agente não encontrado.");
+
+    // Prompt para editar cargo e status e senha
+    let newCargo = prompt("Alterar Cargo de "+user.nome, user.cargo);
+    if (newCargo && hierarchy.includes(newCargo)) {
+      // Apenas usuários com cargo superior podem alterar cargo de outros
+      if (checkHierarchyHigher(currentUser, user)) {
+        user.cargo = newCargo;
+      } else {
+        alert("Você não tem permissão para alterar o cargo deste agente.");
+        return;
+      }
+    } else if(newCargo) {
+      alert("Cargo inválido.");
       return;
     }
-    let html = '<table><thead><tr><th>ID</th><th>Nome</th><th>Cargo</th><th>Ações</th></tr></thead><tbody>';
-    usuarios.forEach(u => {
-      html += `<tr>
-        <td>${u.id}</td>
+
+    let newStatus = prompt("Alterar Status (Ex: Em serviço, Afastado)", user.status || "Em serviço");
+    if (newStatus !== null) {
+      user.status = newStatus.trim() || "Em serviço";
+    }
+
+    let newSenha = prompt("Alterar senha (deixe vazio para manter)");
+    if (newSenha) {
+      user.senha = newSenha;
+    }
+    saveAll();
+    addLog(`Usuário ${currentUser.nome} alterou dados do agente ${user.nome}.`);
+    refreshTableAgentes();
+  }
+
+  function refreshTablePromocoes() {
+    tablePromocoes.innerHTML = "";
+    users.forEach(u => {
+      if(u.id === currentUser.id) return; // não promover a si mesmo
+      let tr = document.createElement("tr");
+
+      let currentIdx = hierarchy.indexOf(u.cargo);
+      let nextIdx = currentIdx - 1; // promoções = cargos mais altos (índice menor)
+      let prevIdx = currentIdx + 1; // rebaixamentos = cargos mais baixos
+
+      let btnPromover = `<button data-id="${u.id}" data-action="promover">Promover</button>`;
+      let btnRebaixar = `<button data-id="${u.id}" data-action="rebaixar">Rebaixar</button>`;
+
+         // Só mostra promoção se cargo não for o topo
+      if (nextIdx < 0) btnPromover = "";
+
+      // Só mostra rebaixamento se cargo não for o último
+      if (prevIdx >= hierarchy.length) btnRebaixar = "";
+
+      tr.innerHTML = `
         <td>${u.nome}</td>
         <td>${u.cargo}</td>
-        <td>
-          ${u.id !== usuarioLogado.id ? `
-            <button onclick="promover('${u.id}')">Promover</button>
-            <button onclick="rebaixar('${u.id}')">Rebaixar</button>
-            <button onclick="excluirUsuario('${u.id}')">Excluir</button>` : '(Você)'}
-        </td>
-      </tr>`;
+        <td>${btnPromover} ${btnRebaixar}</td>
+      `;
+      tablePromocoes.appendChild(tr);
     });
-    html += '</tbody></table>';
-    div.innerHTML = html;
-  }
 
-  // Promover usuário
-  function promover(id) {
-    const usuario = usuarios.find(u => u.id === id);
-    if (!usuario) return alert('Usuário não encontrado.');
-    // Só diretor-geral não pode ser promovido
-    if (usuario.cargo === 'Diretor-Geral') return alert('Este agente já está no cargo máximo.');
-    // Checa permissão: somente Diretor-Geral pode promover outros
-    if (usuarioLogado.cargo !== 'Diretor-Geral') return alert('Apenas Diretor-Geral pode promover.');
-    // Promove para próximo cargo
-    const cargos = ['Agente', 'Chefe', 'Delegado', 'Diretor-Geral'];
-    const idx = cargos.indexOf(usuario.cargo);
-    if (idx === -1 || idx === cargos.length - 1) return alert('Cargo inválido ou máximo.');
-    usuario.cargo = cargos[idx + 1];
-    salvarDados();
-    renderizarAgentes();
-    alert(`Agente ${usuario.nome} promovido para ${usuario.cargo}.`);
-    enviarWebhook(`[PROMOÇÃO] ${usuario.nome} foi promovido para ${usuario.cargo} por ${usuarioLogado.nome}.`);
-  }
+    // Eventos dos botões promover/rebaixar
+    tablePromocoes.querySelectorAll("button").forEach(btn => {
+      btn.onclick = () => {
+        let userId = btn.dataset.id;
+        let action = btn.dataset.action;
+        let user = findUserById(userId);
+        if (!user) return alert("Usuário não encontrado");
 
-  // Rebaixar usuário
-  function rebaixar(id) {
-    const usuario = usuarios.find(u => u.id === id);
-    if (!usuario) return alert('Usuário não encontrado.');
-    // Só Agente não pode ser rebaixado
-    if (usuario.cargo === 'Agente') return alert('Este agente já está no cargo mais baixo.');
-    // Só Diretor-Geral pode rebaixar outros
-    if (usuarioLogado.cargo !== 'Diretor-Geral') return alert('Apenas Diretor-Geral pode rebaixar.');
-    // Rebaixa para cargo anterior
-    const cargos = ['Agente', 'Chefe', 'Delegado', 'Diretor-Geral'];
-    const idx = cargos.indexOf(usuario.cargo);
-    if (idx <= 0) return alert('Cargo inválido.');
-    usuario.cargo = cargos[idx - 1];
-    salvarDados();
-    renderizarAgentes();
-    alert(`Agente ${usuario.nome} rebaixado para ${usuario.cargo}.`);
-    enviarWebhook(`[REBAIXAMENTO] ${usuario.nome} foi rebaixado para ${usuario.cargo} por ${usuarioLogado.nome}.`);
-  }
+        // Só pode promover/rebaixar se currentUser tem cargo superior ao user
+        if (!checkHierarchyHigher(currentUser, user)) {
+          return alert("Você não tem permissão para essa ação.");
+        }
 
-  // Excluir usuário
-  function excluirUsuario(id) {
-    if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
-    const idx = usuarios.findIndex(u => u.id === id);
-    if (idx === -1) return alert('Usuário não encontrado.');
-    if (usuarios[idx].id === usuarioLogado.id) return alert('Você não pode excluir seu próprio usuário.');
-    usuarios.splice(idx, 1);
-    salvarDados();
-    renderizarAgentes();
-    alert('Usuário excluído com sucesso.');
-    enviarWebhook(`[EXCLUSÃO] Usuário ${id} excluído por ${usuarioLogado.nome}.`);
-  }
-
-  // Adicionar registro criminal
-  function adicionarRegistroCriminal() {
-    limparMensagens();
-    const nome = document.getElementById('registroNome').value.trim();
-    const rg = document.getElementById('registroRG').value.trim();
-    const historico = document.getElementById('registroHistorico').value.trim();
-    const status = document.getElementById('registroStatus').value;
-    const preso = document.getElementById('registroPreso').value;
-    if (!nome || !rg || !historico || !status || !preso) {
-      document.getElementById('msgRegistro').textContent = 'Preencha todos os campos e marque se foi preso.';
-      return;
-    }
-    if (registros.find(r => r.rg === rg)) {
-      document.getElementById('msgRegistro').textContent = 'Registro com esse RG já existe.';
-      return;
-    }
-    registros.push({ nome, rg, historico, status, preso });
-    salvarDados();
-    document.getElementById('registroNome').value = '';
-    document.getElementById('registroRG').value = '';
-    document.getElementById('registroHistorico').value = '';
-    document.getElementById('registroStatus').value = 'Em liberdade';
-    document.getElementById('registroPreso').value = '';
-    document.getElementById('msgRegistro').textContent = 'Registro adicionado com sucesso!';
-     enviarWebhook(`[REGISTRO CRIMINAL] Registro adicionado: ${nome} (RG: ${rg}), Status: ${status}, Preso: ${preso} por ${usuarioLogado.nome}.`);
-}
-
-// Pesquisar registros criminais pelo nome ou RG
-function pesquisarRegistro() {
-  const consulta = document.getElementById('pesquisarRG').value.trim().toLowerCase();
-  const resultadoDiv = document.getElementById('resultadoPesquisa');
-  if (!consulta) {
-    resultadoDiv.innerHTML = '';
-    return;
-  }
-  const resultados = registros.filter(r =>
-    r.nome.toLowerCase().includes(consulta) || r.rg.toLowerCase().includes(consulta)
-  );
-  if (resultados.length === 0) {
-    resultadoDiv.innerHTML = '<p>Nenhum registro encontrado.</p>';
-    return;
-  }
-  let html = `<table>
-    <thead>
-      <tr>
-        <th>Nome</th>
-        <th>RG</th>
-        <th>Histórico</th>
-        <th>Status</th>
-        <th>Foi preso?</th>
-        <th>Total Prisões</th>
-      </tr>
-    </thead>
-    <tbody>`;
-  resultados.forEach(r => {
-    // Conta prisões somente se status = "Em liberdade" e preso == "Sim"
-    let totalPrisoes = 0;
-    if (r.status === 'Em liberdade' && r.preso.toLowerCase() === 'sim') {
-      // Contar ocorrências simples de "prisão" ou "preso" no histórico
-      const prisaoMatch = r.historico.toLowerCase().match(/pris(o|ã)o|preso/g);
-      totalPrisoes = prisaoMatch ? prisaoMatch.length : 0;
-    }
-    html += `<tr>
-      <td>${r.nome}</td>
-      <td>${r.rg}</td>
-      <td>${r.historico}</td>
-      <td>${r.status}</td>
-      <td>${r.preso}</td>
-      <td>${totalPrisoes}</td>
-    </tr>`;
-  });
-  html += '</tbody></table>';
-  resultadoDiv.innerHTML = html;
-}
-
-// Logout do usuário
-function logout() {
-  usuarioLogado = null;
-  esconderTodasSecoes();
-  mostrarLogin();
-}
-
-// Esconder todas as seções visíveis
-function esconderTodasSecoes() {
-  const secoes = document.querySelectorAll('section');
-  secoes.forEach(s => s.classList.remove('visible'));
-}
-
-// Mostrar tela de login
-function mostrarLogin() {
-  esconderTodasSecoes();
-  document.getElementById('loginSection').classList.add('visible');
-}
-
-// Mostrar tela de cadastro
-function mostrarCadastro() {
-  esconderTodasSecoes();
-  document.getElementById('cadastroSection').classList.add('visible');
-}
-
-// Salvar dados no localStorage
-function salvarDados() {
-  localStorage.setItem('usuariosPF', JSON.stringify(usuarios));
-  localStorage.setItem('registrosPF', JSON.stringify(registros));
-}
-
-// Carregar dados do localStorage
-function carregarDados() {
-  const u = localStorage.getItem('usuariosPF');
-  const r = localStorage.getItem('registrosPF');
-  if (u) usuarios = JSON.parse(u);
-  if (r) registros = JSON.parse(r);
-}
-
-// Função para enviar dados para webhook Discord
-function enviarWebhook(mensagem) {
-  const webhookURL = 'https://discord.com/api/webhooks/SEU_WEBHOOK_AQUI';
-  fetch(webhookURL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ content: mensagem }),
-  }).catch(() => { /* Falha no webhook não trava o sistema */ });
-}
-
-// Inicialização
-carregarDados();
-mostrarLogin();
-
-  // Variáveis globais
-  let usuarios = [];
-  let registros = [];
-  let denuncias = [];
-  let advertencias = [];
-  let comunicados = [];
-  let bos = [];
-
-  let usuarioLogado = null;
-
-  carregarDados();
-
-  // Função de login
-  function login() {
-    limparMensagens();
-    const id = document.getElementById('loginId').value.trim();
-    const senha = document.getElementById('loginSenha').value;
-
-    if (!id || !senha) {
-      document.getElementById('msgLogin').textContent = 'Preencha todos os campos.';
-      return;
-    }
-
-    const usuario = usuarios.find(u => u.id === id && u.senha === senha);
-
-    if (!usuario) {
-      document.getElementById('msgLogin').textContent = 'ID ou senha incorretos.';
-      return;
-    }
-
-    usuarioLogado = usuario;
-    mostrarPainelPrincipal();
-    enviarWebhook(`🟢 Login: Usuário ${usuario.nome} (${usuario.cargo}) logou.`);
-  }
-
-  // Exibe o painel principal após login
-  function mostrarPainelPrincipal() {
-    esconderTodasSecoes();
-    document.getElementById('painelPrincipal').classList.add('visible');
-    limparMensagens();
-    mostrarSecao('agentesSection');
-    atualizarCabecalho();
-  }
-
-  // Atualiza o cabeçalho com nome e cargo do usuário logado
-  function atualizarCabecalho() {
-    const header = document.querySelector('header');
-    if (usuarioLogado) {
-      header.textContent = `Painel da Polícia Federal - Bem vindo, ${usuarioLogado.nome} (${usuarioLogado.cargo})`;
-    } else {
-      header.textContent = 'Painel da Polícia Federal - gov.br/PF';
-    }
-  }
-
-  // Função para logout
-  function logout() {
-    enviarWebhook(`🔴 Logout: Usuário ${usuarioLogado.nome} (${usuarioLogado.cargo}) saiu.`);
-    usuarioLogado = null;
-    mostrarLogin();
-    atualizarCabecalho();
-  }
-
-  // Função para cadastro
-  function cadastrar() {
-    limparMensagens();
-    const nome = document.getElementById('cadastroNome').value.trim();
-    const id = document.getElementById('cadastroId').value.trim();
-    const senha = document.getElementById('cadastroSenha').value;
-    const cargo = document.getElementById('cadastroCargo').value;
-
-    if (!nome || !id || !senha || !cargo) {
-      document.getElementById('msgCadastro').textContent = 'Preencha todos os campos.';
-      return;
-    }
-
-    if (usuarios.some(u => u.id === id)) {
-      document.getElementById('msgCadastro').textContent = 'ID já cadastrado.';
-      return;
-    }
-
-    const novoUsuario = {id, nome, senha, cargo};
-    usuarios.push(novoUsuario);
-    salvarDados();
-
-    document.getElementById('msgCadastro').textContent = 'Cadastro realizado com sucesso!';
-    document.getElementById('msgCadastro').classList.add('success');
-
-    enviarWebhook(`🆕 Cadastro: Usuário ${nome} (${cargo}) foi cadastrado.`);
-
-    setTimeout(() => {
-      mostrarLogin();
-      document.getElementById('msgCadastro').classList.remove('success');
-    }, 2000);
-  }
-
-  // Renderizar lista de agentes
-  function renderizarAgentes() {
-    const lista = document.getElementById('listaAgentes');
-    if (!usuarioLogado) {
-      lista.innerHTML = '<p>Faça login para visualizar os agentes.</p>';
-      return;
-    }
-
-    if (usuarios.length === 0) {
-      lista.innerHTML = '<p>Nenhum agente cadastrado.</p>';
-      return;
-    }
-
-    let html = `<table>
-      <thead><tr><th>ID</th><th>Nome</th><th>Cargo</th></tr></thead><tbody>`;
-    usuarios.forEach(u => {
-      html += `<tr><td>${u.id}</td><td>${u.nome}</td><td>${u.cargo}</td></tr>`;
+        let idx = hierarchy.indexOf(user.cargo);
+        if (action === "promover") {
+          if (idx <= 0) return alert("Este usuário já está no cargo mais alto.");
+          user.cargo = hierarchy[idx - 1];
+          addLog(`${currentUser.nome} promoveu ${user.nome} para ${user.cargo}.`);
+          alert(`${user.nome} foi promovido para ${user.cargo}.`);
+        } else if (action === "rebaixar") {
+          if (idx >= hierarchy.length - 1) return alert("Este usuário já está no cargo mais baixo.");
+          user.cargo = hierarchy[idx + 1];
+          addLog(`${currentUser.nome} rebaixou ${user.nome} para ${user.cargo}.`);
+          alert(`${user.nome} foi rebaixado para ${user.cargo}.`);
+        }
+        saveAll();
+        refreshTablePromocoes();
+        refreshTableAgentes();
+        refreshUserInfo();
+      };
     });
-    html += '</tbody></table>';
-    lista.innerHTML = html;
   }
 
-  // Adicionar registro criminal
-  function adicionarRegistroCriminal() {
-    limparMensagens();
-    if (!usuarioLogado) {
-      document.getElementById('msgRegistro').textContent = 'Faça login para adicionar registros.';
-      return;
+  // Função para adicionar um registro criminal
+  function addRegistroCriminal() {
+    const nome = registroNome.value.trim();
+    const rg = registroRG.value.trim();
+    const historico = registroHistorico.value.trim();
+    const status = registroStatus.value;
+    const foiPreso = registroPreso.value;
+
+    if (!nome || !rg) return alert("Nome e RG são obrigatórios.");
+    if (!historico) return alert("Histórico é obrigatório.");
+
+    // Calcula total de prisões: só conta se status = "Em liberdade" e foiPreso = "Sim"
+    let totalPris = 0;
+    if (status === "Em liberdade" && foiPreso === "Sim") {
+      totalPris = 1;
     }
 
-    const nome = document.getElementById('registroNome').value.trim();
-    const rg = document.getElementById('registroRG').value.trim();
-    const historico = document.getElementById('registroHistorico').value.trim();
-    const status = document.getElementById('registroStatus').value;
-    const preso = document.getElementById('registroPreso').value;
+    registros.push({
+      nome,
+      rg,
+      historico,
+      status,
+      foiPreso,
+      totalPris
+    });
 
-    if (!nome || !rg || !historico || !status || !preso) {
-      document.getElementById('msgRegistro').textContent = 'Preencha todos os campos e selecione "Foi preso?".';
-      return;
-    }
+    saveAll();
+    alert("Registro criminal adicionado.");
+    registroNome.value = "";
+    registroRG.value = "";
+    registroHistorico.value = "";
+    registroStatus.value = "Em investigação";
+    registroPreso.value = "Não";
 
-    // Verificar se já existe registro com mesmo RG e nome para evitar duplicidade
-    const existe = registros.some(r => r.rg === rg && r.nome === nome);
-    if (existe) {
-      document.getElementById('msgRegistro').textContent = 'Registro criminal já existe para este RG e nome.';
-      return;
-    }
-
-    const novoRegistro = {nome, rg, historico, status, preso};
-    registros.push(novoRegistro);
-    salvarDados();
-
-    enviarWebhook(`📝 Registro criminal adicionado: ${nome} (RG: ${rg}), Status: ${status}, Foi preso: ${preso}`);
-
-    document.getElementById('msgRegistro').textContent = 'Registro adicionado com sucesso!';
-    document.getElementById('msgRegistro').classList.add('success');
-
-    // Limpar campos
-    document.getElementById('registroNome').value = '';
-    document.getElementById('registroRG').value = '';
-    document.getElementById('registroHistorico').value = '';
-    document.getElementById('registroStatus').value = 'Em liberdade';
-    document.getElementById('registroPreso').value = '';
-
-    setTimeout(() => {
-      document.getElementById('msgRegistro').textContent = '';
-      document.getElementById('msgRegistro').classList.remove('success');
-    }, 3000);
+    addLog(`${currentUser.nome} adicionou registro criminal de ${nome}.`);
   }
 
-  // Pesquisar registro criminal por RG
+  // Pesquisa registros criminais
   function pesquisarRegistro() {
-    limparMensagens();
-    const rg = document.getElementById('pesquisarRG').value.trim();
-    const resultadoDiv = document.getElementById('resultadoPesquisa');
-    resultadoDiv.innerHTML = '';
+    const nomeBusca = pesqNome.value.trim().toLowerCase();
+    tbodyRegistros.innerHTML = "";
 
-    if (!rg) {
-      document.getElementById('msgRegistro').textContent = 'Informe um RG para pesquisar.';
-      return;
-    }
-
-    const resultados = registros.filter(r => r.rg === rg);
-
+    const resultados = registros.filter(r => r.nome.toLowerCase().includes(nomeBusca));
     if (resultados.length === 0) {
-      resultadoDiv.innerHTML = '<p>Nenhum registro encontrado para este RG.</p>';
+      tbodyRegistros.innerHTML = `<tr><td colspan="6">Nenhum registro encontrado.</td></tr>`;
+      tableRegistros.classList.remove("hidden");
       return;
     }
-
-    let html = `<table>
-      <thead>
-        <tr>
-          <th>Nome</th>
-          <th>RG</th>
-          <th>Histórico</th>
-          <th>Status</th>
-          <th>Foi preso?</th>
-          <th>Total de Prisões</th>
-        </tr>
-      </thead>
-      <tbody>`;
 
     resultados.forEach(r => {
-      // Contar total de prisões - só se status for "Em liberdade" e preso for "Sim"
-      let totalPrisões = 0;
-      if (r.status === 'Em liberdade' && r.preso === 'Sim') totalPrisões = 1;
-
-      html += `<tr>
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
         <td>${r.nome}</td>
         <td>${r.rg}</td>
         <td>${r.historico}</td>
         <td>${r.status}</td>
-        <td>${r.preso}</td>
-        <td>${totalPrisões}</td>
-      </tr>`;
+        <td>${r.foiPreso}</td>
+        <td>${r.totalPris}</td>
+      `;
+      tbodyRegistros.appendChild(tr);
+    });
+    tableRegistros.classList.remove("hidden");
+  }
+
+  // Denunciar agente
+  function adicionarDenuncia() {
+    const denunciado = denuciadoInput.value.trim();
+    const descricao = descDenunciaInput.value.trim();
+
+    if (!denunciado || !descricao) return alert("Preencha todos os campos da denúncia.");
+
+    denuncias.push({
+      denunciante: currentUser.nome,
+      denunciado,
+      descricao,
+      data: new Date().toLocaleString()
     });
 
-    html += '</tbody></table>';
-    resultadoDiv.innerHTML = html;
+    saveAll();
+    alert("Denúncia registrada com sucesso.");
+    denuciadoInput.value = "";
+    descDenunciaInput.value = "";
+    renderDenuncias();
+
+    addLog(`${currentUser.nome} registrou denúncia contra ${denunciado}.`);
   }
 
-  // Enviar denúncia
-  function enviarDenuncia() {
-    limparMensagens();
-    if (!usuarioLogado) {
-      document.getElementById('msgDenuncia').textContent = 'Faça login para enviar denúncias.';
+  function renderDenuncias() {
+    tableDenuncias.innerHTML = "";
+    if (denuncias.length === 0) {
+      tableDenuncias.innerHTML = `<tr><td colspan="4">Nenhuma denúncia registrada.</td></tr>`;
       return;
     }
+    denuncias.forEach((d, i) => {
+      let tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${i + 1}</td>
+        <td>${d.denunciante}</td>
+        <td>${d.denunciado}</td>
+        <td>${d.descricao}</td>
+        <td>${d.data}</td>
+      `;
+      tableDenuncias.appendChild(tr);
+    });
+  }
 
-    const denunciado = document.getElementById('denunciado').value.trim();
-    const denunciante = document.getElementById('denunciante').value.trim();
-    const descricao = document.getElementById('descricaoDenuncia').value.trim();
+  // Advertências
+  function adicionarAdvertencia() {
+    const agente = advAgenteInput.value.trim();
+    const tipo = advTipoInput.value.trim();
+    const descricao = advDescricaoInput.value.trim();
 
-    if (!denunciado || !denunciante || !descricao) {
-      document.getElementById('msgDenuncia').textContent = 'Preencha todos os campos.';
-      return;
-    }
+    if (!agente || !tipo || !descricao) return alert("Preencha todos os campos da advertência.");
 
-    const novaDenuncia = {
-      denunciado,
-      denunciante,
+    advertencias.push({
+      agente,
+      tipo,
       descricao,
-      data: new Date().toISOString()
+      data: new Date().toLocaleString(),
+      aplicadaPor: currentUser.nome
+    });
+
+    saveAll();
+    alert("Advertência registrada.");
+    advAgenteInput.value = "";
+    advTipoInput.value = "";
+    advDescricaoInput.value = "";
+    renderAdvertencias();
+
+    addLog(`${currentUser.nome} aplicou advertência a ${agente} do tipo ${tipo}.`);
+  }
+
+  function renderAdvertencias() {
+    tableAdvertencias.innerHTML = "";
+    if (advertencias.length === 0) {
+      tableAdvertencias.innerHTML = `<tr><td colspan="5">Nenhuma advertência registrada.</td></tr>`;
+      return;
+    }
+    advertencias.forEach((a, i) => {
+      let tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${i + 1}</td>
+        <td>${a.agente}</td>
+        <td>${a.tipo}</td>
+        <td>${a.descricao}</td>
+        <td>${a.data}</td>
+        <td>${a.aplicadaPor}</td>
+      `;
+      tableAdvertencias.appendChild(tr);
+    });
+  }
+
+  // Gerar boletim de ocorrência
+  function gerarBoletim() {
+    const nome = boNome.value.trim();
+    const descricao = boDescricao.value.trim();
+    const data = boData.value;
+
+    if (!nome || !descricao || !data) return alert("Preencha todos os campos do boletim.");
+
+    const boletim = `--- BOLETIM DE OCORRÊNCIA ---
+Nome: ${nome}
+Data: ${data}
+Descrição: ${descricao}
+Registrado por: ${currentUser.nome}
+------------------------------`;
+
+    boletimGerado.textContent = boletim;
+
+    addLog(`${currentUser.nome} gerou boletim de ocorrência para ${nome}.`);
+  }
+
+  // Comunicados oficiais
+  function adicionarComunicado() {
+    const titulo = comTitulo.value.trim();
+    const mensagem = comMensagem.value.trim();
+
+    if (!titulo || !mensagem) return alert("Preencha título e mensagem do comunicado.");
+
+    comunicados.push({
+      titulo,
+      mensagem,
+      data: new Date().toLocaleString(),
+      autor: currentUser.nome
+    });
+
+    saveAll();
+    alert("Comunicado adicionado.");
+    comTitulo.value = "";
+    comMensagem.value = "";
+    renderComunicados();
+
+    addLog(`${currentUser.nome} publicou comunicado: ${titulo}.`);
+  }
+
+  function renderComunicados() {
+    listaComunicados.innerHTML = "";
+    if (comunicados.length === 0) {
+      listaComunicados.innerHTML = "<p>Não há comunicados oficiais.</p>";
+      return;
+    }
+    comunicados.forEach(c => {
+      let div = document.createElement("div");
+      div.className = "comunicado";
+      div.innerHTML = `<h3>${c.titulo} <small>(${c.data} por ${c.autor})</small></h3><p>${c.mensagem}</p><hr>`;
+      listaComunicados.appendChild(div);
+    });
+  }
+
+  // Login e logout
+  btnLogin.onclick = () => {
+    const id = loginId.value.trim();
+    const senha = loginPassword.value;
+
+    if (!id || !senha) return alert("Preencha ID e senha.");
+
+    let user = findUserById(id);
+    if (!user) return alert("Usuário não encontrado.");
+    if (user.senha !== senha) return alert("Senha incorreta.");
+
+    currentUser = user;
+    loginScreen.classList.add("hidden");
+    mainPanel.classList.remove("hidden");
+    refreshUserInfo();
+    refreshTableAgentes();
+    refreshTablePromocoes();
+    renderDenuncias();
+    renderAdvertencias();
+    renderComunicados();
+    renderLogs();
+    showSection("home");
+
+    addLog(`${currentUser.nome} fez login.`);
+  };
+
+  btnLogout.onclick = () => {
+    addLog(`${currentUser.nome} saiu.`);
+    currentUser = null;
+    loginScreen.classList.remove("hidden");
+    mainPanel.classList.add("hidden");
+    loginId.value = "";
+    loginPassword.value = "";
+  };
+
+  // Cadastro
+  btnRegister.onclick = () => {
+    const nome = regName.value.trim();
+    const id = regId.value.trim();
+    const senha = regPassword.value;
+
+    if (!nome || !id || !senha) return alert("Preencha todos os campos do cadastro.");
+
+    if (users.some(u => u.id === id)) {
+      return alert("ID já cadastrado.");
+    }
+
+    users.push({
+      nome,
+      id,
+      senha,
+      cargo: "Recruta",
+      status: "Em serviço"
+    });
+
+    saveAll();
+
+    alert("Cadastro realizado com sucesso. Faça login.");
+    regName.value = "";
+    regId.value = "";
+    regPassword.value = "";
+  };
+
+  // Navegação entre seções
+  navButtons.forEach(btn => {
+    btn.onclick = () => {
+      if (!isLoggedIn()) return alert("Faça login para navegar.");
+      showSection(btn.dataset.section);
     };
-
-    denuncias.push(novaDenuncia);
-    salvarDados();
-
-    enviarWebhook(`🚨 Denúncia enviada por ${denunciante} contra ${denunciado}: ${descricao}`);
-
-    document.getElementById('msgDenuncia').textContent = 'Denúncia enviada com sucesso!';
-    document.getElementById('msgDenuncia').classList.add('success');
-
-    // Limpar campos
-    document.getElementById('denunciado').value
-// Pesquisar registros criminais pelo nome ou RG
-function pesquisarRegistro() {
-  const consulta = document.getElementById('pesquisarRG').value.trim().toLowerCase();
-  const resultadoDiv = document.getElementById('resultadoPesquisa');
-  if (!consulta) {
-    resultadoDiv.innerHTML = '';
-    return;
-  }
-  // Filtra registros que contenham o termo na nome ou no RG
-  const resultados = registros.filter(r =>
-    r.nome.toLowerCase().includes(consulta) || r.rg.toLowerCase().includes(consulta)
-  );
-
-  if (resultados.length === 0) {
-    resultadoDiv.innerHTML = '<p>Nenhum registro encontrado.</p>';
-    return;
-  }
-
-  let html = '<table><thead><tr><th>Nome</th><th>RG</th><th>Histórico</th><th>Status</th><th>Preso?</th></tr></thead><tbody>';
-  resultados.forEach(r => {
-    html += `<tr>
-      <td>${r.nome}</td>
-      <td>${r.rg}</td>
-      <td>${r.historico}</td>
-      <td>${r.status}</td>
-      <td>${r.preso}</td>
-    </tr>`;
   });
-  html += '</tbody></table>';
-  resultadoDiv.innerHTML = html;
-}
 
-// Enviar denúncia
-function enviarDenuncia() {
-  limparMensagens();
-  const denunciado = document.getElementById('denunciado').value.trim();
-  const denunciante = document.getElementById('denunciante').value.trim();
-  const descricao = document.getElementById('descricaoDenuncia').value.trim();
-  if (!denunciado || !denunciante || !descricao) {
-    document.getElementById('msgDenuncia').textContent = 'Preencha todos os campos da denúncia.';
-    return;
+  // Eventos banco criminal
+  formAddRegistro.onsubmit = e => {
+    e.preventDefault();
+    addRegistroCriminal();
+  };
+
+  btnPesqRegistro.onclick = () => {
+    pesquisarRegistro();
+  };
+
+  // Eventos denúncias
+  formDenuncia.onsubmit = e => {
+    e.preventDefault();
+    adicionarDenuncia();
+  };
+
+  // Eventos advertências
+  formAdvertencia.onsubmit = e => {
+    e.preventDefault();
+    adicionarAdvertencia();
+  };
+
+  // Evento boletim
+  formBO.onsubmit = e => {
+    e.preventDefault();
+    gerarBoletim();
+  };
+
+  // Evento comunicados
+  formComunicado.onsubmit = e => {
+    e.preventDefault();
+    adicionarComunicado();
+  };
+
+  // Inicialização
+  if (isLoggedIn()) {
+    loginScreen.classList.add("hidden");
+    mainPanel.classList.remove("hidden");
+    refreshUserInfo();
+    refreshTableAgentes();
+    refreshTablePromocoes();
+    renderDenuncias();
+    renderAdvertencias();
+    renderComunicados();
+    renderLogs();
+    showSection("home");
+  } else {
+    loginScreen.classList.remove("hidden");
+    mainPanel.classList.add("hidden");
   }
-  const data = new Date().toISOString();
-  denuncias.push({ denunciado, denunciante, descricao, data });
-  salvarDados();
-  document.getElementById('denunciado').value = '';
-  document.getElementById('denunciante').value = '';
-  document.getElementById('descricaoDenuncia').value = '';
-  document.getElementById('msgDenuncia').textContent = 'Denúncia enviada com sucesso!';
-  enviarWebhook(`[DENÚNCIA] Denúncia registrada contra ${denunciado} por ${denunciante}.`);
-
-  renderizarDenuncias();
-}
-
-// Renderizar lista de denúncias
-function renderizarDenuncias() {
-  const div = document.getElementById('listaDenuncias');
-  if (denuncias.length === 0) {
-    div.innerHTML = '<p>Nenhuma denúncia registrada.</p>';
-    return;
-  }
-  let html = '<table><thead><tr><th>Denunciado</th><th>Denunciante</th><th>Descrição</th><th>Data</th></tr></thead><tbody>';
-  denuncias.forEach(d => {
-    html += `<tr>
-      <td>${d.denunciado}</td>
-      <td>${d.denunciante}</td>
-      <td>${d.descricao}</td>
-      <td>${formatarData(d.data)}</td>
-    </tr>`;
-  });
-  html += '</tbody></table>';
-  div.innerHTML = html;
-}
-
-// Registrar advertência
-function registrarAdvertencia() {
-  limparMensagens();
-  const nome = document.getElementById('nomeAdvertido').value.trim();
-  const motivo = document.getElementById('motivoAdvertencia').value.trim();
-  if (!nome || !motivo) {
-    document.getElementById('msgAdvertencia').textContent = 'Preencha todos os campos da advertência.';
-    return;
-  }
-  const data = new Date().toISOString();
-  advertencias.push({ nome, motivo, data });
-  salvarDados();
-  document.getElementById('nomeAdvertido').value = '';
-  document.getElementById('motivoAdvertencia').value = '';
-  document.getElementById('msgAdvertencia').textContent = 'Advertência registrada com sucesso!';
-  enviarWebhook(`[ADVERTÊNCIA] Advertência registrada para ${nome} por ${usuarioLogado.nome}.`);
-
-  renderizarAdvertencias();
-}
-
-// Renderizar lista de advertências
-function renderizarAdvertencias() {
-  const div = document.getElementById('listaAdvertencias');
-  if (advertencias.length === 0) {
-    div.innerHTML = '<p>Nenhuma advertência registrada.</p>';
-    return;
-  }
-  let html = '<table><thead><tr><th>Nome</th><th>Motivo</th><th>Data</th></tr></thead><tbody>';
-  advertencias.forEach(a => {
-    html += `<tr>
-      <td>${a.nome}</td>
-      <td>${a.motivo}</td>
-      <td>${formatarData(a.data)}</td>
-    </tr>`;
-  });
-  html += '</tbody></table>';
-  div.innerHTML = html;
-}
-
-// Publicar comunicado
-function publicarComunicado() {
-  limparMensagens();
-  const texto = document.getElementById('novoComunicado').value.trim();
-  if (!texto) {
-    document.getElementById('msgComunicado').textContent = 'Digite o texto do comunicado.';
-    return;
-  }
-  const data = new Date().toISOString();
-  comunicados.push({ texto, data });
-  salvarDados();
-  document.getElementById('novoComunicado').value = '';
-  document.getElementById('msgComunicado').textContent = 'Comunicado publicado com sucesso!';
-  enviarWebhook(`[COMUNICADO] Novo comunicado publicado por ${usuarioLogado.nome}.`);
-
-  renderizarComunicados();
-}
-
-// Renderizar comunicados
-function renderizarComunicados() {
-  const div = document.getElementById('listaComunicados');
-  if (comunicados.length === 0) {
-    div.innerHTML = '<p>Nenhum comunicado publicado.</p>';
-    return;
-  }
-  let html = '<ul>';
-  comunicados.slice().reverse().forEach(c => {
-    html += `<li><strong>${formatarData(c.data)}</strong>: ${c.texto}</li>`;
-  });
-  html += '</ul>';
-  div.innerHTML = html;
-}
-
-// Gerar boletim de ocorrência
-function gerarBO() {
-  limparMensagens();
-  const nome = document.getElementById('boNome').value.trim();
-  const descricao = document.getElementById('boDescricao').value.trim();
-  if (!nome || !descricao) {
-    document.getElementById('msgBO').textContent = 'Preencha todos os campos para gerar o B.O.';
-    return;
-  }
-  const data = new Date().toISOString();
-  bos.push({ nome, descricao, data });
-  salvarDados();
-  document.getElementById('boNome').value = '';
-  document.getElementById('boDescricao').value = '';
-  document.getElementById('msgBO').textContent = 'Boletim de ocorrência gerado com sucesso!';
-  enviarWebhook(`[B.O.] Boletim de ocorrência gerado para ${nome} por ${usuarioLogado.nome}.`);
-
-  renderizarBOs();
-}
-
-// Renderizar boletins de ocorrência
-function renderizarBOs() {
-  const div = document.getElementById('listaBOs');
-  if (bos.length === 0) {
-    div.innerHTML = '<p>Nenhum boletim de ocorrência gerado.</p>';
-    return;
-  }
-  let html = '<table><thead><tr><th>Nome</th><th>Descrição</th><th>Data</th></tr></thead><tbody>';
-  bos.forEach(b => {
-    html += `<tr>
-      <td>${b.nome}</td>
-      <td>${b.descricao}</td>
-      <td>${formatarData(b.data)}</td>
-    </tr>`;
-  });
-  html += '</tbody></table>';
-  div.innerHTML = html;
-}
-
-// Ao carregar a página, mostrar login
-mostrarLogin();
+})();
 </script>
-
 </body>
 </html>
-
