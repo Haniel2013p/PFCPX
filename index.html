@@ -1,585 +1,313 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sistema PF - RP</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    margin: 0; padding: 0;
-    background: #f0f2f5;
-  }
-  header {
-    background: #004080;
-    color: white;
-    padding: 15px;
-    text-align: center;
-  }
-  #dashboard-publico, #login-section, #app-section {
-    max-width: 700px;
-    margin: 30px auto;
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 8px #ccc;
-  }
-  h2 {
-    color: #004080;
-    margin-bottom: 15px;
-  }
-  label {
-    display: block;
-    margin: 8px 0 4px;
-  }
-  input[type=text], input[type=password], select, textarea {
-    width: 100%;
-    padding: 8px;
-    border-radius: 4px;
-    border: 1px solid #aaa;
-    box-sizing: border-box;
-  }
-  button {
-    margin-top: 15px;
-    padding: 10px 20px;
-    background: #004080;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  button:hover { background: #003060; }
-  .hidden { display: none; }
-  nav {
-    margin-bottom: 20px;
-  }
-  nav button {
-    margin-right: 10px;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-  }
-  th, td {
-    padding: 8px;
-    border: 1px solid #ddd;
-    word-break: break-word;
-  }
-  th {
-    background: #004080;
-    color: white;
-  }
-  .error { color: red; margin-top: 10px; }
-  ul {
-    padding-left: 20px;
-  }
-</style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>PF‑RP Completo com Firebase</title>
+  <style>
+    body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f0f2f5;}
+    header{background:#004080;color:#fff;padding:15px;text-align:center;}
+    section{max-width:900px;margin:20px auto;background:#fff;padding:15px;border-radius:8px;box-shadow:0 0 8px #ccc;}
+    .hidden{display:none;}
+    nav button{margin:5px;padding:8px 12px;background:#004080;color:#fff;border:none;border-radius:4px;cursor:pointer;}
+    nav button:hover{background:#003060;}
+    input,textarea,select,button{width:100%;margin-top:5px;padding:8px;border:1px solid #aaa;border-radius:4px;box-sizing:border-box;}
+    table{width:100%;border-collapse:collapse;margin-top:10px;}
+    th,td{padding:8px;border:1px solid #ddd;word-break:break-word;}
+    th{background:#004080;color:#fff;}
+    .msg{color:red;font-weight:bold;margin:5px 0;}
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
+<header><h1>Sistema Polícia Federal (RP)</h1></header>
 
-<header>
-  <h1>Sistema Polícia Federal (RP)</h1>
-</header>
-
-<!-- Dashboard público -->
-<section id="dashboard-publico">
-  <h2>Bem-vindo ao Painel Público</h2>
-  <p>Este painel é de uso público a cidadãos do complexo. Aqui pode ser efetuado registro de Boletins de Ocorrência (B.O) e revisão das portarias de acesso público.</p>
-  
-  <button onclick="mostrarPainelPublico('painelBOPublico')">Registrar B.O Público</button>
-  <button onclick="mostrarPainelPublico('painelPortariasPublicas')">Ver Portarias Públicas</button>
-  <button onclick="mostrarLogin()">Iniciar Sessão (Usuários Registrados)</button>
-
-  <div id="avisosPublicos" style="margin-top:20px; border:1px solid #004080; padding:10px; border-radius:5px; background:#e6f0ff;">
-    <h3>Avisos Públicos</h3>
-    <ul id="listaAvisosPublicos">
-      <!-- Avisos dinâmicos aqui -->
-    </ul>
-  </div>
-
-  <div id="painelBOPublico" class="hidden" style="margin-top:20px;">
-    <h3>Registrar Boletim de Ocorrência (Público)</h3>
-    <form id="formBOPublico">
-      <label for="tituloBOPublico">Título do BO:</label>
-      <input type="text" id="tituloBOPublico" required />
-      <label for="descricaoBOPublico">Descrição:</label>
-      <textarea id="descricaoBOPublico" rows="4" required></textarea>
-      <label for="denunciadoBOPublico">Pessoa Denunciada (nome):</label>
-      <input type="text" id="denunciadoBOPublico" required />
-      <button type="submit">Registrar B.O</button>
-    </form>
-    <h3>Boletins Públicos Registrados</h3>
-    <table id="tabelaBOPublico">
-      <thead>
-        <tr><th>Título</th><th>Descrição</th><th>Denunciado</th><th>Data</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <div id="painelPortariasPublicas" class="hidden" style="margin-top:20px;">
-    <h3>Portarias Públicas</h3>
-    <ul id="listaPortariasPublicas"></ul>
-  </div>
-</section>
-
-<!-- Login -->
-<section id="login-section" class="hidden">
-  <h2>Login</h2>
-  <form id="loginForm">
-    <label for="username">Usuário:</label>
-    <input type="text" id="username" required autocomplete="off" />
-    <label for="password">Senha:</label>
-    <input type="password" id="password" required autocomplete="off" />
-    <button type="submit">Entrar</button>
-  </form>
-  <div id="login-error" class="error"></div>
-  <button onclick="mostrarDashboardPublico()">Voltar ao Público</button>
-</section>
-
-<!-- Área restrita -->
-<section id="app-section" class="hidden">
+<section id="public_area">
+  <h2>Área Pública</h2>
   <nav>
-    <button onclick="mostrarPainel('painelPromocoes')">Painel Promoções</button>
-    <button onclick="mostrarPainel('painelBancoCriminal')">Banco Criminal</button>
-    <button onclick="mostrarPainel('painelPortariasInternas')">Portarias (Delegado+)</button>
-    <button onclick="mostrarPainel('painelRegistroMembros')">Registrar Membros (Diretor+)</button>
-    <button onclick="logout()">Sair</button>
+    <button onclick="showPublicTab('bo')">Boletins</button>
+    <button onclick="showPublicTab('port')">Portarias Públicas</button>
+    <button onclick="showLogin()">Área Restrita</button>
   </nav>
-
-  <!-- Painel Promoções -->
-  <div id="painelPromocoes" class="painel">
-    <h2>Painel de Promoção / Rebaixamento / Exoneração</h2>
-    <table id="usuariosTable">
-      <thead>
-        <tr><th>Usuário</th><th>Cargo</th><th>Ações</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <!-- Banco Criminal -->
-  <div id="painelBancoCriminal" class="painel hidden">
-    <h2>Registro Banco Criminal</h2>
-    <form id="formBancoCriminal">
-      <label for="nomeCriminoso">Nome do Criminoso:</label>
-      <input type="text" id="nomeCriminoso" required />
-      <label for="tipoCrime">Tipo do Crime:</label>
-      <input type="text" id="tipoCrime" required />
-      <label for="descricaoCrime">Descrição do Crime:</label>
-      <textarea id="descricaoCrime" rows="4" required></textarea>
-      <button type="submit">Registrar Crime</button>
+  <div id="public-bo">
+    <h3>Registrar Boletim (qualquer pessoa)</h3>
+    <form id="formPublicBO">
+      <input id="pubDenunciante" placeholder="Seu nome" required/>
+      <input id="pubAcusado" placeholder="Nome do acusado" required/>
+      <textarea id="pubRelato" placeholder="Relato aqui..." rows="4" required></textarea>
+      <button type="submit">Enviar BO</button>
     </form>
-    <h3>Crimes Registrados</h3>
-    <table id="tabelaBancoCriminal">
-      <thead>
-        <tr><th>Nome</th><th>Tipo</th><th>Descrição</th><th>Data</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <div id="listBOpublic"></div>
   </div>
-
-  <!-- Portarias internas -->
-  <div id="painelPortariasInternas" class="painel hidden">
-    <h2>Gerenciar Portarias</h2>
-    <form id="formPortaria">
-      <label for="tituloPortaria">Título da Portaria:</label>
-      <input type="text" id="tituloPortaria" required />
-      <label for="conteudoPortaria">Conteúdo:</label>
-      <textarea id="conteudoPortaria" rows="4" required></textarea>
-      <button type="submit">Criar Portaria</button>
-    </form>
-    <h3>Portarias Internas Criadas</h3>
-    <ul id="listaPortariasInternas"></ul>
+  <div id="public-port" class="hidden">
+    <h3>Portarias Públicas</h3>
+    <div id="listPortPublic"></div>
   </div>
+</section>
 
-  <!-- Registro de membros -->
-  <div id="painelRegistroMembros" class="painel hidden">
-    <h2>Registrar Novo Membro (Diretor+)</h2>
-    <form id="formRegistroMembros">
-      <label for="novoUsuario">Usuário (login):</label>
-      <input type="text" id="novoUsuario" required autocomplete="off" />
-      <label for="novaSenha">Senha:</label>
-      <input type="password" id="novaSenha" required />
-      <label for="cargoInicial">Cargo Inicial:</label>
-      <select id="cargoInicial" required>
-        <option value="" disabled selected>Selecione um cargo</option>
-        <option value="Agente">Agente</option>
-        <option value="Escrivão">Escrivão</option>
-        <option value="Delegado">Delegado</option>
-        <option value="Diretor">Diretor</option>
-      </select>
-      <button type="submit">Registrar Membro</button>
+<section id="private_area" class="hidden">
+  <div id="loginPanel">
+    <h2>Login</h2>
+    <form id="formLogin">
+      <input id="loginName" placeholder="Usuário" required/>
+      <input id="loginPass" placeholder="Senha" type="password" required/>
+      <button type="submit">Entrar</button>
     </form>
-    <h3>Membros Registrados</h3>
-    <table id="tabelaMembros">
-      <thead>
-        <tr><th>Usuário</th><th>Cargo</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <div id="msgLogin" class="msg"></div>
+    <button onclick="backToPublic()">Voltar</button>
+  </div>
+  <div id="appPanel" class="hidden">
+    <div style="text-align:right;margin-bottom:10px;">
+      Usuário: <span id="lblUser"></span> (<span id="lblCargo"></span>) 
+      <button onclick="doLogout()">Sair</button>
+    </div>
+    <nav>
+      <button onclick="showTab('membros')">Membros</button>
+      <button onclick="showTab('acoes')">Promoções/Rebaixamentos</button>
+      <button onclick="showTab('criminal')">Banco Criminal</button>
+      <button onclick="showTab('portInt')">Portarias Internas</button>
+    </nav>
+
+    <!-- MEMBERS -->
+    <div id="tab-membros" class="hidden">
+      <h3>Registrar Membro (Diretor Geral)</h3>
+      <form id="formMembro">
+        <input id="membroNome" placeholder="Nome" required/>
+        <select id="membroCargo" required><option value="">Selecione cargo</option>
+          <option>Agente</option><option>Escrivão</option><option>Delegado</option>
+          <option>Superintendente Regional</option><option>Diretor Geral</option>
+        </select>
+        <button type="submit">Registrar</button>
+      </form>
+      <div id="msgMembro" class="msg"></div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div id="tab-acoes" class="hidden">
+      <h3>Gestão: Promoção/Rebaixamento/Exoneração</h3>
+      <form id="formAcao">
+        <input id="acaoNome" placeholder="Nome do membro" required/>
+        <select id="acaoTipo" required>
+          <option value="">Selecione ação</option>
+          <option value="Promoção">Promoção</option>
+          <option value="Rebaixamento">Rebaixamento</option>
+          <option value="Exoneração">Exoneração</option>
+        </select>
+        <input id="acaoNovoCargo" placeholder="Novo cargo (se aplicável)"/>
+        <button type="submit">Registrar Ação</button>
+      </form>
+      <div id="msgAcao" class="msg"></div>
+      <div id="listaAcoes"></div>
+    </div>
+    <!-- CRIMINAL BANK -->
+    <div id="tab-criminal" class="hidden">
+      <h3>Banco Criminal</h3>
+      <form id="formCriminal">
+        <input id="crimNome" placeholder="Nome do acusado" required/>
+        <textarea id="crimDescricao" placeholder="Descrição do crime" required></textarea>
+        <button type="submit">Registrar Crime</button>
+      </form>
+      <div id="listaCrimes"></div>
+    </div>
+
+    <!-- PORTARIAS -->
+    <div id="tab-portInt" class="hidden">
+      <h3>Portarias Internas (SR+)</h3>
+      <form id="formPortaria">
+        <textarea id="portTexto" placeholder="Texto da portaria" required></textarea>
+        <button type="submit">Publicar Portaria</button>
+      </form>
+      <div id="listaPortarias"></div>
+    </div>
   </div>
 </section>
 
 <script>
-  // Dados simulados (normalmente viria do servidor)
-  let usuarios = [
-    {usuario: 'agente01', senha: '1234', cargo: 'Agente'},
-    {usuario: 'escrivao01', senha: '1234', cargo: 'Escrivão'},
-    {usuario: 'delegado01', senha: '1234', cargo: 'Delegado'},
-    {usuario: 'diretor01', senha: '1234', cargo: 'Diretor'}
-  ];
+  const firebaseConfig = {
+    apiKey: "AIzaSyBuaVeRTLVxpAyboRiWS6E4KYHWlYZgMEw",
+    authDomain: "pfcpx-c0b9b.firebaseapp.com",
+    projectId: "pfcpx-c0b9b",
+    storageBucket: "pfcpx-c0b9b.firebasestorage.app",
+    messagingSenderId: "322312831509",
+    appId: "1:322312831509:web:e5fe68609d34db6345c41c",
+    measurementId: "G-24QF5E8Q5E"
+  };
 
-  let boPublicos = [];
-  let portariasPublicas = [
-    {titulo: 'Portaria 001', conteudo: 'Normas para circulação pública.'},
-    {titulo: 'Portaria 002', conteudo: 'Regras de segurança no complexo.'}
-  ];
-  let portariasInternas = [];
-  let bancoCriminal = [];
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
-  let usuarioLogado = null;
+  let usuarioAtual = null;
 
-  // Mostrar painel público (exibir um painel específico do dashboard público)
-  function mostrarPainelPublico(painel) {
-    document.getElementById('painelBOPublico').classList.add('hidden');
-    document.getElementById('painelPortariasPublicas').classList.add('hidden');
-    document.getElementById(painel).classList.remove('hidden');
-    if (painel === 'painelPortariasPublicas') {
-      atualizarPortariasPublicas();
-    } else if (painel === 'painelBOPublico') {
-      atualizarTabelaBOPublico();
-    }
+  function showPublicTab(tab) {
+    document.getElementById("public-bo").classList.add("hidden");
+    document.getElementById("public-port").classList.add("hidden");
+    if (tab === "bo") document.getElementById("public-bo").classList.remove("hidden");
+    else document.getElementById("public-port").classList.remove("hidden");
   }
 
-  // Atualizar lista portarias públicas
-  function atualizarPortariasPublicas() {
-    const lista = document.getElementById('listaPortariasPublicas');
-    lista.innerHTML = '';
-    for (let p of portariasPublicas) {
-      const li = document.createElement('li');
-      li.innerHTML = `<strong>${p.titulo}:</strong> ${p.conteudo}`;
-      lista.appendChild(li);
-    }
+  function showLogin() {
+    document.getElementById("public_area").classList.add("hidden");
+    document.getElementById("private_area").classList.remove("hidden");
+    document.getElementById("loginPanel").classList.remove("hidden");
+    document.getElementById("appPanel").classList.add("hidden");
   }
 
-  // Atualizar tabela B.O público
-  function atualizarTabelaBOPublico() {
-    const tbody = document.querySelector('#tabelaBOPublico tbody');
-    tbody.innerHTML = '';
-    for (let bo of boPublicos) {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${bo.titulo}</td><td>${bo.descricao}</td><td>${bo.denunciado}</td><td>${bo.data}</td>`;
-      tbody.appendChild(tr);
-    }
+  function backToPublic() {
+    document.getElementById("public_area").classList.remove("hidden");
+    document.getElementById("private_area").classList.add("hidden");
   }
 
-  // Registrar B.O público
-  document.getElementById('formBOPublico').addEventListener('submit', e => {
+  function showTab(tab) {
+    ['membros','acoes','criminal','portInt'].forEach(id=>{
+      document.getElementById("tab-"+id).classList.add("hidden");
+    });
+    document.getElementById("tab-"+tab).classList.remove("hidden");
+  }
+
+  function doLogout() {
+    usuarioAtual = null;
+    backToPublic();
+  }
+
+  // Login fixo
+  const usuariosFixos = {
+    "Gabriel": {senha: "DG", cargo: "Diretor Geral"}
+  };
+
+  document.getElementById("formLogin").addEventListener("submit", function(e){
     e.preventDefault();
-    const titulo = document.getElementById('tituloBOPublico').value.trim();
-    const descricao = document.getElementById('descricaoBOPublico').value.trim();
-    const denunciado = document.getElementById('denunciadoBOPublico').value.trim();
-    if (titulo && descricao && denunciado) {
-      boPublicos.push({
-        titulo,
-        descricao,
-        denunciado,
-        data: new Date().toLocaleString()
-      });
-      atualizarTabelaBOPublico();
-      e.target.reset();
-      alert('Boletim de Ocorrência registrado com sucesso!');
+    const nome = loginName.value.trim();
+    const senha = loginPass.value.trim();
+    if(usuariosFixos[nome] && usuariosFixos[nome].senha === senha){
+      usuarioAtual = {nome, cargo: usuariosFixos[nome].cargo};
+      document.getElementById("lblUser").innerText = nome;
+      document.getElementById("lblCargo").innerText = usuarioAtual.cargo;
+      document.getElementById("loginPanel").classList.add("hidden");
+      document.getElementById("appPanel").classList.remove("hidden");
     } else {
-      alert('Preencha todos os campos do B.O.');
+      msgLogin.innerText = "Login inválido.";
     }
   });
 
-  // Mostrar login e esconder outros
-  function mostrarLogin() {
-    document.getElementById('dashboard-publico').classList.add('hidden');
-    document.getElementById('login-section').classList.remove('hidden');
-    document.getElementById('app-section').classList.add('hidden');
-    document.getElementById('login-error').textContent = '';
-    document.getElementById('loginForm').reset();
-  }
-
-  // Mostrar dashboard público (menu público)
-  function mostrarDashboardPublico() {
-    document.getElementById('dashboard-publico').classList.remove('hidden');
-    document.getElementById('login-section').classList.add('hidden');
-    document.getElementById('app-section').classList.add('hidden');
-    mostrarPainelPublico(''); // esconder todos painéis específicos
-  }
-
-  // Login
-  document.getElementById('loginForm').addEventListener('submit', e => {
+  // Registro de BO (público)
+  formPublicBO.addEventListener("submit", function(e){
     e.preventDefault();
-    const user = document.getElementById('username').value.trim();
-    const pass = document.getElementById('password').value;
-    const encontrado = usuarios.find(u => u.usuario === user && u.senha === pass);
-    if (encontrado) {
-      usuarioLogado = encontrado;
-      iniciarSessao();
-    } else {
-      document.getElementById('login-error').textContent = 'Usuário ou senha incorretos.';
-    }
-  });
-
-  // Iniciar sessão - mostrar painel restrito conforme cargo
-  function iniciarSessao() {
-    document.getElementById('dashboard-publico').classList.add('hidden');
-    document.getElementById('login-section').classList.add('hidden');
-    document.getElementById('app-section').classList.remove('hidden');
-    // Esconder todos os painéis da área restrita
-    document.querySelectorAll('.painel').forEach(p => p.classList.add('hidden'));
-
-    // Mostrar painel inicial (promoções)
-    mostrarPainel('painelPromocoes');
-    atualizarUsuariosTabela();
-    atualizarBancoCriminalTabela();
-    atualizarPortariasInternasLista();
-    atualizarMembrosTabela();
-
-    alert(`Bem-vindo, ${usuarioLogado.usuario} (${usuarioLogado.cargo})!`);
-  }
-
-  // Logout
-  function logout() {
-    usuarioLogado = null;
-    mostrarDashboardPublico();
-  }
-
-  // Mostrar painel da área restrita, verificando permissões
-  function mostrarPainel(painel) {
-    if (!usuarioLogado) {
-      alert('Você precisa estar logado para acessar essa área.');
-      mostrarLogin();
-      return;
-    }
-    // Definir permissões por cargo
-    const permissoes = {
-      'Agente': ['painelPromocoes', 'painelBancoCriminal'],
-      'Escrivão': ['painelPromocoes', 'painelBancoCriminal'],
-      'Delegado': ['painelPromocoes', 'painelBancoCriminal', 'painelPortariasInternas'],
-      'Diretor': ['painelPromocoes', 'painelBancoCriminal', 'painelPortariasInternas', 'painelRegistroMembros']
+    const bo = {
+      denunciante: pubDenunciante.value,
+      acusado: pubAcusado.value,
+      relato: pubRelato.value,
+      data: new Date().toLocaleString()
     };
-    if (!permissoes[usuarioLogado.cargo].includes(painel)) {
-      alert('Você não tem permissão para acessar este painel.');
-      return;
-    }
-    document.querySelectorAll('.painel').forEach(p => p.classList.add('hidden'));
-    document.getElementById(painel).classList.remove('hidden');
-  }
-
-  // Atualizar tabela de usuários para promoções e rebaixamentos
-  function atualizarUsuariosTabela() {
-    const tbody = document.querySelector('#usuariosTable tbody');
-    tbody.innerHTML = '';
-    usuarios.forEach(u => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${u.usuario}</td>
-        <td>${u.cargo}</td>
-        <td>
-          ${renderizarAcoesUsuario(u)}
-        </td>`;
-      tbody.appendChild(tr);
-    });
-    // Adicionar eventos aos botões
-    document.querySelectorAll('.btn-promover').forEach(btn => {
-      btn.onclick = () => alterarCargo(btn.dataset.usuario, 'promover');
-    });
-    document.querySelectorAll('.btn-rebaixar').forEach(btn => {
-      btn.onclick = () => alterarCargo(btn.dataset.usuario, 'rebaixar');
-    });
-    document.querySelectorAll('.btn-exonerar').forEach(btn => {
-      btn.onclick = () => alterarCargo(btn.dataset.usuario, 'exonerar');
-    });
-  }
-
-  // Renderiza botões de ação respeitando cargos (apenas Diretor pode exonerar, Delegado pode promover/rebaixar, Agente e Escrivão não podem mexer)
-  function renderizarAcoesUsuario(u) {
-    if (!usuarioLogado) return '';
-    // Diretor pode tudo (exceto consigo mesmo)
-    if (usuarioLogado.cargo === 'Diretor') {
-      if (u.usuario === usuarioLogado.usuario) return '-';
-      return `
-        <button class="btn-promover" data-usuario="${u.usuario}">Promover</button>
-        <button class="btn-rebaixar" data-usuario="${u.usuario}">Rebaixar</button>
-        <button class="btn-exonerar" data-usuario="${u.usuario}">Exonerar</button>
-      `;
-    }
-    // Delegado pode promover/rebaixar (menos Diretor e a si mesmo)
-    if (usuarioLogado.cargo === 'Delegado') {
-      if (u.usuario === usuarioLogado.usuario || u.cargo === 'Diretor') return '-';
-      return `
-        <button class="btn-promover" data-usuario="${u.usuario}">Promover</button>
-        <button class="btn-rebaixar" data-usuario="${u.usuario}">Rebaixar</button>
-      `;
-    }
-    // Outros não podem mexer
-    return '-';
-  }
-
-  // Alterar cargo de usuário (promover, rebaixar, exonerar)
-  function alterarCargo(usuarioAlvo, acao) {
-    if (!usuarioLogado) return alert('Você não está logado.');
-    const cargosOrdem = ['Agente', 'Escrivão', 'Delegado', 'Diretor'];
-    if (usuarioAlvo === usuarioLogado.usuario && acao === 'exonerar') {
-      return alert('Você não pode exonerar a si mesmo.');
-    }
-    const alvo = usuarios.find(u => u.usuario === usuarioAlvo);
-    if (!alvo) return alert('Usuário não encontrado.');
-
-    const posAtual = cargosOrdem.indexOf(alvo.cargo);
-    if (acao === 'promover') {
-      if (posAtual < cargosOrdem.length -1) {
-        // Não pode promover acima do Diretor e respeitar hierarquia
-        if (usuarioLogado.cargo === 'Delegado' && cargosOrdem[posAtual +1] === 'Diretor') {
-          return alert('Delegado não pode promover a Diretor.');
-        }
-        alvo.cargo = cargosOrdem[posAtual + 1];
-        alert(`${usuarioAlvo} foi promovido para ${alvo.cargo}.`);
-      } else {
-        alert(`${usuarioAlvo} já está no cargo máximo.`);
-      }
-    } else if (acao === 'rebaixar') {
-      if (posAtual > 0) {
-        if (usuarioLogado.cargo === 'Delegado' && cargosOrdem[posAtual] === 'Delegado') {
-          return alert('Delegado não pode rebaixar outro Delegado.');
-        }
-        alvo.cargo = cargosOrdem[posAtual - 1];
-        alert(`${usuarioAlvo} foi rebaixado para ${alvo.cargo}.`);
-      } else {
-        alert(`${usuarioAlvo} já está no cargo mínimo.`);
-      }
-    } else if (acao === 'exonerar') {
-      if (usuarioLogado.cargo !== 'Diretor') {
-        return alert('Apenas Diretor pode exonerar membros.');
-      }
-      usuarios = usuarios.filter(u => u.usuario !== usuarioAlvo);
-      alert(`${usuarioAlvo} foi exonerado.`);
-    }
-    atualizarUsuariosTabela();
-    atualizarMembrosTabela();
-  }
-
-  // Form Banco Criminal
-  document.getElementById('formBancoCriminal').addEventListener('submit', e => {
-    e.preventDefault();
-    const nome = document.getElementById('nomeCriminoso').value.trim();
-    const tipo = document.getElementById('tipoCrime').value.trim();
-    const descricao = document.getElementById('descricaoCrime').value.trim();
-    if (nome && tipo && descricao) {
-      bancoCriminal.push({nome, tipo, descricao, data: new Date().toLocaleString()});
-      atualizarBancoCriminalTabela();
-      e.target.reset();
-      alert('Registro criminal adicionado com sucesso!');
-    } else {
-      alert('Preencha todos os campos do registro criminal.');
-    }
+    db.ref("boletins").push(bo);
+    formPublicBO.reset();
+    alert("BO registrado com sucesso.");
   });
 
-  // Atualizar tabela banco criminal
-  function atualizarBancoCriminalTabela() {
-    const tbody = document.querySelector('#tabelaBancoCriminal tbody');
-    tbody.innerHTML = '';
-    bancoCriminal.forEach(c => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${c.nome}</td><td>${c.tipo}</td><td>${c.descricao}</td><td>${c.data}</td>`;
-      tbody.appendChild(tr);
-    });
-  }
-
-  // Form Portarias Internas
-  document.getElementById('formPortaria').addEventListener('submit', e => {
+  // Registro de Membro
+  formMembro.addEventListener("submit", function(e){
     e.preventDefault();
-    if (usuarioLogado.cargo !== 'Delegado' && usuarioLogado.cargo !== 'Diretor') {
-      alert('Apenas Delegado ou Diretor pode criar portarias internas.');
+    if(usuarioAtual?.cargo !== "Diretor Geral"){
+      msgMembro.innerText = "Apenas Diretor Geral pode registrar membros.";
       return;
     }
-    const titulo = document.getElementById('tituloPortaria').value.trim();
-    const conteudo = document.getElementById('conteudoPortaria').value.trim();
-    if (titulo && conteudo) {
-      portariasInternas.push({titulo, conteudo});
-      atualizarPortariasInternasLista();
-      e.target.reset();
-      alert('Portaria interna criada com sucesso!');
-    } else {
-      alert('Preencha todos os campos da portaria.');
-    }
+    const membro = {
+      nome: membroNome.value,
+      cargo: membroCargo.value,
+      registradoPor: usuarioAtual.nome,
+      data: new Date().toLocaleString()
+    };
+    db.ref("membros").push(membro);
+    formMembro.reset();
+    msgMembro.innerText = "Membro registrado.";
   });
 
-  // Atualizar lista portarias internas
-  function atualizarPortariasInternasLista() {
-    const lista = document.getElementById('listaPortariasInternas');
-    lista.innerHTML = '';
-    portariasInternas.forEach(p => {
-      const li = document.createElement('li');
-      li.innerHTML = `<strong>${p.titulo}:</strong> ${p.conteudo}`;
-      lista.appendChild(li);
-    });
-  }
-
-  // Form Registro Membros
-  document.getElementById('formRegistroMembros').addEventListener('submit', e => {
+  // Ação Hierárquica
+  formAcao.addEventListener("submit", function(e){
     e.preventDefault();
-    if (usuarioLogado.cargo !== 'Diretor') {
-      alert('Apenas Diretor pode registrar novos membros.');
+    if(!["Delegado","Superintendente Regional","Diretor Geral"].includes(usuarioAtual.cargo)){
+      msgAcao.innerText = "Apenas Delegado+ pode realizar ações.";
       return;
     }
-    const usuarioNovo = document.getElementById('novoUsuario').value.trim();
-    const senhaNova = document.getElementById('novaSenha').value;
-    const cargo = document.getElementById('cargoInicial').value;
-
-    if (!usuarioNovo || !senhaNova || !cargo) {
-      alert('Preencha todos os campos para registrar um novo membro.');
-      return;
-    }
-    if (usuarios.find(u => u.usuario === usuarioNovo)) {
-      alert('Usuário já existe.');
-      return;
-    }
-    usuarios.push({usuario: usuarioNovo, senha: senhaNova, cargo});
-    atualizarMembrosTabela();
-    e.target.reset();
-    alert('Novo membro registrado com sucesso!');
+    const acao = {
+      nome: acaoNome.value,
+      tipo: acaoTipo.value,
+      novoCargo: acaoNovoCargo.value || "",
+      realizadaPor: usuarioAtual.nome,
+      data: new Date().toLocaleString()
+    };
+    db.ref("acoes").push(acao);
+    msgAcao.innerText = "Ação registrada.";
+    formAcao.reset();
   });
 
-  // Atualizar tabela membros
-  function atualizarMembrosTabela() {
-    const tbody = document.querySelector('#tabelaMembros tbody');
-    tbody.innerHTML = '';
-    usuarios.forEach(u => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${u.usuario}</td><td>${u.cargo}</td>`;
-      tbody.appendChild(tr);
-    });
-  }
+  // Registro criminal
+  formCriminal.addEventListener("submit", function(e){
+    e.preventDefault();
+    const crime = {
+      nome: crimNome.value,
+      descricao: crimDescricao.value,
+      registradoPor: usuarioAtual.nome,
+      data: new Date().toLocaleString()
+    };
+    db.ref("crimes").push(crime);
+    formCriminal.reset();
+    alert("Crime registrado.");
+  });
 
-  // Inicialização: mostrar painel público e avisos públicos
-  function inicializar() {
-    mostrarDashboardPublico();
-    // Avisos públicos (exemplo)
-    const avisos = [
-      'Mantenha seus documentos atualizados.',
-      'Atente-se às novas regras de segurança do complexo.',
-      'Registro público de B.O disponível.'
-    ];
-    const ulAvisos = document.getElementById('listaAvisosPublicos');
-    for (let aviso of avisos) {
-      const li = document.createElement('li');
-      li.textContent = aviso;
-      ulAvisos.appendChild(li);
+  // Portarias (SR+)
+  formPortaria.addEventListener("submit", function(e){
+    e.preventDefault();
+    if(!["Superintendente Regional","Diretor Geral"].includes(usuarioAtual.cargo)){
+      alert("Apenas SR+ pode publicar portaria.");
+      return;
     }
-  }
+    const port = {
+      texto: portTexto.value,
+      autor: usuarioAtual.nome,
+      data: new Date().toLocaleString()
+    };
+    db.ref("portarias").push(port);
+    formPortaria.reset();
+    alert("Portaria publicada.");
+  });
 
-  inicializar();
+  // LISTAGENS
+  db.ref("boletins").on("value", snap=>{
+    const html = [];
+    snap.forEach(item=>{
+      const b = item.val();
+      html.push(`<div><strong>${b.denunciante}</strong> denunciou <strong>${b.acusado}</strong><br>${b.relato}<br><small>${b.data}</small></div><hr>`);
+    });
+    listBOpublic.innerHTML = html.reverse().join("");
+  });
 
+  db.ref("portarias").on("value", snap=>{
+    const html = [];
+    snap.forEach(item=>{
+      const p = item.val();
+      html.push(`<div>${p.texto}<br><small>${p.autor} - ${p.data}</small></div><hr>`);
+    });
+    listPortPublic.innerHTML = listaPortarias.innerHTML = html.reverse().join("");
+  });
+
+  db.ref("crimes").on("value", snap=>{
+    const html = [];
+    snap.forEach(item=>{
+      const c = item.val();
+      html.push(`<div><strong>${c.nome}</strong>: ${c.descricao}<br><small>${c.registradoPor} - ${c.data}</small></div><hr>`);
+    });
+    listaCrimes.innerHTML = html.reverse().join("");
+  });
+
+  db.ref("acoes").on("value", snap=>{
+    const html = [];
+    snap.forEach(item=>{
+      const a = item.val();
+      html.push(`<div><strong>${a.tipo}</strong> - ${a.nome} ${a.novoCargo ? " para "+a.novoCargo : ""}<br><small>${a.realizadaPor} - ${a.data}</small></div><hr>`);
+    });
+    listaAcoes.innerHTML = html.reverse().join("");
+  });
 </script>
-
 </body>
 </html>
