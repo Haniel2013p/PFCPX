@@ -1,258 +1,507 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
   <title>Sistema Polícia Federal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #eef2f5; }
-    header { background: #0a3d62; color: white; padding: 15px; text-align: center; }
-    button { padding: 10px; border: none; background: #2980b9; color: white; border-radius: 5px; cursor: pointer; }
-    button:hover { background: #1c6692; }
-    section { padding: 20px; display: none; }
-    #publicArea, #privateArea { display: none; }
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f0f2f5; }
+    header { background: #001f3f; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+    header h1 { margin: 0; font-size: 20px; }
+    header button { background: #0074D9; border: none; color: white; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
+    header button:hover { background: #005fa3; }
+    section { padding: 15px; }
+    .box { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 0 8px #ccc; }
     .hidden { display: none; }
-    .box { background: white; padding: 15px; margin-bottom: 15px; border-radius: 5px; box-shadow: 0 0 8px #ccc; }
-    h2 { margin-top: 0; }
-    textarea, input, select { width: 100%; padding: 8px; margin: 5px 0 10px; border: 1px solid #ccc; border-radius: 4px; }
-    #topBar { display: flex; justify-content: space-between; align-items: center; background: #ecf0f1; padding: 10px 20px; }
-    .admin-only { display: none; }
-    #boletinsPublicos, #portariasPublicas, #boletinsRestritos, #bancoCriminalList { max-height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; background: #f9f9f9; margin-top: 10px; }
-    .item { padding: 8px; border-bottom: 1px solid #ccc; }
+    input, select, textarea, button { width: 100%; padding: 8px; margin-top: 8px; margin-bottom: 10px; border: 1px solid #aaa; border-radius: 4px; }
+    button { background: #28a745; color: white; font-weight: bold; border: none; cursor: pointer; }
+    button:hover { background: #218838; }
+    .boItem { border-bottom: 1px solid #ccc; padding: 10px 0; }
+    .boItem:last-child { border-bottom: none; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Sistema da Polícia Federal</h1>
-  </header>
-  <div id="topBar">
-    <button id="toggleAreaBtn">Ir para Área Restrita</button>
-    <button id="logoutBtn" class="hidden">Sair</button>
+
+<header>
+  <h1>Sistema Polícia Federal</h1>
+  <button id="btnToggle">Ir para Área Restrita</button>
+</header>
+
+<section id="publicArea">
+  <div class="box">
+    <h2>Registrar Boletim de Ocorrência (Público)</h2>
+    <form id="formBoPublico">
+      <textarea id="boDescricaoPublica" placeholder="Descreva a ocorrência" required></textarea>
+      <button type="submit">Registrar</button>
+    </form>
   </div>
 
-  <!-- Área Pública -->
-  <section id="publicArea">
+  <div class="box">
+    <h2>Boletins Registrados</h2>
+    <div id="listaBoPublicos">Carregando...</div>
+  </div>
+
+  <div class="box">
+    <h2>Portarias Públicas</h2>
+    <div id="listaPortariasPublicas">Carregando...</div>
+  </div>
+</section>
+
+<section id="privateArea" class="hidden">
+  <div class="box" id="loginBox">
+    <h2>Login</h2>
+    <form id="formLogin">
+      <input type="text" id="username" placeholder="Usuário" required />
+      <input type="password" id="password" placeholder="Senha" required />
+      <button type="submit">Entrar</button>
+      <p id="loginErro" style="color: red;"></p>
+    </form>
+  </div>
+
+  <div id="painelRestrito" class="hidden">
     <div class="box">
-      <h2>Registrar Boletim de Ocorrência</h2>
-      <form id="formPublicBO">
-        <textarea id="descPublicBO" required placeholder="Descreva o ocorrido..."></textarea>
+      <h2>Área Restrita</h2>
+      <p>Bem-vindo, <span id="userNome"></span> (<span id="userCargo"></span>)</p>
+      <button id="btnLogout" style="background:#dc3545;">Sair</button>
+    </div>
+    <div class="box">
+      <h3>Registrar Boletim de Ocorrência (Restrito)</h3>
+      <form id="formBoRestrito">
+        <input type="text" id="boDenunciadoRestrito" placeholder="Nome do Denunciado" required />
+        <textarea id="boDescricaoRestrito" placeholder="Descrição da ocorrência" required></textarea>
         <button type="submit">Registrar</button>
-        <p id="msgPublicBO"></p>
+      </form>
+      <button id="btnVerBosRestritos">Ver Registros</button>
+      <div id="listaBoRestritos" class="hidden"></div>
+    </div>
+
+    <div class="box">
+      <h3>Registrar no Banco Criminal</h3>
+      <form id="formBancoCriminal">
+        <input type="text" id="nomeCriminoso" placeholder="Nome do Criminoso" required />
+        <textarea id="descricaoCrime" placeholder="Descrição do Crime" required></textarea>
+        <button type="submit">Registrar</button>
+      </form>
+      <button id="btnVerBancoCriminal">Ver Registros</button>
+      <div id="listaBancoCriminal" class="hidden"></div>
+    </div>
+
+    <div class="box">
+      <h3>Criar Portaria (SR+)</h3>
+      <form id="formPortaria">
+        <textarea id="conteudoPortaria" placeholder="Conteúdo da portaria" required></textarea>
+        <button type="submit">Publicar Portaria</button>
       </form>
     </div>
+  </div>
+</section>
     <div class="box">
-      <h2>Boletins Registrados</h2>
-      <div id="boletinsPublicos">Carregando...</div>
-    </div>
-    <div class="box">
-      <h2>Portarias Públicas</h2>
-      <div id="portariasPublicas">Carregando...</div>
-    </div>
-  </section>
-
-  <!-- Área Restrita -->
-  <section id="privateArea">
-    <div id="loginBox" class="box">
-      <h2>Login</h2>
-      <form id="loginForm">
-        <input type="text" id="loginUser" placeholder="Usuário" required />
-        <input type="password" id="loginPass" placeholder="Senha" required />
-        <button type="submit">Entrar</button>
-        <p id="loginMsg" style="color:red;"></p>
+      <h3>Registrar Novo Membro</h3>
+      <form id="formRegistrarMembro">
+        <input type="text" id="nomeNovoMembro" placeholder="Nome" required />
+        <input type="password" id="senhaNovoMembro" placeholder="Senha" required />
+        <select id="cargoNovoMembro" required>
+          <option value="">Selecione o Cargo</option>
+          <option value="Agente">Agente</option>
+          <option value="Escrivão">Escrivão</option>
+          <option value="Delegado">Delegado</option>
+          <option value="Superintendente Regional">Superintendente Regional</option>
+          <option value="Diretor">Diretor</option>
+          <option value="Diretor Geral">Diretor Geral</option>
+        </select>
+        <button type="submit">Registrar Membro</button>
       </form>
     </div>
 
-    <div id="painelBox" class="hidden">
-      <div class="box">
-        <h2>Painel do Usuário</h2>
-        <p>Usuário logado: <strong><span id="usuarioAtual"></span></strong> (<span id="cargoAtual"></span>)</p>
-      </div>
-      <div class="box">
-        <h2>Registrar Boletim de Ocorrência Interno</h2>
-        <form id="formRestritoBO">
-          <input type="text" id="denunciado" placeholder="Nome do Denunciado" required />
-          <textarea id="descRestritoBO" placeholder="Descrição..." required></textarea>
-          <button type="submit">Registrar</button>
-        </form>
-        <div id="boletinsRestritos" class="box">
-          <h3>Boletins Registrados</h3>
-          <div id="listaRestritoBO">Carregando...</div>
-        </div>
-      </div>
-
-      <div class="box">
-        <h2>Banco Criminal</h2>
-        <form id="formCriminal">
-          <input type="text" id="criminoso" placeholder="Nome do Criminoso" required />
-          <textarea id="descCrime" placeholder="Descrição do Crime..." required></textarea>
-          <button type="submit">Registrar</button>
-        </form>
-        <div id="bancoCriminalList" class="box">
-          <h3>Crimes Registrados</h3>
-          <div id="listaCrimes">Carregando...</div>
-        </div>
-      </div>
-
-      <div class="box admin-only" id="portariaBox">
-        <h2>Criar Portaria</h2>
-        <form id="formPortaria">
-          <textarea id="textoPortaria" placeholder="Texto da portaria..." required></textarea>
-          <button type="submit">Criar Portaria</button>
-        </form>
-      </div>
-
-      <div class="box admin-only" id="membroBox">
-        <h2>Registrar Membro</h2>
-        <form id="formMembro">
-          <input type="text" id="nomeMembro" placeholder="Nome" required />
-          <input type="password" id="senhaMembro" placeholder="Senha" required />
-          <select id="cargoMembro" required>
-            <option value="">Cargo</option>
-            <option value="Agente">Agente</option>
-            <option value="Delegado">Delegado</option>
-            <option value="Superintendente Regional">Superintendente Regional</option>
-            <option value="Diretor">Diretor</option>
-            <option value="Diretor Geral">Diretor Geral</option>
-          </select>
-          <button type="submit">Registrar</button>
-        </form>
-        <div class="box">
-          <h3>Membros Cadastrados</h3>
-          <div id="listaMembros">Carregando...</div>
-        </div>
-      </div>
+    <div class="box hidden" id="listaMembrosBox">
+      <h3>Lista de Membros (Diretor+)</h3>
+      <div id="listaMembros"></div>
     </div>
-  </section>
-<script> 
-    // Registrar membro
-    const membrosRef = database.ref('/membros');
 
-    document.getElementById("formMembro").addEventListener("submit", function (e) {
-      e.preventDefault();
-      if (!loggedUser || (loggedUser.cargo !== "Diretor" && loggedUser.cargo !== "Diretor Geral")) return;
+    <div class="box">
+      <h3>Ações Administrativas (Delegado+)</h3>
+      <form id="formAcao">
+        <select id="acaoTipo" required>
+          <option value="">Selecione a Ação</option>
+          <option value="Promover">Promover</option>
+          <option value="Rebaixar">Rebaixar</option>
+          <option value="Exonerar">Exonerar</option>
+        </select>
+        <input type="text" id="nomeAcao" placeholder="Nome do Membro" required />
+        <button type="submit">Executar Ação</button>
+      </form>
+      <div id="historicoAcoes"></div>
+    </div>
 
-      const nome = document.getElementById("nomeMembro").value.trim();
-      const senha = document.getElementById("senhaMembro").value.trim();
-      const cargo = document.getElementById("cargoMembro").value;
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
-      if (!nome || !senha || !cargo) return alert("Preencha todos os campos.");
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBuaVeRTLVxpAyboRiWS6E4KYHWlYZgMEw",
+    authDomain: "pfcpx-c0b9b.firebaseapp.com",
+    projectId: "pfcpx-c0b9b",
+    storageBucket: "pfcpx-c0b9b.firebasestorage.app",
+    messagingSenderId: "322312831509",
+    appId: "1:322312831509:web:e5fe68609d34db6345c41c",
+    measurementId: "G-24QF5E8Q5E",
+    databaseURL: "https://pfcpx-c0b9b-default-rtdb.firebaseio.com"
+  };
 
-      const novoMembro = { nome, senha, cargo };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
-      membrosRef.push(novoMembro)
-        .then(() => {
-          document.getElementById("nomeMembro").value = "";
-          document.getElementById("senhaMembro").value = "";
-          document.getElementById("cargoMembro").value = "Agente";
-          alert("Membro registrado!");
-        })
-        .catch(() => alert("Erro ao registrar membro."));
+  let usuarioLogado = null;
+  const cargos = [
+    "Agente",
+    "Escrivão",
+    "Delegado",
+    "Superintendente Regional",
+    "Diretor",
+    "Diretor Geral"
+  ];
+
+  function cargoMaiorOuIgual(c1, c2) {
+    return cargos.indexOf(c1) >= cargos.indexOf(c2);
+  }
+
+  // Registro de membro
+  document.getElementById('formRegistrarMembro').addEventListener('submit', e => {
+    e.preventDefault();
+    const nome = document.getElementById('nomeNovoMembro').value.trim();
+    const senha = document.getElementById('senhaNovoMembro').value.trim();
+    const cargo = document.getElementById('cargoNovoMembro').value;
+
+    if (!nome || !senha || !cargo) return;
+
+    db.ref('membros/' + nome).set({ nome, senha, cargo }).then(() => {
+      alert("Membro registrado!");
+      document.getElementById('formRegistrarMembro').reset();
+      carregarMembros();
     });
+  });
 
-    // Exibir membros (somente Diretor ou Diretor Geral)
-    function atualizarListaMembros(snapshot) {
-      const lista = document.getElementById("listaMembros");
-      lista.innerHTML = "";
+  // Mostrar membros (apenas para Diretor ou Diretor Geral)
+  function carregarMembros() {
+    if (!usuarioLogado || !["Diretor", "Diretor Geral"].includes(usuarioLogado.cargo)) return;
 
-      if (!loggedUser || (loggedUser.cargo !== "Diretor" && loggedUser.cargo !== "Diretor Geral")) {
-        lista.innerHTML = "<i>Sem permissão para visualizar.</i>";
+    document.getElementById('listaMembrosBox').classList.remove('hidden');
+    db.ref('membros').once('value').then(snapshot => {
+      const dados = snapshot.val() || {};
+      let html = "";
+      for (let nome in dados) {
+        const m = dados[nome];
+        html += `<p><strong>${m.nome}</strong> - ${m.cargo} - Senha: ${m.senha}</p>`;
+      }
+      document.getElementById('listaMembros').innerHTML = html;
+    });
+  }
+
+  // Executar ação (promoção, rebaixamento, exoneração)
+  document.getElementById('formAcao').addEventListener('submit', e => {
+    e.preventDefault();
+    if (!usuarioLogado || !cargoMaiorOuIgual(usuarioLogado.cargo, "Delegado")) {
+      return alert("Apenas Delegado ou superiores podem executar ações.");
+    }
+
+    const tipo = document.getElementById('acaoTipo').value;
+    const nome = document.getElementById('nomeAcao').value.trim();
+
+    db.ref('membros/' + nome).once('value').then(snapshot => {
+      if (!snapshot.exists()) return alert("Membro não encontrado.");
+      const membro = snapshot.val();
+      let novoCargo = membro.cargo;
+
+      const idx = cargos.indexOf(membro.cargo);
+      if (tipo === "Promover" && idx < cargos.length - 1) novoCargo = cargos[idx + 1];
+      else if (tipo === "Rebaixar" && idx > 0) novoCargo = cargos[idx - 1];
+      else if (tipo === "Exonerar") novoCargo = "Exonerado";
+
+      db.ref('membros/' + nome).update({ cargo: novoCargo }).then(() => {
+        const texto = `${tipo} ${nome} para ${novoCargo}`;
+        db.ref('acoes').push({ texto, por: usuarioLogado.nome });
+        carregarAcoes();
+        carregarMembros();
+        alert("Ação registrada.");
+      });
+    });
+  });
+
+  function carregarAcoes() {
+    db.ref('acoes').once('value').then(snapshot => {
+      const dados = snapshot.val() || {};
+      let html = "<h4>Histórico de Ações:</h4>";
+      for (let key in dados) {
+        const a = dados[key];
+        html += `<p>${a.texto} (por ${a.por})</p>`;
+      }
+      document.getElementById('historicoAcoes').innerHTML = html;
+    });
+  }
+    <!-- Painel de Banco Criminal -->
+    <h3>Banco Criminal</h3>
+    <form id="criminalForm">
+      <label>Nome do Criminoso:</label>
+      <input type="text" id="criminalNome" required>
+      <label>Descrição do Crime:</label>
+      <textarea id="criminalDescricao" required></textarea>
+      <button type="submit">Registrar</button>
+      <p id="criminalMsg" style="color:green;"></p>
+    </form>
+    <h4>Registros do Banco Criminal</h4>
+    <div id="criminalList"></div>
+  </div>
+</div>
+
+<script>
+  const portariaForm = document.getElementById("portariaForm");
+  const portariaDescricao = document.getElementById("portariaDescricao");
+  const portariaMsg = document.getElementById("portariaMsg");
+  const portariaPublicList = document.getElementById("portariaPublicList");
+
+  portariaForm.addEventListener("submit", e => {
+    e.preventDefault();
+    if (!loggedUser) return;
+
+    const descricao = portariaDescricao.value.trim();
+    if (!descricao) return;
+
+    const portaria = {
+      descricao,
+      autor: loggedUser.username,
+      cargo: loggedUser.cargo,
+      timestamp: Date.now()
+    };
+
+    const key = database.ref().child("portarias").push().key;
+    database.ref("portarias/" + key).set(portaria).then(() => {
+      portariaMsg.textContent = "Portaria criada com sucesso!";
+      portariaDescricao.value = "";
+      portariaMsg.style.color = "green";
+    }).catch(() => {
+      portariaMsg.textContent = "Erro ao criar portaria.";
+      portariaMsg.style.color = "red";
+    });
+  });
+
+  function renderPortarias(data) {
+    if (!data) {
+      portariaPublicList.innerHTML = "<i>Nenhuma portaria registrada.</i>";
+      return;
+    }
+    portariaPublicList.innerHTML = "";
+    Object.keys(data).sort((a,b)=>data[b].timestamp-data[a].timestamp).forEach(key => {
+      const p = data[key];
+      const date = new Date(p.timestamp).toLocaleString();
+      portariaPublicList.innerHTML += `
+        <div style="border-bottom:1px solid #ccc;margin-bottom:10px;">
+          <strong>${p.descricao}</strong><br>
+          <small>Autor: ${p.autor} (${p.cargo}) - ${date}</small>
+        </div>`;
+    });
+  }
+
+  database.ref("portarias").on("value", snapshot => {
+    renderPortarias(snapshot.val());
+  });
+
+  // Promoções / Rebaixamentos
+  const promForm = document.getElementById("promForm");
+  const promAlvo = document.getElementById("promAlvo");
+  const promTipo = document.getElementById("promTipo");
+  const promMotivo = document.getElementById("promMotivo");
+  const promMsg = document.getElementById("promMsg");
+  const historicoList = document.getElementById("historicoList");
+
+  promForm.addEventListener("submit", e => {
+    e.preventDefault();
+    const alvo = promAlvo.value.trim();
+    const tipo = promTipo.value;
+    const motivo = promMotivo.value.trim();
+    if (!alvo || !motivo) return;
+
+    database.ref("membros/" + alvo).once("value", snap => {
+      const membro = snap.val();
+      if (!membro) {
+        promMsg.textContent = "Membro não encontrado.";
+        promMsg.style.color = "red";
         return;
       }
 
-      snapshot.forEach(child => {
-        const { nome, senha, cargo } = child.val();
-        const div = document.createElement("div");
-        div.innerHTML = `<b>${nome}</b> - ${cargo} - Senha: ${senha}`;
-        lista.appendChild(div);
+      const hierarquia = ["Agente", "Escrivão", "Inspetor", "Delegado", "Diretor", "Diretor Geral"];
+      const atual = hierarquia.indexOf(membro.cargo);
+      const meuNivel = hierarquia.indexOf(loggedUser.cargo);
+      if (meuNivel < 3) {
+        promMsg.textContent = "Apenas Delegado ou superior pode promover.";
+        promMsg.style.color = "red";
+        return;
+      }
+
+      let novoCargo = membro.cargo;
+      if (tipo === "promocao" && atual < hierarquia.length - 1) {
+        novoCargo = hierarquia[atual + 1];
+      } else if (tipo === "rebaixamento" && atual > 0) {
+        novoCargo = hierarquia[atual - 1];
+      } else if (tipo === "exoneracao") {
+        novoCargo = "Exonerado";
+      }
+
+      const alteracao = {
+        alvo,
+        de: membro.cargo,
+        para: novoCargo,
+        tipo,
+        motivo,
+        por: loggedUser.username,
+        timestamp: Date.now()
+      };
+
+      database.ref("membros/" + alvo + "/cargo").set(novoCargo);
+      const key = database.ref("historico").push().key;
+      database.ref("historico/" + key).set(alteracao).then(() => {
+        promMsg.textContent = "Alteração registrada com sucesso.";
+        promMsg.style.color = "green";
       });
+    });
+  });
+
+  database.ref("historico").on("value", snap => {
+    const data = snap.val();
+    if (!data) {
+      historicoList.innerHTML = "<i>Nenhum histórico registrado.</i>";
+      return;
     }
+    historicoList.innerHTML = "";
+    Object.keys(data).sort((a,b)=>data[b].timestamp-data[a].timestamp).forEach(k => {
+      const h = data[k];
+      const date = new Date(h.timestamp).toLocaleString();
+      historicoList.innerHTML += `
+        <div style="border-bottom:1px solid #ccc;margin-bottom:10px;">
+          ${h.tipo.toUpperCase()} - ${h.alvo}: <strong>${h.de}</strong> → <strong>${h.para}</strong><br>
+          <small>Por: ${h.por} | Motivo: ${h.motivo} | ${date}</small>
+        </div>`;
+    });
+  });
 
-    membrosRef.on("value", atualizarListaMembros);
+  // Banco criminal
+  const criminalForm = document.getElementById("criminalForm");
+  const criminalNome = document.getElementById("criminalNome");
+  const criminalDescricao = document.getElementById("criminalDescricao");
+  const criminalMsg = document.getElementById("criminalMsg");
+  const criminalList = document.getElementById("criminalList");
 
-    // Criar Portaria (Somente Superintendente Regional+)
-    const formPortaria = document.getElementById("formPortaria");
-    const listaPortarias = document.getElementById("listaPortarias");
-    const portariasRef = database.ref("/portarias");
+  criminalForm.addEventListener("submit", e => {
+    e.preventDefault();
+    const nome = criminalNome.value.trim();
+    const descricao = criminalDescricao.value.trim();
+    if (!nome || !descricao) return;
 
-    if (formPortaria) {
-      formPortaria.addEventListener("submit", function (e) {
-        e.preventDefault();
+    const reg = {
+      nome,
+      descricao,
+      autor: loggedUser.username,
+      cargo: loggedUser.cargo,
+      timestamp: Date.now()
+    };
+    const key = database.ref("criminal").push().key;
+    database.ref("criminal/" + key).set(reg).then(() => {
+      criminalMsg.textContent = "Registro adicionado.";
+      criminalMsg.style.color = "green";
+      criminalNome.value = "";
+      criminalDescricao.value = "";
+    }).catch(() => {
+      criminalMsg.textContent = "Erro ao registrar.";
+      criminalMsg.style.color = "red";
+    });
+  });
 
-        if (!loggedUser) return alert("Não logado.");
-        const niveis = ["Superintendente Regional", "Delegado", "Diretor", "Diretor Geral"];
-        if (!niveis.includes(loggedUser.cargo)) return alert("Cargo insuficiente.");
-
-        const titulo = document.getElementById("tituloPortaria").value.trim();
-        const conteudo = document.getElementById("conteudoPortaria").value.trim();
-        if (!titulo || !conteudo) return alert("Preencha todos os campos.");
-
-        portariasRef.push({
-          titulo,
-          conteudo,
-          autor: loggedUser.username,
-          cargo: loggedUser.cargo,
-          timestamp: Date.now()
-        }).then(() => {
-          document.getElementById("tituloPortaria").value = "";
-          document.getElementById("conteudoPortaria").value = "";
-          alert("Portaria criada!");
-        });
-      });
+  database.ref("criminal").on("value", snap => {
+    const data = snap.val();
+    if (!data) {
+      criminalList.innerHTML = "<i>Nenhum criminoso registrado.</i>";
+      return;
     }
+    criminalList.innerHTML = "";
+    Object.keys(data).sort((a,b)=>data[b].timestamp-data[a].timestamp).forEach(k => {
+      const c = data[k];
+      const date = new Date(c.timestamp).toLocaleString();
+      criminalList.innerHTML += `
+        <div style="border-bottom:1px solid #ccc;margin-bottom:10px;">
+          <strong>${c.nome}</strong><br>
+          ${c.descricao}<br>
+          <small>Por ${c.autor} (${c.cargo}) em ${date}</small>
+        </div>`;
+    });
+  });
 
-    // Mostrar Portarias (público e restrito)
-    portariasRef.on("value", function (snapshot) {
-      const portarias = snapshot.val();
-      const locais = [document.getElementById("listaPortarias"), document.getElementById("listaPortariasPublica")];
-      locais.forEach(local => {
-        if (!local) return;
-        local.innerHTML = "";
-        if (!portarias) {
-          local.innerHTML = "<i>Nenhuma portaria criada.</i>";
-          return;
-        }
-        Object.values(portarias)
-          .sort((a, b) => b.timestamp - a.timestamp)
-          .forEach(p => {
-            const div = document.createElement("div");
-            div.className = "boItem";
-            const data = new Date(p.timestamp);
-            div.innerHTML = `<b>${p.titulo}</b><br>${p.conteudo}<br><small><i>Por ${p.autor} (${p.cargo}) - ${data.toLocaleString()}</i></small>`;
-            local.appendChild(div);
-          });
+</script>
+<!-- Parte 5: finalização com Firebase e todos os recursos -->
+<!-- Insira dentro do <body>, após as partes anteriores -->
+
+<script>
+  // --- Exibição de Membros (senha+cargo), apenas Diretor ou Diretor Geral ---
+  const membrosList = document.getElementById("membrosList");
+  function carregarMembros() {
+    db.ref('membros').on('value', snap => {
+      const data = snap.val() || {};
+      membrosList.innerHTML = "";
+      Object.entries(data).forEach(([id, m]) => {
+        membrosList.innerHTML += `
+          <div style="border-bottom:1px solid #ccc; margin-bottom:5px;">
+            <strong>${m.nome}</strong><br>
+            Senha: ${m.senha} | Cargo: ${m.cargo}
+          </div>`;
       });
     });
+  }
 
-    // Mostrar BOs registrados no painel restrito
-    const listaBoRestrito = document.getElementById("listaBORestrito");
-    database.ref("/boletins").on("value", snapshot => {
-      if (!listaBoRestrito) return;
-      const boletins = snapshot.val();
-      listaBoRestrito.innerHTML = "";
-      if (!boletins) return listaBoRestrito.innerHTML = "<i>Sem registros.</i>";
-      Object.values(boletins).reverse().forEach(bo => {
-        const div = document.createElement("div");
-        div.className = "boItem";
-        div.innerHTML = `<b>${bo.descricao}</b><br><small><i>Por ${bo.autor} (${bo.cargo})</i></small>`;
-        listaBoRestrito.appendChild(div);
+  // Relaciona carregarMembros ao init()
+  function init() {
+    /* ... partes anteriores já executadas ... */
+    carregarMembros();
+  }
+
+  // --- Render BOs e botões de visualização ---
+  const boRestritoBtn = document.getElementById("verBoRestritoBtn");
+  const boRestritoList = document.getElementById("boRestritoList");
+
+  boRestritoBtn.onclick = () => {
+    boRestritoList.innerHTML = "";
+    db.ref('boletins').orderByChild('timestamp').on('value', snap => {
+      const data = snap.val() || {};
+      Object.values(data).forEach(b => {
+        boRestritoList.innerHTML += `
+          <div style="border-bottom:1px solid #ccc; margin:5px 0;">
+            <strong>Denunciante:</strong> ${b.denunciante}<br>
+            <strong>Acusado:</strong> ${b.acusado}<br>
+            <strong>Relato:</strong> ${b.relato}<br>
+            <small>${new Date(b.timestamp).toLocaleString()}</small>
+          </div>`;
       });
     });
+  };
 
-    // Mostrar registros do banco criminal
-    const listaCriminal = document.getElementById("listaCriminal");
-    database.ref("/criminal").on("value", snapshot => {
-      if (!listaCriminal) return;
-      const crimes = snapshot.val();
-      listaCriminal.innerHTML = "";
-      if (!crimes) return listaCriminal.innerHTML = "<i>Sem registros.</i>";
-      Object.values(crimes).reverse().forEach(crime => {
-        const div = document.createElement("div");
-        div.className = "boItem";
-        div.innerHTML = `<b>${crime.descricao}</b><br><small><i>Denunciado: ${crime.denunciado} - Por ${crime.autor}</i></small>`;
-        listaCriminal.appendChild(div);
+  // --- Botões driblando painel criminal restrito ---
+  const criminalRestritoBtn = document.getElementById("verCriminalRestritoBtn");
+  const criminalRestritoList = document.getElementById("criminalRestritoList");
+
+  criminalRestritoBtn.onclick = () => {
+    criminalRestritoList.innerHTML = "";
+    db.ref('criminal').orderByChild('timestamp').on('value', snap => {
+      const data = snap.val() || {};
+      Object.values(data).forEach(r => {
+        criminalRestritoList.innerHTML += `
+          <div style="border-bottom:1px solid #900; margin:5px 0;">
+            <strong>${r.nome}</strong> — ${r.descricao}<br>
+            <small>Por ${r.autor} (${r.cargo}) em ${new Date(r.timestamp).toLocaleString()}</small>
+          </div>`;
       });
     });
+  };
 
-  </script>
+  // Confirmar init chamando todas
+  init();
+</script>
 </body>
 </html>
