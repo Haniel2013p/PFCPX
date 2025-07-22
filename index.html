@@ -240,7 +240,7 @@
 
   // Se não existir nenhum usuário, criar usuário admin padrão
   if(usuarios.length === 0) {
-    usuarios.push({ username: 'admin', password: 'admin123', cargo: 'Diretor' });
+    usuarios.push({ username: 'admin', password: 'admin13', cargo: 'Diretor' });
     storage.set('usuarios', usuarios);
   }
 
@@ -348,8 +348,8 @@
     const lista = document.getElementById('listaAvisosPublicos');
     lista.innerHTML = '';
     const avisos = [
-      'Atenção: O sistema está em manutenção aos sábados.',
-      'Para dúvidas, contate o suporte pelo e-mail suporte@pf.gov.br.'
+      'Atenção: O sistema está em manutenção.',
+      'Para dúvidas, entre em contacto com o diretor geral da pf..'
     ];
     avisos.forEach(aviso => {
       const li = document.createElement('li');
