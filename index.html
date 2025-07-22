@@ -1,243 +1,265 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sistema PF - RP</title>
-<style>
-  body { font-family: Arial,sans-serif; margin:0; padding:0; background:#f0f2f5 }
-  header { background:#004080; color:white; padding:15px; text-align:center }
-  section { display:none; max-width:700px; margin:30px auto; background:white; padding:20px; border-radius:8px; box-shadow:0 0 8px #ccc }
-  section.active { display:block }
-  h2 { color:#004080; margin-bottom:15px }
-  label { display:block; margin:8px 0 4px }
-  input, textarea, select { width:100%; padding:8px; margin-bottom:10px; border:1px solid #aaa; border-radius:4px; box-sizing:border-box }
-  button { padding:10px 20px; background:#004080; color:white; border:none; border-radius:5px; cursor:pointer }
-  button:hover { background:#003060 }
-  .hidden { display:none }
-  nav { margin-bottom:20px }
-  table { width:100%; border-collapse:collapse; margin-top:10px }
-  th, td { padding:8px; border:1px solid #ddd; word-break:break-word }
-  th { background:#004080; color:white }
-  .error { color:red; margin-top:10px }
-  ul { padding-left:20px }
-</style>
-<!-- Firebase SDK -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-  import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
-  const firebaseConfig = {
-    apiKey:"AIzaSyBuaVeRTLVxpAyboRiWS6E4KYHWlYZgMEw",
-    authDomain:"pfcpx-c0b9b.firebaseapp.com",
-    databaseURL:"https://pfcpx-c0b9b-default-rtdb.firebaseio.com",
-    projectId:"pfcpx-c0b9b",
-    storageBucket:"pfcpx-c0b9b.appspot.com",
-    messagingSenderId:"322312831509",
-    appId:"1:322312831509:web:e5fe68609d34db6345c41c",
-    measurementId:"G-24QF5E8Q5E"
-  };
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  window.fb = { db, ref, push, onValue };
-</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sistema PF RP</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #eef; margin: 0; padding: 0; }
+    header { background: #003366; color: white; padding: 15px; text-align: center; }
+    section { max-width: 800px; margin: auto; padding: 20px; background: white; border-radius: 8px; margin-top: 20px; box-shadow: 0 0 10px #aaa; }
+    .hidden { display: none; }
+    button { padding: 8px 16px; margin: 5px 0; background: #003366; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #001f40; }
+    input, select, textarea { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background: #003366; color: white; }
+  </style>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+    import { getDatabase, ref, push, onValue, set, remove } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBuaVeRTLVxpAyboRiWS6E4KYHWlYZgMEw",
+      authDomain: "pfcpx-c0b9b.firebaseapp.com",
+      databaseURL: "https://pfcpx-c0b9b-default-rtdb.firebaseio.com",
+      projectId: "pfcpx-c0b9b",
+      storageBucket: "pfcpx-c0b9b.appspot.com",
+      messagingSenderId: "322312831509",
+      appId: "1:322312831509:web:e5fe68609d34db6345c41c"
+    };
+    
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    window._db = db;
+    window._ref = ref;
+    window._push = push;
+    window._onValue = onValue;
+    window._set = set;
+    window._remove = remove;
+  </script>
 </head>
 <body>
-<header><h1>Sistema Polícia Federal (RP)</h1></header>
+  <header>
+    <h1>Sistema da Polícia Federal (RP)</h1>
+    <button id="alternarBtn">Alternar Painel</button>
+  </header>
 
-<!-- Público -->
-<section id="dashboard-publico" class="active">
-  <h2>Painel Público</h2>
-  <button onclick="abrirPainel('bopublico')">Registrar B.O Público</button>
-  <button onclick="abrirPainel('portpub')">Ver Portarias Públicas</button>
-  <button onclick="abrirPainel('login')">Iniciar Sessão</button>
-  <div style="margin-top:20px; border:1px solid #004080; padding:10px; border-radius:5px; background:#e6f0ff">
-    <h3>Avisos Públicos</h3><ul id="avisosPub"></ul>
-  </div>
-  <div id="bopublico" class="hidden">
-    <h3>Registrar B.O. (Público)</h3>
-    <form id="formBOPublico"><label>Título:</label><input id="tituloBOPublico" required /><label>Descrição:</label><textarea id="descricaoBOPublico" required></textarea><label>Denunciado:</label><input id="denunciadoBOPublico" required /><button type="submit">Registrar</button></form>
-    <h3>BOs Registrados</h3>
-    <table><thead><tr><th>Título</th><th>Descrição</th><th>Denunciado</th><th>Data</th></tr></thead><tbody id="tabelaBOPublico"></tbody></table>
-  </div>
-  <div id="portpub" class="hidden"><h3>Portarias Públicas</h3><ul id="listaPortPub"></ul></div>
-</section>
+  <section id="painelPublico">
+    <h2>Painel Público</h2>
+    <button onclick="mostrarPainel('bo')">Registrar B.O</button>
+    <button onclick="mostrarPainel('portarias')">Ver Portarias</button>
+    <button onclick="mostrarLogin()">Iniciar Sessão</button>
 
-<!-- Login -->
-<section id="login" class="hidden">
-  <h2>Login</h2>
-  <form id="loginForm"><label>Usuário:</label><input id="inpUser" required /><label>Senha:</label><input type="password" id="inpPass" required /><button type="submit">Entrar</button></form>
-  <div id="loginError" class="error"></div>
-  <button onclick="abrirPainel('dashboard-publico')">Voltar</button>
-</section>
+    <div id="bo" class="hidden">
+      <h3>Registrar B.O</h3>
+      <form id="formBO">
+        <input placeholder="Título" id="tituloBO" required />
+        <textarea placeholder="Descrição" id="descricaoBO" required></textarea>
+        <input placeholder="Denunciado" id="denunciadoBO" required />
+        <button type="submit">Enviar B.O</button>
+      </form>
+      <h3>BOs Registrados</h3>
+      <table><thead><tr><th>Título</th><th>Descrição</th><th>Denunciado</th><th>Data</th></tr></thead><tbody id="tabelaBO"></tbody></table>
+    </div>
 
-<!-- Área restrita -->
-<section id="app" class="hidden">
-  <nav>
-    <button onclick="abrirArea('painelPromocoes')">Promoções</button>
-    <button onclick="abrirArea('painelBanco')">Banco Criminal</button>
-    <button onclick="abrirArea('painelPortiasInt')">Portarias Internas</button>
-    <button onclick="abrirArea('painelMembros')">Registrar Membros</button>
+    <div id="portarias" class="hidden">
+      <h3>Portarias Públicas</h3>
+      <ul id="listaPortarias"></ul>
+    </div>
+  </section>
+
+  <section id="loginSection" class="hidden">
+    <h2>Login</h2>
+    <form id="loginForm">
+      <input id="loginUsuario" placeholder="Usuário" required />
+      <input id="loginSenha" placeholder="Senha" type="password" required />
+      <button type="submit">Entrar</button>
+    </form>
+    <div id="erroLogin" style="color:red;"></div>
+  </section>
+
+  <section id="painelRestrito" class="hidden">
+    <h2>Área Restrita</h2>
+    <p id="infoUsuario"></p>
+    <button onclick="mostrarPainel('criminal')">Banco Criminal</button>
+    <button onclick="mostrarPainel('portariaInterna')">Criar Portaria</button>
+    <button onclick="mostrarPainel('membros')">Registrar Membro</button>
     <button onclick="logout()">Sair</button>
-  </nav>
-  <!-- Promoções -->
-  <div id="painelPromocoes" class="hidden painel"><h2>Promoções / Rebaixamentos / Exoneração</h2><table><thead><tr><th>Usuário</th><th>Cargo</th><th>Ações</th></tr></thead><tbody id="usuariosTable"></tbody></table></div>
-  <!-- Banco Criminal -->
-  <div id="painelBanco" class="hidden painel"><h2>Banco Criminal</h2><form id="formBancoCriminal"><label>Nome:</label><input id="nomeCriminoso" required /><label>Tipo de Crime:</label><input id="tipoCrime" required /><label>Descrição:</label><textarea id="descricaoCrime" required></textarea><button type="submit">Registrar Crime</button></form><h3>Registros</h3><table><thead><tr><th>Nome</th><th>Tipo</th><th>Descrição</th><th>Data</th></th></thead><tbody id="tabelaBancoCriminal"></tbody></table></div>
-  <!-- Portarias Internas -->
-  <div id="painelPortiasInt" class="hidden painel"><h2>Portarias Internas</h2><form id="formPortaria"><label>Título:</label><input id="tituloPortaria" required /><label>Conteúdo:</label><textarea id="conteudoPortaria" required></textarea><button type="submit">Criar Portaria</button></form><h3>Portarias</h3><ul id="listaPortInt"></ul></div>
-  <!-- Registrar Membros -->
-  <div id="painelMembros" class="hidden painel"><h2>Registrar Novo Membro</h2><form id="formRegistroMembros"><label>Usuário:</label><input id="novoUser" required /><label>Senha:</label><input type="password" id="novaPass" required /><label>Cargo:</label><select id="novoCargo" required><option value="">--Escolha--</option><option>Agente</option><option>Escrivão</option><option>Delegado</option><option>Diretor</option><option>Diretor Geral</option></select><button type="submit">Registrar</button></form><h3>Membros</h3><table><thead><tr><th>Usuário</th><th>Cargo</th></tr></thead><tbody id="tabelaMembros"></tbody></table></div>
-</section>
 
-<script>
-const { db, ref, push, onValue } = window.fb;
-let usuarios = [
-  {usuario:'agente01', senha:'1234', cargo:'Agente'},
-  {usuario:'escrivao01', senha:'1234', cargo:'Escrivão'},
-  {usuario:'delegado01', senha:'1234', cargo:'Delegado'},
-  {usuario:'diretor01', senha:'1234', cargo:'Diretor'},
-];
-if(!usuarios.find(u=>u.usuario==='Gabriel'))
-  usuarios.push({usuario:'Gabriel', senha:'DG', cargo:'Diretor Geral'});
-let boPublicos=[], bancoCriminal=[], portInt=[];
-let usuarioLogado=null;
-const boRef=ref(db,'boPublicos'), banRef=ref(db,'bancoCriminal'), portRef=ref(db,'portInt');
-onValue(boRef,s=>{boPublicos=[]; s.forEach(c=>boPublicos.push(c.val())); atualizarTabelaBOPublico();});
-onValue(banRef,s=>{bancoCriminal=[]; s.forEach(c=>bancoCriminal.push(c.val())); atualizarBancoCriminal();});
-onValue(portRef,s=>{portInt=[]; s.forEach(c=>portInt.push(c.val())); atualizarPortInt();});
+    <div id="criminal" class="hidden">
+      <h3>Banco Criminal</h3>
+      <form id="formCrime">
+        <input placeholder="Nome do Criminoso" id="nomeCriminoso" required />
+        <input placeholder="Tipo de Crime" id="tipoCrime" required />
+        <textarea placeholder="Descrição" id="descricaoCrime" required></textarea>
+        <button type="submit">Registrar</button>
+      </form>
+      <table><thead><tr><th>Nome</th><th>Tipo</th><th>Descrição</th><th>Data</th></tr></thead><tbody id="tabelaCrime"></tbody></table>
+    </div>
 
-function abrirPainel(id) {
-  document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id==='login'? 'login' : 'dashboard-publico').classList.add('active');
-  if(id==='bopublico') document.getElementById('bopublico').classList.remove('hidden');
-  if(id==='portpub'){ document.getElementById('portpub').classList.remove('hidden'); carregarAvisos(); atualizarPortPub();}
-}
-function abrirArea(id) {
-  if(!usuarioLogado) return abrirPainel('login');
-  document.getElementById('app').classList.add('active');
-  document.getElementById('dashboard-publico').classList.remove('active');
-  document.querySelectorAll('.painel').forEach(p=>p.classList.add('hidden'));
-  document.getElementById(id).classList.remove('hidden');
-}
-function mostrarAvisos() {
-  const ul = document.getElementById('avisosPub');
-  ul.innerHTML='';
-  ['Sistema em manutenção','Contato: Diretor Geral'].forEach(a=>{const li=document.createElement('li');li.textContent=a;ul.appendChild(li);});
-}
-function carregarAvisos(){ mostrarAvisos(); }
-function atualizarPortPub() {
-  const ul = document.getElementById('listaPortPub'); ul.innerHTML='';
-  // exemplo fixo
-  ['Port 001: uso de crachá', 'Port 002: segurança'].forEach(t=>{const li=document.createElement('li');li.textContent=t;ul.appendChild(li);});
-}
-function atualizarTabelaBOPublico(){
-  const tb=document.getElementById('tabelaBOPublico');
-  tb.innerHTML='';
-  boPublicos.forEach(o=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML= `<td>${o.titulo}</td><td>${o.descricao}</td><td>${o.denunciado}</td><td>${o.data}</td>`;
-    tb.appendChild(tr);
-  });
-}
-function atualizarBancoCriminal(){
-  const tb=document.getElementById('tabelaBancoCriminal');
-  tb.innerHTML='';
-  bancoCriminal.forEach(c=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${c.nome}</td><td>${c.tipo}</td><td>${c.descricao}</td><td>${c.data}</td>`;
-    tb.appendChild(tr);
-  });
-}
-function atualizarPortInt(){
-  const ul=document.getElementById('listaPortInt'); ul.innerHTML='';
-  portInt.forEach(p=>{const li=document.createElement('li');li.innerHTML=`<strong>${p.titulo}:</strong> ${p.conteudo}`;ul.appendChild(li);});
-}
-function atualizarUsuarios(){
-  const tb=document.getElementById('usuariosTable'); tb.innerHTML='';
-  usuarios.forEach(u=>{
-    const tr=document.createElement('tr');
-    let btns='';
-    if(usuarioLogado?.cargo==='Diretor Geral' || usuarioLogado?.cargo==='Diretor'){
-      if(u.usuario!==usuarioLogado.usuario)
-        btns=`<button onclick="alterarCargo('${u.usuario}','promover')">Promover</button>
-              <button onclick="alterarCargo('${u.usuario}','rebaixar')">Rebaixar</button>
-              <button onclick="alterarCargo('${u.usuario}','exonerar')">Exonerar</button>`;
+    <div id="portariaInterna" class="hidden">
+      <h3>Nova Portaria</h3>
+      <form id="formPortaria">
+        <input placeholder="Título" id="tituloPortaria" required />
+        <textarea placeholder="Conteúdo" id="conteudoPortaria" required></textarea>
+        <button type="submit">Criar Portaria</button>
+      </form>
+    </div>
+
+    <div id="membros" class="hidden">
+      <h3>Registrar Membro</h3>
+      <form id="formMembro">
+        <input id="novoUsuario" placeholder="Usuário" required />
+        <input id="novaSenha" placeholder="Senha" required />
+        <select id="cargoUsuario" required>
+          <option value="">Cargo</option>
+          <option>Agente</option>
+          <option>Escrivão</option>
+          <option>Delegado</option>
+          <option>Diretor</option>
+        </select>
+        <button type="submit">Registrar</button>
+      </form>
+      <ul id="listaMembros"></ul>
+    </div>
+  </section>
+
+  <script>
+    const db = window._db, ref = window._ref, push = window._push, onValue = window._onValue, set = window._set;
+
+    const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
+    if (!usuarios.find(u => u.usuario === 'Gabriel')) usuarios.push({ usuario: 'Gabriel', senha: 'DG', cargo: 'Diretor Geral' });
+    localStorage.setItem('usuarios', JSON.stringify(usuarios));
+
+    let usuarioLogado = null;
+
+    function mostrarPainel(id) {
+      document.querySelectorAll('#painelPublico > div, #painelRestrito > div').forEach(div => div.classList.add('hidden'));
+      document.getElementById(id)?.classList.remove('hidden');
     }
-    tr.innerHTML=`<td>${u.usuario}</td><td>${u.cargo}</td><td>${btns}</td>`;
-    tb.appendChild(tr);
-  });
-  atualizarMembros();
-}
-function atualizarMembros(){
-  const tb=document.getElementById('tabelaMembros'); tb.innerHTML='';
-  usuarios.forEach(u=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${u.usuario}</td><td>${u.cargo}</td>`;tb.appendChild(tr);});
-}
 
-document.getElementById('loginForm').addEventListener('submit',e=>{
-  e.preventDefault();
-  const u=document.getElementById('inpUser').value.trim();
-  const p=document.getElementById('inpPass').value;
-  const ach=usuarios.find(x=>x.usuario===u&&x.senha===p);
-  if(ach){ usuarioLogado=ach; abrirArea('painelPromocoes'); atualizarUsuarios(); }
-  else document.getElementById('loginError').textContent='Usuário ou senha inválidos';
-});
+    function mostrarLogin() {
+      document.getElementById('painelPublico').classList.add('hidden');
+      document.getElementById('painelRestrito').classList.add('hidden');
+      document.getElementById('loginSection').classList.remove('hidden');
+    }
 
-document.getElementById('formBOPublico').addEventListener('submit',e=>{
-  e.preventDefault();
-  const t=document.getElementById('tituloBOPublico').value.trim();
-  const d=document.getElementById('descricaoBOPublico').value.trim();
-  const den=document.getElementById('denunciadoBOPublico').value.trim();
-  if(t&&d&&den){
-    push(boRef,{titulo:t,descricao:d,denunciado:den,data:new Date().toLocaleString()});
-    e.target.reset(); alert('B.O. salvo global!');
-  }
-});
+    function logout() {
+      usuarioLogado = null;
+      document.getElementById('painelRestrito').classList.add('hidden');
+      document.getElementById('painelPublico').classList.remove('hidden');
+    }
 
-document.getElementById('formBancoCriminal').addEventListener('submit',e=>{
-  e.preventDefault();
-  const n=document.getElementById('nomeCriminoso').value.trim();
-  const tip=document.getElementById('tipoCrime').value.trim();
-  const des=document.getElementById('descricaoCrime').value.trim();
-  if(n&&tip&&des){
-    push(banRef,{nome:n,tipo:tip,descricao:des,data:new Date().toLocaleString()});
-    e.target.reset(); alert('Crime salvo global!');
-  }
-});
+    document.getElementById('alternarBtn').onclick = () => {
+      if (usuarioLogado) {
+        document.getElementById('painelRestrito').classList.toggle('hidden');
+        document.getElementById('painelPublico').classList.toggle('hidden');
+      } else {
+        mostrarLogin();
+      }
+    };
 
-document.getElementById('formPortaria').addEventListener('submit',e=>{
-  e.preventDefault();
-  if(!['Delegado','Diretor','Diretor Geral'].includes(usuarioLogado?.cargo)){alert('Sem permissão');return;}
-  const t=document.getElementById('tituloPortaria').value.trim();
-  const c=document.getElementById('conteudoPortaria').value.trim();
-  if(t&&c){ push(portRef,{titulo:t,conteudo:c,data:new Date().toLocaleString()}); e.target.reset(); alert('Portaria salva global!'); }
-});
+    document.getElementById('loginForm').onsubmit = e => {
+      e.preventDefault();
+      const u = document.getElementById('loginUsuario').value.trim();
+      const s = document.getElementById('loginSenha').value;
+      const user = usuarios.find(x => x.usuario === u && x.senha === s);
+      if (user) {
+        usuarioLogado = user;
+        document.getElementById('infoUsuario').innerText = `${user.usuario} (${user.cargo})`;
+        document.getElementById('loginSection').classList.add('hidden');
+        document.getElementById('painelRestrito').classList.remove('hidden');
+        mostrarPainel('criminal');
+      } else {
+        document.getElementById('erroLogin').innerText = 'Usuário ou senha inválido.';
+      }
+    };
 
-document.getElementById('formRegistroMembros').addEventListener('submit',e=>{
-  e.preventDefault();
-  if(!['Diretor','Diretor Geral'].includes(usuarioLogado?.cargo)){alert('Sem permissão');return;}
-  const u=document.getElementById('novoUser').value.trim();
-  const p=document.getElementById('novaPass').value;
-  const c=document.getElementById('novoCargo').value;
-  if(u&&p&&c && !usuarios.find(x=>x.usuario===u)){
-    usuarios.push({usuario:u,senha:p,cargo:c});
-    alert('Membro registrado'); atualizarUsuarios();
-    e.target.reset();
-  } else alert('Erro ao registrar');
-});
+    document.getElementById('formBO').onsubmit = e => {
+      e.preventDefault();
+      const t = tituloBO.value, d = descricaoBO.value, den = denunciadoBO.value;
+      if (t && d && den) {
+        push(ref(db, 'boPublicos'), { titulo: t, descricao: d, denunciado: den, data: new Date().toLocaleString() });
+        e.target.reset();
+      }
+    };
 
-function alterarCargo(u, ac){
-  const ord=['Agente','Escrivão','Delegado','Diretor','Diretor Geral'];
-  const alvo=usuarios.find(x=>x.usuario===u);
-  const pi=ord.indexOf(alvo.cargo);
-  if(ac==='promover' && pi<ord.length-1) alvo.cargo=ord[pi+1];
-  else if(ac==='rebaixar' && pi>0) alvo.cargo=ord[pi-1];
-  else if(ac==='exonerar') usuarios=usuarios.filter(x=>x.usuario!==u);
-  else return alert('Ação inválida');
-  alert(`Cargo de ${u} atualizado`);
-  atualizarUsuarios();
-}
+    document.getElementById('formCrime').onsubmit = e => {
+      e.preventDefault();
+      const n = nomeCriminoso.value, tip = tipoCrime.value, desc = descricaoCrime.value;
+      if (n && tip && desc) {
+        push(ref(db, 'crimes'), { nome: n, tipo: tip, descricao: desc, data: new Date().toLocaleString() });
+        e.target.reset();
+      }
+    };
 
-function logout(){ usuarioLogado=null; abrirPainel('dashboard-publico'); }
-abrirPainel('dashboard-publico');
-</script>
+    document.getElementById('formPortaria').onsubmit = e => {
+      e.preventDefault();
+      const t = tituloPortaria.value, c = conteudoPortaria.value;
+      push(ref(db, 'portarias'), { titulo: t, conteudo: c, data: new Date().toLocaleString() });
+      e.target.reset();
+    };
+
+    document.getElementById('formMembro').onsubmit = e => {
+      e.preventDefault();
+      const u = novoUsuario.value.trim(), s = novaSenha.value, c = cargoUsuario.value;
+      if (!usuarios.find(x => x.usuario === u)) {
+        usuarios.push({ usuario: u, senha: s, cargo: c });
+        localStorage.setItem('usuarios', JSON.stringify(usuarios));
+        alert('Membro registrado!');
+        atualizarMembros();
+        e.target.reset();
+      } else {
+        alert('Usuário já existe!');
+      }
+    };
+
+    function atualizarMembros() {
+      const ul = document.getElementById('listaMembros');
+      ul.innerHTML = '';
+      usuarios.forEach(u => {
+        const li = document.createElement('li');
+        li.textContent = `${u.usuario} (${u.cargo})`;
+        ul.appendChild(li);
+      });
+    }
+
+    onValue(ref(db, 'boPublicos'), snap => {
+      const tbody = document.getElementById('tabelaBO');
+      tbody.innerHTML = '';
+      snap.forEach(item => {
+        const d = item.val();
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${d.titulo}</td><td>${d.descricao}</td><td>${d.denunciado}</td><td>${d.data}</td>`;
+        tbody.appendChild(tr);
+      });
+    });
+
+    onValue(ref(db, 'crimes'), snap => {
+      const tbody = document.getElementById('tabelaCrime');
+      tbody.innerHTML = '';
+      snap.forEach(item => {
+        const d = item.val();
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${d.nome}</td><td>${d.tipo}</td><td>${d.descricao}</td><td>${d.data}</td>`;
+        tbody.appendChild(tr);
+      });
+    });
+
+    onValue(ref(db, 'portarias'), snap => {
+      const ul = document.getElementById('listaPortarias');
+      ul.innerHTML = '';
+      snap.forEach(item => {
+        const d = item.val();
+        const li = document.createElement('li');
+        li.innerHTML = `<strong>${d.titulo}</strong>: ${d.conteudo}`;
+        ul.appendChild(li);
+      });
+    });
+
+    atualizarMembros();
+  </script>
 </body>
 </html>
