@@ -231,18 +231,39 @@
     }
   };
 
-  // Dados iniciais
-  let usuarios = storage.get('usuarios');
-  let boletinsPublicos = storage.get('boletinsPublicos');
-  let portariasPublicas = storage.get('portariasPublicas');
-  let portariasInternas = storage.get('portariasInternas');
-  let bancoCriminal = storage.get('bancoCriminal');
+ // Dados iniciais
+let usuarios = storage.get('usuarios');
+let boletinsPublicos = storage.get('boletinsPublicos');
+let portariasPublicas = storage.get('portariasPublicas');
+let portariasInternas = storage.get('portariasInternas');
+let bancoCriminal = storage.get('bancoCriminal');
 
-  // Se não existir nenhum usuário, criar usuário admin padrão
-  if(usuarios.length === 0) {
-    usuarios.push({ username: 'admin', password: 'admin13', cargo: 'Diretor' });
-    storage.set('usuarios', usuarios);
-  }
+// Se não existir nenhum usuário, criar usuário admin padrão e o Gabriel Diretor Geral
+if(usuarios.length === 0) {
+  usuarios.push(
+    { username: 'admin', password: 'admin123', cargo: 'Diretor' },
+    { username: 'Gabriel', password: 'DG', cargo: 'Diretor Geral' }
+  );
+  storage.set('usuarios', usuarios);
+}
+
+// Depois, para verificar permissões (exemplo, para criar portarias internas):
+if(!usuarioLogado || ['Delegado', 'Diretor', 'Diretor Geral'].indexOf(usuarioLogado.cargo) === -1) {
+  alert('Apenas Delegados, Diretores e Diretores Gerais podem criar portarias.');
+  return;
+}
+
+// Para alterar cargos (apenas Diretor e Diretor Geral podem):
+if(usuarioLogado.cargo !== 'Diretor' && usuarioLogado.cargo !== 'Diretor Geral') {
+  alert('Apenas Diretores e Diretores Gerais podem alterar cargos.');
+  return;
+}
+
+// E no filtro para registro de membros (só Diretor Geral):
+if(!usuarioLogado || ['Diretor Geral'].indexOf(usuarioLogado.cargo) === -1) {
+  alert('Apenas Diretores Gerais podem registrar membros.');
+  return;
+}
 
   // Variável para usuário logado
   let usuarioLogado = null;
