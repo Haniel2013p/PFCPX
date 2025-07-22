@@ -210,77 +210,97 @@
       </select>
       <button type="submit">Registrar Membro</button>
     </form>
+    <h3>Membros Registrados</h3>
+    <table id="tabelaMembros">
+      <thead>
+        <tr><th>Usuário</th><th>Cargo</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
 </section>
 
 <script>
-  // Dados simulados / banco local
-  let usuarios = [
-    { usuario: 'admin', senha: 'admin123', cargo: 'Diretor' },
-    { usuario: 'delegado1', senha: 'senha123', cargo: 'Delegado' },
-    { usuario: 'agente1', senha: 'senha123', cargo: 'Agente' },
-  ];
+  // Simulação banco de dados localStorage
+  const storage = {
+    get(key) {
+      return JSON.parse(localStorage.getItem(key)) || [];
+    },
+    set(key, value) {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+  };
 
-  let boletinsPublicos = [];
-  let portariasPublicas = [
-    "Portaria 001: Uso obrigatório de crachá nas dependências.",
-    "Portaria 002: Restrição de acesso após as 22h.",
-  ];
-  let portariasInternas = [];
-  let bancoCriminal = [];
+  // Dados iniciais
+  let usuarios = storage.get('usuarios');
+  let boletinsPublicos = storage.get('boletinsPublicos');
+  let portariasPublicas = storage.get('portariasPublicas');
+  let portariasInternas = storage.get('portariasInternas');
+  let bancoCriminal = storage.get('bancoCriminal');
 
+  // Se não existir nenhum usuário, criar usuário admin padrão
+  if(usuarios.length === 0) {
+    usuarios.push({ username: 'admin', password: 'admin123', cargo: 'Diretor' });
+    storage.set('usuarios', usuarios);
+  }
+
+  // Variável para usuário logado
   let usuarioLogado = null;
 
-  // Funções para mostrar/ocultar painéis
+  // Funções para mostrar/ocultar seções
   function mostrarDashboardPublico() {
     document.getElementById('dashboard-publico').classList.remove('hidden');
-        document.getElementById('login-section').classList.add('hidden');
+    document.getElementById('login-section').classList.add('hidden');
     document.getElementById('app-section').classList.add('hidden');
-    limparMensagensLogin();
-    mostrarPainelPublico(''); // Oculta painéis específicos
+    esconderTodosPainéisPublicos();
+    carregarAvisosPublicos();
+    carregarBOPublicoTabela();
+    carregarPortariasPublicas();
   }
 
   function mostrarLogin() {
     document.getElementById('dashboard-publico').classList.add('hidden');
     document.getElementById('login-section').classList.remove('hidden');
     document.getElementById('app-section').classList.add('hidden');
-    limparMensagensLogin();
-  }
-
-  function mostrarPainelPublico(painelId) {
-    const paineis = ['painelBOPublico', 'painelPortariasPublicas'];
-    paineis.forEach(id => {
-      const el = document.getElementById(id);
-      if (id === painelId) el.classList.remove('hidden');
-      else el.classList.add('hidden');
-    });
-  }
-
-  function mostrarPainel(painelId) {
-    const paineis = ['painelPromocoes', 'painelBancoCriminal', 'painelPortariasInternas', 'painelRegistroMembros'];
-    paineis.forEach(id => {
-      const el = document.getElementById(id);
-      if (id === painelId) el.classList.remove('hidden');
-      else el.classList.add('hidden');
-    });
-  }
-
-  // Limpar mensagem de erro de login
-  function limparMensagensLogin() {
     document.getElementById('login-error').textContent = '';
   }
 
+  function mostrarApp() {
+    document.getElementById('dashboard-publico').classList.add('hidden');
+    document.getElementById('login-section').classList.add('hidden');
+    document.getElementById('app-section').classList.remove('hidden');
+    mostrarPainel('painelPromocoes');
+    carregarUsuariosTabela();
+    carregarBancoCriminalTabela();
+    carregarPortariasInternasLista();
+    carregarMembrosTabela();
+  }
+
+  function mostrarPainel(nomePainel) {
+    const paineis = document.querySelectorAll('.painel');
+    paineis.forEach(p => p.classList.add('hidden'));
+    document.getElementById(nomePainel).classList.remove('hidden');
+  }
+
+  function mostrarPainelPublico(nomePainel) {
+    esconderTodosPainéisPublicos();
+    document.getElementById(nomePainel).classList.remove('hidden');
+  }
+
+  function esconderTodosPainéisPublicos() {
+    document.getElementById('painelBOPublico').classList.add('hidden');
+    document.getElementById('painelPortariasPublicas').classList.add('hidden');
+  }
+
   // Login
-  document.getElementById('loginForm').addEventListener('submit', function(event){
-    event.preventDefault();
-    const user = document.getElementById('username').value.trim();
-    const pass = document.getElementById('password').value;
-
-    const usuarioEncontrado = usuarios.find(u => u.usuario === user && u.senha === pass);
-
-    if (usuarioEncontrado) {
-      usuarioLogado = usuarioEncontrado;
-      carregarApp();
+  document.getElementById('loginForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const usuario = usuarios.find(u => u.username === username && u.password === password);
+    if(usuario) {
+      usuarioLogado = usuario;
+      mostrarApp();
     } else {
       document.getElementById('login-error').textContent = 'Usuário ou senha incorretos.';
     }
@@ -292,102 +312,28 @@
     mostrarDashboardPublico();
   }
 
-  // Carregar dados da área restrita após login
-  function carregarApp() {
-    document.getElementById('dashboard-publico').classList.add('hidden');
-    document.getElementById('login-section').classList.add('hidden');
-    document.getElementById('app-section').classList.remove('hidden');
-    mostrarPainel('painelPromocoes');
-    atualizarTabelaUsuarios();
-    atualizarTabelaBancoCriminal();
-    atualizarListaPortariasInternas();
-  }
-
-  // Atualizar tabela de usuários para promoções e rebaixamentos
-  function atualizarTabelaUsuarios() {
-    const tbody = document.querySelector('#usuariosTable tbody');
-    tbody.innerHTML = '';
-    usuarios.forEach((u, i) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${u.usuario}</td>
-        <td>${u.cargo}</td>
-        <td>
-          <button onclick="alterarCargo(${i}, 'subir')">Promover</button>
-          <button onclick="alterarCargo(${i}, 'descer')">Rebaixar</button>
-          <button onclick="exonerarUsuario(${i})">Exonerar</button>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-
-  // Ordem hierárquica para cargos
-  const cargosOrdem = ['Agente', 'Escrivão', 'Investigador', 'Delegado', 'Diretor'];
-
-  function alterarCargo(indice, acao) {
-    const usuario = usuarios[indice];
-    let cargoAtual = usuario.cargo;
-    let pos = cargosOrdem.indexOf(cargoAtual);
-    if (acao === 'subir' && pos < cargosOrdem.length - 1) {
-      usuario.cargo = cargosOrdem[pos + 1];
-      alert(`Usuário ${usuario.usuario} promovido para ${usuario.cargo}`);
-    } else if (acao === 'descer' && pos > 0) {
-      usuario.cargo = cargosOrdem[pos - 1];
-      alert(`Usuário ${usuario.usuario} rebaixado para ${usuario.cargo}`);
-    } else {
-      alert('Operação inválida para o cargo atual.');
-    }
-    atualizarTabelaUsuarios();
-  }
-
-  function exonerarUsuario(indice) {
-    const usuario = usuarios[indice];
-    if (confirm(`Tem certeza que deseja exonerar o usuário ${usuario.usuario}?`)) {
-      usuarios.splice(indice, 1);
-      alert('Usuário exonerado com sucesso.');
-      atualizarTabelaUsuarios();
-    }
-  }
-
-  // Registrar novo membro
-  document.getElementById('formRegistroMembros').addEventListener('submit', function(event){
-    event.preventDefault();
-    if (!usuarioLogado) return alert('Usuário não logado.');
-    if (!['Diretor'].includes(usuarioLogado.cargo)) return alert('Somente Diretor pode registrar membros.');
-
-    const novoUsuario = document.getElementById('novoUsuario').value.trim();
-    const novaSenha = document.getElementById('novaSenha').value;
-    const cargoInicial = document.getElementById('cargoInicial').value;
-
-    if (usuarios.find(u => u.usuario === novoUsuario)) {
-      alert('Usuário já existe.');
-      return;
-    }
-
-    usuarios.push({usuario: novoUsuario, senha: novaSenha, cargo: cargoInicial});
-    alert(`Usuário ${novoUsuario} registrado com sucesso.`);
-    document.getElementById('formRegistroMembros').reset();
-    atualizarTabelaUsuarios();
-  });
-
-  // Registrar boletim de ocorrência público
-  document.getElementById('formBOPublico').addEventListener('submit', function(event){
-    event.preventDefault();
+  // Registrar B.O Público
+  document.getElementById('formBOPublico').addEventListener('submit', e => {
+    e.preventDefault();
     const titulo = document.getElementById('tituloBOPublico').value.trim();
     const descricao = document.getElementById('descricaoBOPublico').value.trim();
     const denunciado = document.getElementById('denunciadoBOPublico').value.trim();
-
-    const dataAgora = new Date().toLocaleString();
-
-    boletinsPublicos.push({titulo, descricao, denunciado, data: dataAgora});
-    alert('B.O público registrado com sucesso.');
-
-    document.getElementById('formBOPublico').reset();
-    atualizarTabelaBOPublico();
+    if(titulo && descricao && denunciado) {
+      boletinsPublicos.push({
+        titulo,
+        descricao,
+        denunciado,
+        data: new Date().toLocaleString()
+      });
+      storage.set('boletinsPublicos', boletinsPublicos);
+      carregarBOPublicoTabela();
+      e.target.reset();
+      alert('Boletim registrado com sucesso!');
+    }
   });
 
-  function atualizarTabelaBOPublico() {
+  // Carregar B.O Público tabela
+  function carregarBOPublicoTabela() {
     const tbody = document.querySelector('#tabelaBOPublico tbody');
     tbody.innerHTML = '';
     boletinsPublicos.forEach(bo => {
@@ -397,73 +343,198 @@
     });
   }
 
-  // Atualizar lista de portarias públicas
-  function atualizarListaPortariasPublicas() {
-    const ul = document.getElementById('listaPortariasPublicas');
-    ul.innerHTML = '';
-    portariasPublicas.forEach(portaria => {
+  // Carregar avisos públicos (exemplo fixo)
+  function carregarAvisosPublicos() {
+    const lista = document.getElementById('listaAvisosPublicos');
+    lista.innerHTML = '';
+    const avisos = [
+      'Atenção: O sistema está em manutenção aos sábados.',
+      'Para dúvidas, contate o suporte pelo e-mail suporte@pf.gov.br.'
+    ];
+    avisos.forEach(aviso => {
       const li = document.createElement('li');
-      li.textContent = portaria;
-      ul.appendChild(li);
+      li.textContent = aviso;
+      lista.appendChild(li);
     });
   }
 
-  // Registrar crime no banco criminal
-  document.getElementById('formBancoCriminal').addEventListener('submit', function(event){
-    event.preventDefault();
-    if (!usuarioLogado) return alert('Usuário não logado.');
+  // Portarias públicas
+  function carregarPortariasPublicas() {
+    const lista = document.getElementById('listaPortariasPublicas');
+    lista.innerHTML = '';
+    portariasPublicas.forEach(portaria => {
+      const li = document.createElement('li');
+      li.textContent = `${portaria.titulo} - ${portaria.conteudo}`;
+      lista.appendChild(li);
+    });
+  }
 
+  // Form Portaria Interna
+  document.getElementById('formPortaria').addEventListener('submit', e => {
+    e.preventDefault();
+    if(!usuarioLogado) {
+      alert('Acesso negado.');
+      return;
+    }
+    if(['Delegado','Diretor'].indexOf(usuarioLogado.cargo) === -1) {
+      alert('Apenas Delegados ou Diretores podem criar portarias.');
+      return;
+    }
+    const titulo = document.getElementById('tituloPortaria').value.trim();
+    const conteudo = document.getElementById('conteudoPortaria').value.trim();
+    if(titulo && conteudo) {
+      portariasInternas.push({
+        titulo,
+        conteudo,
+        data: new Date().toLocaleString()
+      });
+      storage.set('portariasInternas', portariasInternas);
+      carregarPortariasInternasLista();
+      e.target.reset();
+      alert('Portaria criada com sucesso!');
+    }
+  });
+
+  function carregarPortariasInternasLista() {
+    const lista = document.getElementById('listaPortariasInternas');
+    lista.innerHTML = '';
+    portariasInternas.forEach(p => {
+      const li = document.createElement('li');
+      li.textContent = `${p.titulo} - ${p.conteudo} (${p.data})`;
+      lista.appendChild(li);
+    });
+  }
+
+  // Banco Criminal - registrar crime
+  document.getElementById('formBancoCriminal').addEventListener('submit', e => {
+    e.preventDefault();
+    if(!usuarioLogado) {
+      alert('Acesso negado.');
+      return;
+    }
     const nome = document.getElementById('nomeCriminoso').value.trim();
     const tipo = document.getElementById('tipoCrime').value.trim();
     const descricao = document.getElementById('descricaoCrime').value.trim();
-    const dataAgora = new Date().toLocaleString();
-
-    bancoCriminal.push({nome, tipo, descricao, data: dataAgora});
-    alert('Crime registrado com sucesso.');
-
-    document.getElementById('formBancoCriminal').reset();
-    atualizarTabelaBancoCriminal();
+    if(nome && tipo && descricao) {
+      bancoCriminal.push({
+        nome,
+        tipo,
+        descricao,
+        data: new Date().toLocaleString()
+      });
+      storage.set('bancoCriminal', bancoCriminal);
+      carregarBancoCriminalTabela();
+      e.target.reset();
+      alert('Crime registrado com sucesso!');
+    }
   });
 
-  function atualizarTabelaBancoCriminal() {
+  function carregarBancoCriminalTabela() {
     const tbody = document.querySelector('#tabelaBancoCriminal tbody');
     tbody.innerHTML = '';
-    bancoCriminal.forEach(crime => {
+    bancoCriminal.forEach(c => {
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${crime.nome}</td><td>${crime.tipo}</td><td>${crime.descricao}</td><td>${crime.data}</td>`;
+      tr.innerHTML = `<td>${c.nome}</td><td>${c.tipo}</td><td>${c.descricao}</td><td>${c.data}</td>`;
       tbody.appendChild(tr);
     });
   }
 
-  // Criar portaria interna
-  document.getElementById('formPortaria').addEventListener('submit', function(event){
-    event.preventDefault();
-    if (!usuarioLogado) return alert('Usuário não logado.');
-    if (!['Delegado','Diretor'].includes(usuarioLogado.cargo)) return alert('Somente Delegado ou Diretor pode criar portarias.');
-
-    const titulo = document.getElementById('tituloPortaria').value.trim();
-    const conteudo = document.getElementById('conteudoPortaria').value.trim();
-
-    portariasInternas.push({titulo, conteudo});
-    alert('Portaria criada com sucesso.');
-
-    document.getElementById('formPortaria').reset();
-    atualizarListaPortariasInternas();
+  // Registrar membros - Diretor+
+  document.getElementById('formRegistroMembros').addEventListener('submit', e => {
+    e.preventDefault();
+    if(!usuarioLogado || ['Diretor'].indexOf(usuarioLogado.cargo) === -1) {
+      alert('Apenas Diretores podem registrar membros.');
+      return;
+    }
+    const novoUsuario = document.getElementById('novoUsuario').value.trim();
+    const novaSenha = document.getElementById('novaSenha').value;
+    const cargoInicial = document.getElementById('cargoInicial').value;
+    if(novoUsuario && novaSenha && cargoInicial) {
+      if(usuarios.find(u => u.username === novoUsuario)) {
+        alert('Usuário já existe!');
+        return;
+      }
+      usuarios.push({ username: novoUsuario, password: novaSenha, cargo: cargoInicial });
+      storage.set('usuarios', usuarios);
+      carregarMembrosTabela();
+      e.target.reset();
+      alert('Membro registrado com sucesso!');
+    }
   });
 
-  function atualizarListaPortariasInternas() {
-    const ul = document.getElementById('listaPortariasInternas');
-    ul.innerHTML = '';
-    portariasInternas.forEach(p => {
-      const li = document.createElement('li');
-      li.innerHTML = `<strong>${p.titulo}</strong>: ${p.conteudo}`;
-      ul.appendChild(li);
+  // Carregar usuários para promoções/rebaixamentos
+  function carregarUsuariosTabela() {
+    const tbody = document.querySelector('#usuariosTable tbody');
+    tbody.innerHTML = '';
+    usuarios.forEach((u, index) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${u.username}</td><td>${u.cargo}</td>
+        <td>
+          <button onclick="alterarCargo(${index}, 'promover')">Promover</button>
+          <button onclick="alterarCargo(${index}, 'rebaixar')">Rebaixar</button>
+          <button onclick="alterarCargo(${index}, 'exonerar')">Exonerar</button>
+        </td>`;
+      tbody.appendChild(tr);
     });
   }
 
-  // Inicialização
-  atualizarListaPortariasPublicas();
-  atualizarTabelaBOPublico();
+  // Alterar cargo usuário
+  function alterarCargo(index, acao) {
+    if(!usuarioLogado) {
+      alert('Faça login para realizar essa ação.');
+      return;
+    }
+    const cargos = ['Agente', 'Escrivão', 'Investigador', 'Delegado', 'Diretor'];
+    const usuarioAlvo = usuarios[index];
+    if(usuarioAlvo.username === usuarioLogado.username) {
+      alert('Você não pode alterar seu próprio cargo.');
+      return;
+    }
+    if(usuarioLogado.cargo !== 'Diretor') {
+      alert('Apenas Diretores podem alterar cargos.');
+      return;
+    }
+    const posAtual = cargos.indexOf(usuarioAlvo.cargo);
+    if(acao === 'promover') {
+      if(posAtual < cargos.length -1) {
+        usuarioAlvo.cargo = cargos[posAtual + 1];
+      } else {
+        alert('Já está no cargo máximo.');
+        return;
+      }
+    } else if(acao === 'rebaixar') {
+      if(posAtual > 0) {
+        usuarioAlvo.cargo = cargos[posAtual - 1];
+      } else {
+        alert('Já está no cargo mínimo.');
+        return;
+      }
+    } else if(acao === 'exonerar') {
+      usuarios.splice(index, 1);
+      alert('Usuário exonerado.');
+      storage.set('usuarios', usuarios);
+      carregarUsuariosTabela();
+      carregarMembrosTabela();
+      return;
+    }
+    storage.set('usuarios', usuarios);
+    carregarUsuariosTabela();
+    carregarMembrosTabela();
+    alert('Cargo alterado com sucesso!');
+  }
+
+  // Carregar membros registrados
+  function carregarMembrosTabela() {
+    const tbody = document.querySelector('#tabelaMembros tbody');
+    tbody.innerHTML = '';
+    usuarios.forEach(u => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${u.username}</td><td>${u.cargo}</td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Iniciar mostrando o painel público
   mostrarDashboardPublico();
 </script>
 
