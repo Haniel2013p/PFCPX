@@ -16,7 +16,7 @@
     padding: 15px;
     text-align: center;
   }
-  #login-section, #app-section {
+  #dashboard, #login-section, #app-section {
     max-width: 700px;
     margin: 30px auto;
     background: white;
@@ -24,23 +24,11 @@
     border-radius: 8px;
     box-shadow: 0 0 8px #ccc;
   }
-  h2 {
+  h1, h2 {
     color: #004080;
-    margin-bottom: 15px;
-  }
-  label {
-    display: block;
-    margin: 8px 0 4px;
-  }
-  input[type=text], input[type=password], select, textarea {
-    width: 100%;
-    padding: 8px;
-    border-radius: 4px;
-    border: 1px solid #aaa;
-    box-sizing: border-box;
   }
   button {
-    margin-top: 15px;
+    margin: 10px 5px 0 0;
     padding: 10px 20px;
     background: #004080;
     color: white;
@@ -64,14 +52,31 @@
   th, td {
     padding: 8px;
     border: 1px solid #ddd;
+    text-align: left;
   }
   th {
     background: #004080;
     color: white;
   }
-  .status-sim { color: green; font-weight: bold; }
-  .status-nao { color: red; font-weight: bold; }
   .error { color: red; margin-top: 10px; }
+  textarea, input[type=text], input[type=password], input[type=email] {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    border: 1px solid #aaa;
+    box-sizing: border-box;
+  }
+  label {
+    font-weight: bold;
+  }
+  .btn-danger {
+    background: #a00;
+  }
+  .btn-danger:hover {
+    background: #700;
+  }
 </style>
 </head>
 <body>
@@ -80,28 +85,61 @@
   <h1>Sistema Polícia Federal (RP)</h1>
 </header>
 
-<section id="login-section">
+<section id="dashboard">
+  <h2>Bem-vindo ao Painel Público</h2>
+  <p>Este painel é de uso público para cidadãos do complexo. Aqui pode ser efetuado Boletim de Ocorrência (B.O) e revisão de portarias de acesso público.</p>
+  <button onclick="mostrarSecao('registroBOPublico')">Registrar B.O Público</button>
+  <button onclick="mostrarSecao('login-section')">Iniciar Sessão (usuário registrado)</button>
+  <button onclick="mostrarSecao('bancoCriminal')">Registros de Bancos Criminais</button>
+</section>
+
+<section id="registroBOPublico" class="hidden">
+  <h2>Registro Público de Boletim de Ocorrência (B.O)</h2>
+  <form id="boPublicoForm">
+    <label for="nomeDenunciante">Nome do Denunciante:</label>
+    <input type="text" id="nomeDenunciante" required />
+    
+    <label for="pessoaDenunciada">Pessoa Denunciada:</label>
+    <input type="text" id="pessoaDenunciada" required />
+
+    <label for="descricaoBOPublico">Descrição do B.O:</label>
+    <textarea id="descricaoBOPublico" rows="4" required></textarea>
+    
+    <button type="submit">Registrar B.O Público</button>
+    <button type="button" onclick="voltarDashboard()">Voltar</button>
+  </form>
+  <h3>Boletins Públicos Registrados</h3>
+  <table id="boPublicoTable">
+    <thead>
+      <tr><th>Denunciante</th><th>Pessoa Denunciada</th><th>Descrição</th><th>Data</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</section>
+
+<section id="login-section" class="hidden">
   <h2>Login</h2>
   <form id="loginForm">
     <label for="username">Usuário:</label>
-    <input type="text" id="username" required autocomplete="off" />
+    <input type="text" id="username" autocomplete="off" required />
     <label for="password">Senha:</label>
-    <input type="password" id="password" required autocomplete="off" />
+    <input type="password" id="password" autocomplete="off" required />
     <button type="submit">Entrar</button>
+    <button type="button" onclick="voltarDashboard()">Voltar</button>
   </form>
   <div id="login-error" class="error"></div>
 </section>
 
 <section id="app-section" class="hidden">
   <nav>
-    <button onclick="mostrarPainel('painelPromocoes')">Painel Promoções</button>
-    <button onclick="mostrarPainel('registroBO')">Registrar BO</button>
-    <button onclick="mostrarPainel('checklistFunc')">Checklist Funcionalidades</button>
+    <button onclick="mostrarPainel('painelPromocoes')">Painel Promoções / Exonerações</button>
+    <button onclick="mostrarPainel('registroBO')">Registrar BO (interno)</button>
+    <button onclick="mostrarPainel('bancoCriminal')">Registros de Bancos Criminais</button>
     <button onclick="logout()">Sair</button>
   </nav>
 
-  <div id="painelPromocoes" class="painel hidden">
-    <h2>Painel de Promoção / Rebaixamento</h2>
+  <div id="painelPromocoes" class="painel">
+    <h2>Painel de Promoção / Rebaixamento / Exoneração</h2>
     <table id="usuariosTable">
       <thead>
         <tr><th>Usuário</th><th>Cargo</th><th>Ação</th></tr>
@@ -111,13 +149,13 @@
   </div>
 
   <div id="registroBO" class="painel hidden">
-    <h2>Registro de Boletim de Ocorrência (BO)</h2>
+    <h2>Registro Interno de Boletim de Ocorrência (B.O)</h2>
     <form id="boForm">
-      <label for="boTitulo">Título do BO:</label>
+      <label for="boTitulo">Título do B.O:</label>
       <input type="text" id="boTitulo" required />
       <label for="boDescricao">Descrição:</label>
       <textarea id="boDescricao" rows="4" required></textarea>
-      <button type="submit">Registrar BO</button>
+      <button type="submit">Registrar B.O</button>
     </form>
     <h3>Boletins Registrados</h3>
     <table id="boTable">
@@ -128,50 +166,49 @@
     </table>
   </div>
 
-  <div id="checklistFunc" class="painel hidden">
-    <h2>Checklist de Funcionalidades Internas</h2>
-    <form id="checklistForm">
-      <div class="item">
-        <label>Cadastro e login com sistema hierárquico (agente, delegado, diretor, etc.)</label><br/>
-        <input type="radio" name="func1" value="sim" id="func1sim" /> <label for="func1sim">Sim</label>
-        <input type="radio" name="func1" value="nao" id="func1nao" /> <label for="func1nao">Não</label>
-      </div>
-
-      <div class="item">
-        <label>Painel para promover ou rebaixar servidores (controle de carreira)</label><br/>
-        <input type="radio" name="func2" value="sim" id="func2sim" /> <label for="func2sim">Sim</label>
-        <input type="radio" name="func2" value="nao" id="func2nao" /> <label for="func2nao">Não</label>
-      </div>
-
-      <div class="item">
-        <label>Sistema interno para registro de Boletins de Ocorrência (com envio direto ao banco de dados da PF, assinatura digital e integração com delegacias)</label><br/>
-        <input type="radio" name="func3" value="sim" id="func3sim" /> <label for="func3sim">Sim</label>
-        <input type="radio" name="func3" value="nao" id="func3nao" /> <label for="func3nao">Não</label>
-      </div>
-
-      <button type="button" onclick="salvarChecklist()">Salvar Checklist</button>
-    </form>
-    <div id="checklistResultado" style="margin-top: 15px;"></div>
+  <div id="bancoCriminal" class="painel hidden">
+    <h2>Registros do Banco Criminal</h2>
+    <table id="bancoCriminalTable">
+      <thead>
+        <tr><th>Nome</th><th>Crimes Registrados</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>João Silva</td><td>Roubo, Tráfico</td></tr>
+        <tr><td>Maria Oliveira</td><td>Fraude, Falsificação</td></tr>
+        <tr><td>Carlos Souza</td><td>Homicídio</td></tr>
+      </tbody>
+    </table>
   </div>
 </section>
 
 <script>
-  // Usuários simulados (username, senha, cargo)
-  const usuarios = [
-    { username: "teste", password: "senha123", cargo: "Diretor Geral" },
-    { username: "delegado", password: "senha456", cargo: "Delegado" },
-    { username: "agente", password: "senha789", cargo: "Agente" }
+  // Hierarquia de cargos
+  const hierarquia = ['Agente', 'Delegado', 'Diretor Geral'];
+
+  // Usuários cadastrados (diretor geral pode registrar no futuro)
+  let usuarios = [
+    { username: "diretor", password: "senha123", cargo: "Diretor Geral" },
+    { username: "delegado1", password: "senha456", cargo: "Delegado" },
+    { username: "agente1", password: "senha789", cargo: "Agente" }
   ];
 
   let usuarioLogado = null;
 
+  // Exibir seção e esconder as outras principais
+  function mostrarSecao(id) {
+    ['dashboard', 'login-section', 'app-section', 'registroBOPublico'].forEach(sec => {
+      document.getElementById(sec).classList.add('hidden');
+    });
+    document.getElementById(id).classList.remove('hidden');
+  }
+
+  function voltarDashboard() {
+    mostrarSecao('dashboard');
+  }
+
+  // Login
   const loginForm = document.getElementById('loginForm');
   const loginError = document.getElementById('login-error');
-  const loginSection = document.getElementById('login-section');
-  const appSection = document.getElementById('app-section');
-  const painelPromocoes = document.getElementById('painelPromocoes');
-  const registroBO = document.getElementById('registroBO');
-  const checklistFunc = document.getElementById('checklistFunc');
 
   loginForm.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -182,179 +219,194 @@
     if (encontrado) {
       usuarioLogado = encontrado;
       loginError.textContent = "";
-      loginSection.classList.add('hidden');
-      appSection.classList.remove('hidden');
+      mostrarSecao('app-section');
       mostrarPainel('painelPromocoes');
       atualizarTabelaUsuarios();
       carregarBOs();
-      carregarChecklist();
     } else {
       loginError.textContent = "Usuário ou senha inválidos.";
     }
   });
 
+  // Logout
   function logout() {
     usuarioLogado = null;
     loginForm.reset();
-    loginSection.classList.remove('hidden');
-    appSection.classList.add('hidden');
+    mostrarSecao('dashboard');
   }
 
+  // Mostrar painel interno
   function mostrarPainel(id) {
-    document.querySelectorAll('.painel').forEach(p => p.classList.add('hidden'));
+    document.querySelectorAll('#app-section .painel').forEach(p => p.classList.add('hidden'));
     document.getElementById(id).classList.remove('hidden');
   }
 
-  // Função para atualizar tabela de usuários no painel de promoções
+  // Atualizar tabela de usuários para promoções/exonerações
   function atualizarTabelaUsuarios() {
     const tbody = document.querySelector('#usuariosTable tbody');
     tbody.innerHTML = "";
+
     usuarios.forEach((u, index) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${u.username}</td>
-        <td>${u.cargo}</td>
-        <td>
-          ${podePromoverRebaixar(usuarioLogado.cargo, u.cargo) ? `
-          <button onclick="promoverUsuario(${index})">Promover</button>
-          <button onclick="rebaixarUsuario(${index})">Rebaixar</button>
-          ` : 'Sem permissão'}
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
+      let acoes = '';
 
-  // Define hierarquia para controle de promoção/rebaixamento
-  const hierarquia = ['Agente', 'Delegado', 'Diretor Geral'];
+      const cargoLogado = usuarioLogado?.cargo;
 
-  function podePromoverRebaixar(cargoLogado, cargoAlvo) {
-    // Só pode promover/rebaixar se cargoLogado for hierarquicamente superior ao cargoAlvo
-    return hierarquia.indexOf(cargoLogado) > hierarquia.indexOf(cargoAlvo);
-  }
-
-  function promoverUsuario(index) {
-    const cargoAtual = usuarios[index].cargo;
-    const nivelAtual = hierarquia.indexOf(cargoAtual);
-    if (nivelAtual < hierarquia.length - 1) {
-      const cargoNovo = hierarquia[nivelAtual + 1];
-      if (podePromoverRebaixar(usuarioLogado.cargo, cargoAtual)) {
-        usuarios[index].cargo = cargoNovo;
-        alert(`${usuarios[index].username} promovido para ${cargoNovo}`);
-        atualizarTabelaUsuarios();
-      } else {
-        alert("Você não tem permissão para promover este usuário.");
+      // Delegado ou Diretor Geral podem promover
+      if (cargoLogado === 'Delegado' || cargoLogado === 'Diretor Geral') {
+        if (hierarquia.indexOf(u.cargo) < hierarquia.length - 1) {
+          // Só pode promover para cargo imediatamente superior, e abaixo do cargo do logado
+          if (hierarquia.indexOf(u.cargo) < hierarquia.indexOf(cargoLogado) - 0) {
+            acoes += `<button onclick="promoverUsuario(${index})">Promover</button> `;
+          }
+        }
       }
-    } else {
-      alert("Usuário já está no cargo mais alto.");
+
+      // Delegado ou Diretor Geral podem exonerar, exceto ele mesmo
+      if ((cargoLogado === 'Delegado' || cargoLogado === 'Diretor Geral') && u.username !== usuarioLogado.username) {
+      acoes += `<button class="btn-danger" onclick="exonerarUsuario(${index})">Exonerar</button>`;
     }
+
+    if (!acoes) acoes = 'Sem permissão';
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${u.username}</td>
+      <td>${u.cargo}</td>
+      <td>${acoes}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function promoverUsuario(index) {
+  const u = usuarios[index];
+  const nivelAtual = hierarquia.indexOf(u.cargo);
+
+  // Só delegado ou diretor geral podem promover
+  if (usuarioLogado.cargo !== 'Delegado' && usuarioLogado.cargo !== 'Diretor Geral') {
+    alert("Apenas Delegados e Diretores Gerais podem promover.");
+    return;
   }
 
-  function rebaixarUsuario(index) {
-    const cargoAtual = usuarios[index].cargo;
-    const nivelAtual = hierarquia.indexOf(cargoAtual);
-    if (nivelAtual > 0) {
-      const cargoNovo = hierarquia[nivelAtual - 1];
-      if (podePromoverRebaixar(usuarioLogado.cargo, cargoAtual)) {
-        usuarios[index].cargo = cargoNovo;
-        alert(`${usuarios[index].username} rebaixado para ${cargoNovo}`);
-        atualizarTabelaUsuarios();
-      } else {
-        alert("Você não tem permissão para rebaixar este usuário.");
-      }
-    } else {
-      alert("Usuário já está no cargo mais baixo.");
-    }
+  if (nivelAtual + 1 >= hierarquia.length) {
+    alert("Usuário já está no cargo mais alto.");
+    return;
   }
 
-  // Registro de BO (Boletim de Ocorrência)
-  const boForm = document.getElementById('boForm');
-  const boTableBody = document.querySelector('#boTable tbody');
-
-  function carregarBOs() {
-    const bos = JSON.parse(localStorage.getItem('bosPF') || '[]');
-    boTableBody.innerHTML = "";
-    bos.forEach(bo => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${bo.titulo}</td>
-        <td>${bo.descricao}</td>
-        <td>${bo.usuario}</td>
-        <td>${new Date(bo.data).toLocaleString()}</td>
-      `;
-      boTableBody.appendChild(tr);
-    });
+  // Não promover para cargo igual ou maior que o do logado
+  if (hierarquia.indexOf(usuarioLogado.cargo) <= nivelAtual + 1) {
+    alert("Não pode promover para cargo igual ou superior ao seu.");
+    return;
   }
 
-  boForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    if (!usuarioLogado) {
-      alert("Faça login para registrar BO.");
-      return;
-    }
-    const titulo = document.getElementById('boTitulo').value.trim();
-    const descricao = document.getElementById('boDescricao').value.trim();
-    if (!titulo || !descricao) {
-      alert("Preencha título e descrição.");
-      return;
-    }
-    const bos = JSON.parse(localStorage.getItem('bosPF') || '[]');
-    bos.push({
-      titulo,
-      descricao,
-      usuario: usuarioLogado.username,
-      data: new Date().toISOString()
-    });
-    localStorage.setItem('bosPF', JSON.stringify(bos));
-    boForm.reset();
-    carregarBOs();
-    alert("BO registrado com sucesso.");
+  usuarios[index].cargo = hierarquia[nivelAtual + 1];
+  alert(`${u.username} promovido para ${usuarios[index].cargo}`);
+  atualizarTabelaUsuarios();
+}
+
+function exonerarUsuario(index) {
+  const u = usuarios[index];
+
+  if (usuarioLogado.cargo !== 'Delegado' && usuarioLogado.cargo !== 'Diretor Geral') {
+    alert("Apenas Delegados e Diretores Gerais podem exonerar.");
+    return;
+  }
+  if (u.username === usuarioLogado.username) {
+    alert("Você não pode exonerar a si mesmo.");
+    return;
+  }
+
+  if (!confirm(`Confirma exonerar ${u.username}?`)) return;
+
+  usuarios.splice(index, 1);
+  alert(`${u.username} foi exonerado.`);
+  atualizarTabelaUsuarios();
+}
+
+// BO Público
+
+const boPublicoForm = document.getElementById('boPublicoForm');
+const boPublicoTableBody = document.querySelector('#boPublicoTable tbody');
+
+let bosPublicos = [];
+
+boPublicoForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const denunciante = document.getElementById('nomeDenunciante').value.trim();
+  const denunciada = document.getElementById('pessoaDenunciada').value.trim();
+  const descricao = document.getElementById('descricaoBOPublico').value.trim();
+
+  if (!denunciante || !denunciada || !descricao) {
+    alert('Preencha todos os campos.');
+    return;
+  }
+
+  bosPublicos.push({
+    denunciante,
+    denunciada,
+    descricao,
+    data: new Date().toLocaleString()
   });
 
-  // Checklist de funcionalidades
-  const checklistForm = document.getElementById('checklistForm');
-  const checklistResultado = document.getElementById('checklistResultado');
+  boPublicoForm.reset();
+  renderizarBOPublico();
+});
 
-  function salvarChecklist() {
-    if (!usuarioLogado) {
-      alert("Faça login para salvar checklist.");
-      return;
-    }
-    const respostas = {};
-    const radios = checklistForm.querySelectorAll('input[type="radio"]:checked');
-    if (radios.length === 0) {
-      checklistResultado.textContent = "Selecione ao menos uma opção.";
-      checklistResultado.style.color = "red";
-      return;
-    }
-    radios.forEach(radio => {
-      respostas[radio.name] = radio.value;
-    });
-    // Salva no localStorage por usuário
-    const chave = `checklistPF_${usuarioLogado.username}`;
-    localStorage.setItem(chave, JSON.stringify(respostas));
+function renderizarBOPublico() {
+  boPublicoTableBody.innerHTML = '';
+  bosPublicos.forEach(b => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${b.denunciante}</td>
+      <td>${b.denunciada}</td>
+      <td>${b.descricao}</td>
+      <td>${b.data}</td>
+    `;
+    boPublicoTableBody.appendChild(tr);
+  });
+}
 
-    let texto = "Checklist salvo:\n";
-    for (const [k, v] of Object.entries(respostas)) {
-      texto += `${k}: ${v.toUpperCase()}\n`;
-    }
-    checklistResultado.textContent = texto;
-    checklistResultado.style.color = "green";
+// BO Interno
+
+const boForm = document.getElementById('boForm');
+const boTableBody = document.querySelector('#boTable tbody');
+
+let bosInternos = [];
+
+boForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const titulo = document.getElementById('boTitulo').value.trim();
+  const descricao = document.getElementById('boDescricao').value.trim();
+
+  if (!titulo || !descricao) {
+    alert('Preencha todos os campos.');
+    return;
   }
 
-  function carregarChecklist() {
-    if (!usuarioLogado) return;
-    const chave = `checklistPF_${usuarioLogado.username}`;
-    const salvo = localStorage.getItem(chave);
-    if (!salvo) return;
-    const respostas = JSON.parse(salvo);
-    for (const [key, value] of Object.entries(respostas)) {
-      const input = checklistForm.querySelector(`input[name="${key}"][value="${value}"]`);
-      if (input) input.checked = true;
-    }
-    checklistResultado.textContent = "Checklist carregado do armazenamento local.";
-    checklistResultado.style.color = "blue";
-  }
+  bosInternos.push({
+    titulo,
+    descricao,
+    registradoPor: usuarioLogado.username,
+    data: new Date().toLocaleString()
+  });
+
+  boForm.reset();
+  carregarBOs();
+});
+
+function carregarBOs() {
+  boTableBody.innerHTML = '';
+  bosInternos.forEach(b => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${b.titulo}</td>
+      <td>${b.descricao}</td>
+      <td>${b.registradoPor}</td>
+      <td>${b.data}</td>
+    `;
+    boTableBody.appendChild(tr);
+  });
+}
 </script>
 
 </body>
