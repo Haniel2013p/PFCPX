@@ -1,585 +1,740 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sistema PF - RP</title>
+<title>Sistema Polícia Federal - Completo com Firebase</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    margin: 0; padding: 0;
-    background: #f0f2f5;
-  }
-  header {
-    background: #004080;
-    color: white;
-    padding: 15px;
-    text-align: center;
-  }
-  #dashboard-publico, #login-section, #app-section {
-    max-width: 700px;
-    margin: 30px auto;
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 8px #ccc;
-  }
-  h2 {
-    color: #004080;
-    margin-bottom: 15px;
-  }
-  label {
-    display: block;
-    margin: 8px 0 4px;
-  }
-  input[type=text], input[type=password], select, textarea {
-    width: 100%;
-    padding: 8px;
-    border-radius: 4px;
-    border: 1px solid #aaa;
-    box-sizing: border-box;
-  }
-  button {
-    margin-top: 15px;
-    padding: 10px 20px;
-    background: #004080;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  button:hover { background: #003060; }
-  .hidden { display: none; }
-  nav {
-    margin-bottom: 20px;
-  }
-  nav button {
-    margin-right: 10px;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-  }
-  th, td {
-    padding: 8px;
-    border: 1px solid #ddd;
-    word-break: break-word;
-  }
-  th {
-    background: #004080;
-    color: white;
-  }
-  .error { color: red; margin-top: 10px; }
-  ul {
-    padding-left: 20px;
-  }
+  body { font-family: Arial, sans-serif; margin: 20px; background: #f0f2f5; }
+  #header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  #btnToggle { cursor: pointer; padding: 8px 15px; background: #0a74da; color: white; border: none; border-radius: 5px; }
+  #loginForm, #publicArea, #privateArea { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 0 8px #ccc; }
+  #loginForm { max-width: 320px; margin: auto; }
+  label { display: block; margin-top: 10px; }
+  input, select, textarea { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #aaa; border-radius: 4px; }
+  button { margin-top: 15px; background: #0a74da; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
+  button:hover { background: #085ab4; }
+  h2, h3 { margin-top: 0; }
+  #boList, #membersList, #portariasList, #promoList { max-height: 250px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin-top: 10px; background: #fafafa; border-radius: 6px; }
+  .item { border-bottom: 1px solid #ccc; padding: 6px 0; }
+  .item:last-child { border-bottom: none; }
+  #logoutBtn { cursor: pointer; background: #cc3300; border: none; padding: 8px 12px; border-radius: 5px; color: white; }
+  .small-btn { padding: 4px 8px; font-size: 0.9em; margin-left: 5px; }
+  select { width: auto; }
+  .error { color: red; }
+  .success { color: green; }
+  .flex-row { display: flex; gap: 15px; flex-wrap: wrap; }
+  .flex-col { flex: 1; min-width: 280px; }
+  .section { margin-bottom: 30px; }
 </style>
 </head>
 <body>
 
-<header>
-  <h1>Sistema Polícia Federal (RP)</h1>
-</header>
+<div id="header">
+  <h1>Sistema Polícia Federal</h1>
+  <button id="btnToggle">Ir para Área Restrita</button>
+</div>
 
-<!-- Dashboard público -->
-<section id="dashboard-publico">
-  <h2>Bem-vindo ao Painel Público</h2>
-  <p>Este painel é de uso público a cidadãos do complexo. Aqui pode ser efetuado registro de Boletins de Ocorrência (B.O) e revisão das portarias de acesso público.</p>
-  
-  <button onclick="mostrarPainelPublico('painelBOPublico')">Registrar B.O Público</button>
-  <button onclick="mostrarPainelPublico('painelPortariasPublicas')">Ver Portarias Públicas</button>
-  <button onclick="mostrarLogin()">Iniciar Sessão (Usuários Registrados)</button>
+<!-- Área Pública -->
+<div id="publicArea">
+  <h2>Boletins de Ocorrência (Público)</h2>
+  <div id="boList">Carregando boletins...</div>
+</div>
 
-  <div id="avisosPublicos" style="margin-top:20px; border:1px solid #004080; padding:10px; border-radius:5px; background:#e6f0ff;">
-    <h3>Avisos Públicos</h3>
-    <ul id="listaAvisosPublicos">
-      <!-- Avisos dinâmicos aqui -->
-    </ul>
-  </div>
+<!-- Área Restrita -->
+<div id="privateArea" style="display:none;">
+  <h2>Área Restrita</h2>
 
-  <div id="painelBOPublico" class="hidden" style="margin-top:20px;">
-    <h3>Registrar Boletim de Ocorrência (Público)</h3>
-    <form id="formBOPublico">
-      <label for="tituloBOPublico">Título do BO:</label>
-      <input type="text" id="tituloBOPublico" required />
-      <label for="descricaoBOPublico">Descrição:</label>
-      <textarea id="descricaoBOPublico" rows="4" required></textarea>
-      <label for="denunciadoBOPublico">Pessoa Denunciada (nome):</label>
-      <input type="text" id="denunciadoBOPublico" required />
-      <button type="submit">Registrar B.O</button>
+  <div id="loginSection">
+    <form id="loginForm">
+      <label for="username">Usuário:</label>
+      <input type="text" id="username" autocomplete="username" required />
+      <label for="password">Senha:</label>
+      <input type="password" id="password" autocomplete="current-password" required />
+      <button type="submit">Entrar</button>
+      <p id="loginMsg" class="error"></p>
     </form>
-    <h3>Boletins Públicos Registrados</h3>
-    <table id="tabelaBOPublico">
-      <thead>
-        <tr><th>Título</th><th>Descrição</th><th>Denunciado</th><th>Data</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
   </div>
 
-  <div id="painelPortariasPublicas" class="hidden" style="margin-top:20px;">
-    <h3>Portarias Públicas</h3>
-    <ul id="listaPortariasPublicas"></ul>
+  <div id="panelArea" style="display:none;">
+    <p>Bem-vindo, <strong><span id="userDisplay"></span></strong> (<em><span id="userCargo"></span></em>)</p>
+    <button id="logoutBtn">Sair</button>
+
+    <div class="section" id="boSection">
+      <h3>Registrar Novo Boletim</h3>
+      <form id="boForm">
+        <label for="boDescricao">Descrição do Boletim:</label>
+        <textarea id="boDescricao" required rows="4"></textarea>
+        <button type="submit">Registrar BO</button>
+        <p id="boMsg"></p>
+      </form>
+    </div>
+
+    <div class="section" id="membersSection">
+      <h3>Gerenciar Membros/Agentes</h3>
+      <form id="memberForm">
+        <label for="memberName">Nome do Membro:</label>
+        <input type="text" id="memberName" required />
+        <label for="memberUsername">Usuário:</label>
+        <input type="text" id="memberUsername" required />
+        <label for="memberPassword">Senha:</label>
+        <input type="text" id="memberPassword" required />
+        <label for="memberCargo">Cargo:</label>
+        <select id="memberCargo" required>
+          <option value="">Selecione cargo</option>
+          <option value="Agente">Agente</option>
+          <option value="Delegado">Delegado</option>
+          <option value="Superintendente">Superintendente</option>
+          <option value="Diretor Geral">Diretor Geral</option>
+        </select>
+        <button type="submit">Registrar Membro</button>
+        <p id="memberMsg"></p>
+      </form>
+      <h4>Lista de Membros</h4>
+      <div id="membersList">Carregando membros...</div>
+    </div>
+
+    <div class="section" id="portariasSection">
+      <h3>Portarias</h3>
+      <form id="portariaForm">
+        <label for="portariaTitulo">Título:</label>
+        <input type="text" id="portariaTitulo" required />
+        <label for="portariaTexto">Texto:</label>
+        <textarea id="portariaTexto" required rows="3"></textarea>
+        <button type="submit">Publicar Portaria</button>
+        <p id="portariaMsg"></p>
+      </form>
+      <h4>Portarias Publicadas</h4>
+      <div id="portariasList">Carregando portarias...</div>
+    </div>
+
+    <div class="section" id="promoSection">
+      <h3>Promoções, Rebaixamentos e Exonerações</h3>
+      <form id="promoForm" class="flex-row">
+        <div class="flex-col">
+          <label for="promoUser">Membro:</label>
+          <select id="promoUser" required><option value="">Carregando...</option></select>
+        </div>
+        <div class="flex-col">
+          <label for="promoAction">Ação:</label>
+          <select id="promoAction" required>
+            <option value="">Selecione ação</option>
+            <option value="promo">Promoção</option>
+            <option value="rebaix">Rebaixamento</option>
+            <option value="exon">Exoneração</option>
+          </select>
+        </div>
+        <div class="flex-col" style="flex: 2;">
+          <label for="promoObs">Observações:</label>
+          <textarea id="promoObs" rows="2"></textarea>
+        </div>
+        <div class="flex-col" style="align-self: flex-end;">
+          <button type="submit" style="width: 100%;">Executar</button>
+        </div>
+      </form>
+      <p id="promoMsg"></p>
+      <h4>Histórico de Promoções/Rebaixamentos/Exonerações</h4>
+      <div id="promoList">Carregando histórico...</div>
+    </div>
+
   </div>
-</section>
+</div>
 
-<!-- Login -->
-<section id="login-section" class="hidden">
-  <h2>Login</h2>
-  <form id="loginForm">
-    <label for="username">Usuário:</label>
-    <input type="text" id="username" required autocomplete="off" />
-    <label for="password">Senha:</label>
-    <input type="password" id="password" required autocomplete="off" />
-    <button type="submit">Entrar</button>
-  </form>
-  <div id="login-error" class="error"></div>
-  <button onclick="mostrarDashboardPublico()">Voltar ao Público</button>
-</section>
-
-<!-- Área restrita -->
-<section id="app-section" class="hidden">
-  <nav>
-    <button onclick="mostrarPainel('painelPromocoes')">Painel Promoções</button>
-    <button onclick="mostrarPainel('painelBancoCriminal')">Banco Criminal</button>
-    <button onclick="mostrarPainel('painelPortariasInternas')">Portarias (Delegado+)</button>
-    <button onclick="mostrarPainel('painelRegistroMembros')">Registrar Membros (Diretor+)</button>
-    <button onclick="logout()">Sair</button>
-  </nav>
-
-  <!-- Painel Promoções -->
-  <div id="painelPromocoes" class="painel">
-    <h2>Painel de Promoção / Rebaixamento / Exoneração</h2>
-    <table id="usuariosTable">
-      <thead>
-        <tr><th>Usuário</th><th>Cargo</th><th>Ações</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <!-- Banco Criminal -->
-  <div id="painelBancoCriminal" class="painel hidden">
-    <h2>Registro Banco Criminal</h2>
-    <form id="formBancoCriminal">
-      <label for="nomeCriminoso">Nome do Criminoso:</label>
-      <input type="text" id="nomeCriminoso" required />
-      <label for="tipoCrime">Tipo do Crime:</label>
-      <input type="text" id="tipoCrime" required />
-      <label for="descricaoCrime">Descrição do Crime:</label>
-      <textarea id="descricaoCrime" rows="4" required></textarea>
-      <button type="submit">Registrar Crime</button>
-    </form>
-    <h3>Crimes Registrados</h3>
-    <table id="tabelaBancoCriminal">
-      <thead>
-        <tr><th>Nome</th><th>Tipo</th><th>Descrição</th><th>Data</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <!-- Portarias internas -->
-  <div id="painelPortariasInternas" class="painel hidden">
-    <h2>Gerenciar Portarias</h2>
-    <form id="formPortaria">
-      <label for="tituloPortaria">Título da Portaria:</label>
-      <input type="text" id="tituloPortaria" required />
-      <label for="conteudoPortaria">Conteúdo:</label>
-      <textarea id="conteudoPortaria" rows="4" required></textarea>
-      <button type="submit">Criar Portaria</button>
-    </form>
-    <h3>Portarias Internas Criadas</h3>
-    <ul id="listaPortariasInternas"></ul>
-  </div>
-
-  <!-- Registro de membros -->
-  <div id="painelRegistroMembros" class="painel hidden">
-    <h2>Registrar Novo Membro (Diretor+)</h2>
-    <form id="formRegistroMembros">
-      <label for="novoUsuario">Usuário (login):</label>
-      <input type="text" id="novoUsuario" required autocomplete="off" />
-      <label for="novaSenha">Senha:</label>
-      <input type="password" id="novaSenha" required />
-      <label for="cargoInicial">Cargo Inicial:</label>
-      <select id="cargoInicial" required>
-        <option value="" disabled selected>Selecione um cargo</option>
-        <option value="Agente">Agente</option>
-        <option value="Escrivão">Escrivão</option>
-        <option value="Delegado">Delegado</option>
-        <option value="Diretor">Diretor</option>
-      </select>
-      <button type="submit">Registrar Membro</button>
-    </form>
-    <h3>Membros Registrados</h3>
-    <table id="tabelaMembros">
-      <thead>
-        <tr><th>Usuário</th><th>Cargo</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-</section>
-
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 <script>
-  // Dados simulados (normalmente viria do servidor)
-  let usuarios = [
-    {usuario: 'agente01', senha: '1234', cargo: 'Agente'},
-    {usuario: 'escrivao01', senha: '1234', cargo: 'Escrivão'},
-    {usuario: 'delegado01', senha: '1234', cargo: 'Delegado'},
-    {usuario: 'diretor01', senha: '1234', cargo: 'Diretor'}
-  ];
+  // CONFIGURAÇÕES DO FIREBASE - SUBSTITUA PELOS SEUS DADOS
+  const firebaseConfig = {
+    apiKey: "SUA_API_KEY",
+    authDomain: "SEU_AUTH_DOMAIN",
+    databaseURL: "SUA_DATABASE_URL",
+    projectId: "SEU_PROJECT_ID",
+    storageBucket: "SEU_STORAGE_BUCKET",
+    messagingSenderId: "SEU_MESSAGING_SENDER_ID",
+    appId: "SEU_APP_ID"
+  };
 
-  let boPublicos = [];
-  let portariasPublicas = [
-    {titulo: 'Portaria 001', conteudo: 'Normas para circulação pública.'},
-    {titulo: 'Portaria 002', conteudo: 'Regras de segurança no complexo.'}
-  ];
-  let portariasInternas = [];
-  let bancoCriminal = [];
+  firebase.initializeApp(firebaseConfig);
+  const database = firebase.database();
 
-  let usuarioLogado = null;
+  // Hierarquia de cargos (mais alto tem valor maior)
+  const cargosHierarquia = {
+    "Agente": 1,
+    "Delegado": 2,
+    "Superintendente": 3,
+    "Diretor Geral": 4
+  };
 
-  // Mostrar painel público (exibir um painel específico do dashboard público)
-  function mostrarPainelPublico(painel) {
-    document.getElementById('painelBOPublico').classList.add('hidden');
-    document.getElementById('painelPortariasPublicas').classList.add('hidden');
-    document.getElementById(painel).classList.remove('hidden');
-    if (painel === 'painelPortariasPublicas') {
-      atualizarPortariasPublicas();
-    } else if (painel === 'painelBOPublico') {
-      atualizarTabelaBOPublico();
-    }
-  }
+  // Usuário fixo inicial
+  const fixedUser = {
+    username: "Gabriel",
+    password: "DG",
+    cargo: "Diretor Geral",
+    name: "Gabriel"
+  };
 
-  // Atualizar lista portarias públicas
-  function atualizarPortariasPublicas() {
-    const lista = document.getElementById('listaPortariasPublicas');
-    lista.innerHTML = '';
-    for (let p of portariasPublicas) {
-      const li = document.createElement('li');
-      li.innerHTML = `<strong>${p.titulo}:</strong> ${p.conteudo}`;
-      lista.appendChild(li);
-    }
-  }
+  // Estado
+  let loggedUser = null;
+  let areaAtual = "public";
 
-  // Atualizar tabela B.O público
-  function atualizarTabelaBOPublico() {
-    const tbody = document.querySelector('#tabelaBOPublico tbody');
-    tbody.innerHTML = '';
-    for (let bo of boPublicos) {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${bo.titulo}</td><td>${bo.descricao}</td><td>${bo.denunciado}</td><td>${bo.data}</td>`;
-      tbody.appendChild(tr);
-    }
-  }
+  // Elementos
+  const btnToggle = document.getElementById('btnToggle');
+  const publicArea = document.getElementById('publicArea');
+  const privateArea = document.getElementById('privateArea');
+  const loginSection = document.getElementById('loginSection');
+  const loginForm = document.getElementById('loginForm');
+  const usernameInput = document.getElementById('username');
+  const passwordInput = document.getElementById('password');
+  const loginMsg = document.getElementById('loginMsg');
+  const panelArea = document.getElementById('panelArea');
+  const userDisplay = document.getElementById('userDisplay');
+  const userCargo = document.getElementById('userCargo');
+  const logoutBtn = document.getElementById('logoutBtn');
 
-  // Registrar B.O público
-  document.getElementById('formBOPublico').addEventListener('submit', e => {
-    e.preventDefault();
-    const titulo = document.getElementById('tituloBOPublico').value.trim();
-    const descricao = document.getElementById('descricaoBOPublico').value.trim();
-    const denunciado = document.getElementById('denunciadoBOPublico').value.trim();
-    if (titulo && descricao && denunciado) {
-      boPublicos.push({
-        titulo,
-        descricao,
-        denunciado,
-        data: new Date().toLocaleString()
-      });
-      atualizarTabelaBOPublico();
-      e.target.reset();
-      alert('Boletim de Ocorrência registrado com sucesso!');
+  // BO
+  const boForm = document.getElementById('boForm');
+  const boDescricao = document.getElementById('boDescricao');
+  const boMsg = document.getElementById('boMsg');
+  const boList = document.getElementById('boList');
+
+  // Membros
+  const memberForm = document.getElementById('memberForm');
+  const memberName = document.getElementById('memberName');
+  const memberUsername = document.getElementById('memberUsername');
+  const memberPassword = document.getElementById('memberPassword');
+  const memberCargo = document.getElementById('memberCargo');
+  const memberMsg = document.getElementById('memberMsg');
+  const membersList = document.getElementById('membersList');
+
+  // Portarias
+  const portariaForm = document.getElementById('portariaForm');
+  const portariaTitulo = document.getElementById('portariaTitulo');
+  const portariaTexto = document.getElementById('portariaTexto');
+  const portariaMsg = document.getElementById('portariaMsg');
+  const portariasList = document.getElementById('portariasList');
+
+  // Promoções
+  const promoForm = document.getElementById('promoForm');
+  const promoUser = document.getElementById('promoUser');
+  const promoAction = document.getElementById('promoAction');
+  const promoObs = document.getElementById('promoObs');
+  const promoMsg = document.getElementById('promoMsg');
+  const promoList = document.getElementById('promoList');
+
+  // Alternar área pública/restrita
+  function toggleArea() {
+    if(loggedUser) {
+      if(areaAtual === "public") showPrivateArea();
+      else showPublicArea();
     } else {
-      alert('Preencha todos os campos do B.O.');
+      showPrivateArea();
     }
-  });
-
-  // Mostrar login e esconder outros
-  function mostrarLogin() {
-    document.getElementById('dashboard-publico').classList.add('hidden');
-    document.getElementById('login-section').classList.remove('hidden');
-    document.getElementById('app-section').classList.add('hidden');
-    document.getElementById('login-error').textContent = '';
-    document.getElementById('loginForm').reset();
   }
 
-  // Mostrar dashboard público (menu público)
-  function mostrarDashboardPublico() {
-    document.getElementById('dashboard-publico').classList.remove('hidden');
-    document.getElementById('login-section').classList.add('hidden');
-    document.getElementById('app-section').classList.add('hidden');
-    mostrarPainelPublico(''); // esconder todos painéis específicos
+  function showPublicArea() {
+    publicArea.style.display = "block";
+    privateArea.style.display = "none";
+    btnToggle.textContent = "Ir para Área Restrita";
+    areaAtual = "public";
   }
+
+  function showPrivateArea() {
+    publicArea.style.display = "none";
+    privateArea.style.display = "block";
+    btnToggle.textContent = "Ir para Área Pública";
+    areaAtual = "private";
+
+    if(loggedUser) {
+      loginSection.style.display = "none";
+      panelArea.style.display = "block";
+      userDisplay.textContent = loggedUser.name || loggedUser.username;
+      userCargo.textContent = loggedUser.cargo;
+      clearMessages();
+      loadMembersIntoSelect();
+    } else {
+      loginSection.style.display = "block";
+      panelArea.style.display = "none";
+      loginMsg.textContent = "";
+      usernameInput.value = "";
+      passwordInput.value = "";
+      clearMessages();
+    }
+  }
+
+  btnToggle.addEventListener('click', toggleArea);
 
   // Login
-  document.getElementById('loginForm').addEventListener('submit', e => {
+  loginForm.addEventListener('submit', e => {
     e.preventDefault();
-    const user = document.getElementById('username').value.trim();
-    const pass = document.getElementById('password').value;
-    const encontrado = usuarios.find(u => u.usuario === user && u.senha === pass);
-    if (encontrado) {
-      usuarioLogado = encontrado;
-      iniciarSessao();
-    } else {
-      document.getElementById('login-error').textContent = 'Usuário ou senha incorretos.';
+    const user = usernameInput.value.trim();
+    const pass = passwordInput.value.trim();
+
+    // Login fixo primeiro
+    if(user === fixedUser.username && pass === fixedUser.password) {
+      loggedUser = {...fixedUser};
+      showPrivateArea();
+      return;
     }
+
+    // Caso contrário, buscar usuário no Firebase
+    database.ref('members').orderByChild('username').equalTo(user).once('value', snapshot => {
+      const data = snapshot.val();
+      if(!data) {
+        loginMsg.textContent = "Usuário não encontrado.";
+        return;
+      }
+      const key = Object.keys(data)[0];
+      const member = data[key];
+      if(member.password === pass) {
+        loggedUser = { ...member, key };
+        showPrivateArea();
+      } else {
+        loginMsg.textContent = "Senha incorreta.";
+      }
+    });
   });
-
-  // Iniciar sessão - mostrar painel restrito conforme cargo
-  function iniciarSessao() {
-    document.getElementById('dashboard-publico').classList.add('hidden');
-    document.getElementById('login-section').classList.add('hidden');
-    document.getElementById('app-section').classList.remove('hidden');
-    // Esconder todos os painéis da área restrita
-    document.querySelectorAll('.painel').forEach(p => p.classList.add('hidden'));
-
-    // Mostrar painel inicial (promoções)
-    mostrarPainel('painelPromocoes');
-    atualizarUsuariosTabela();
-    atualizarBancoCriminalTabela();
-    atualizarPortariasInternasLista();
-    atualizarMembrosTabela();
-
-    alert(`Bem-vindo, ${usuarioLogado.usuario} (${usuarioLogado.cargo})!`);
-  }
 
   // Logout
-  function logout() {
-    usuarioLogado = null;
-    mostrarDashboardPublico();
-  }
+  logoutBtn.addEventListener('click', () => {
+    loggedUser = null;
+    showPrivateArea();
+  });
 
-  // Mostrar painel da área restrita, verificando permissões
-  function mostrarPainel(painel) {
-    if (!usuarioLogado) {
-      alert('Você precisa estar logado para acessar essa área.');
-      mostrarLogin();
+  // Registrar BO
+  boForm.addEventListener('submit', e => {
+    e.preventDefault();
+    if(!loggedUser) return;
+
+    const descricao = boDescricao.value.trim();
+    if(!descricao) {
+      boMsg.textContent = "Descrição é obrigatória.";
+      boMsg.className = "error";
       return;
     }
-    // Definir permissões por cargo
-    const permissoes = {
-      'Agente': ['painelPromocoes', 'painelBancoCriminal'],
-      'Escrivão': ['painelPromocoes', 'painelBancoCriminal'],
-      'Delegado': ['painelPromocoes', 'painelBancoCriminal', 'painelPortariasInternas'],
-      'Diretor': ['painelPromocoes', 'painelBancoCriminal', 'painelPortariasInternas', 'painelRegistroMembros']
+
+    const novoBo = {
+      descricao,
+      autor: loggedUser.name || loggedUser.username,
+      cargo: loggedUser.cargo,
+      timestamp: Date.now()
     };
-    if (!permissoes[usuarioLogado.cargo].includes(painel)) {
-      alert('Você não tem permissão para acessar este painel.');
+
+    const newKey = database.ref('boletins').push().key;
+    const updates = {};
+    updates['boletins/' + newKey] = novoBo;
+    database.ref().update(updates)
+      .then(() => {
+        boMsg.textContent = "Boletim registrado com sucesso!";
+        boMsg.className = "success";
+        boDescricao.value = "";
+      })
+      .catch(() => {
+        boMsg.textContent = "Erro ao registrar boletim.";
+        boMsg.className = "error";
+      });
+  });
+
+  // Mostrar boletins
+  function renderBoletins(boletins) {
+    if(!boletins) {
+      boList.innerHTML = "<i>Nenhum boletim registrado.</i>";
       return;
     }
-    document.querySelectorAll('.painel').forEach(p => p.classList.add('hidden'));
-    document.getElementById(painel).classList.remove('hidden');
-  }
-
-  // Atualizar tabela de usuários para promoções e rebaixamentos
-  function atualizarUsuariosTabela() {
-    const tbody = document.querySelector('#usuariosTable tbody');
-    tbody.innerHTML = '';
-    usuarios.forEach(u => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${u.usuario}</td>
-        <td>${u.cargo}</td>
-        <td>
-          ${renderizarAcoesUsuario(u)}
-        </td>`;
-      tbody.appendChild(tr);
-    });
-    // Adicionar eventos aos botões
-    document.querySelectorAll('.btn-promover').forEach(btn => {
-      btn.onclick = () => alterarCargo(btn.dataset.usuario, 'promover');
-    });
-    document.querySelectorAll('.btn-rebaixar').forEach(btn => {
-      btn.onclick = () => alterarCargo(btn.dataset.usuario, 'rebaixar');
-    });
-    document.querySelectorAll('.btn-exonerar').forEach(btn => {
-      btn.onclick = () => alterarCargo(btn.dataset.usuario, 'exonerar');
+    const keys = Object.keys(boletins).sort((a,b) => boletins[b].timestamp - boletins[a].timestamp);
+    if(keys.length === 0) {
+      boList.innerHTML = "<i>Nenhum boletim registrado.</i>";
+      return;
+    }
+    boList.innerHTML = "";
+    keys.forEach(key => {
+      const bo = boletins[key];
+      const date = new Date(bo.timestamp);
+      boList.insertAdjacentHTML('beforeend', `
+        <div class="item">
+          <strong>Descrição:</strong> ${bo.descricao}<br />
+          <small><em>Autor: ${bo.autor} (${bo.cargo}) - ${date.toLocaleString()}</em></small>
+        </div>
+      `);
     });
   }
 
-  // Renderiza botões de ação respeitando cargos (apenas Diretor pode exonerar, Delegado pode promover/rebaixar, Agente e Escrivão não podem mexer)
-  function renderizarAcoesUsuario(u) {
-    if (!usuarioLogado) return '';
-    // Diretor pode tudo (exceto consigo mesmo)
-    if (usuarioLogado.cargo === 'Diretor') {
-      if (u.usuario === usuarioLogado.usuario) return '-';
-      return `
-        <button class="btn-promover" data-usuario="${u.usuario}">Promover</button>
-        <button class="btn-rebaixar" data-usuario="${u.usuario}">Rebaixar</button>
-        <button class="btn-exonerar" data-usuario="${u.usuario}">Exonerar</button>
-      `;
+  // Membros: registrar
+  memberForm.addEventListener('submit', e => {
+    e.preventDefault();
+    if(!loggedUser) {
+      memberMsg.textContent = "Faça login para registrar membros.";
+      memberMsg.className = "error";
+      return;
     }
-    // Delegado pode promover/rebaixar (menos Diretor e a si mesmo)
-    if (usuarioLogado.cargo === 'Delegado') {
-      if (u.usuario === usuarioLogado.usuario || u.cargo === 'Diretor') return '-';
-      return `
-        <button class="btn-promover" data-usuario="${u.usuario}">Promover</button>
-        <button class="btn-rebaixar" data-usuario="${u.usuario}">Rebaixar</button>
-      `;
+    if(cargosHierarquia[loggedUser.cargo] < cargosHierarquia["Delegado"]) {
+      memberMsg.textContent = "Apenas Delegado ou superior pode registrar membros.";
+      memberMsg.className = "error";
+      return;
     }
-    // Outros não podem mexer
-    return '-';
+
+    const name = memberName.value.trim();
+    const username = memberUsername.value.trim();
+    const password = memberPassword.value.trim();
+    const cargo = memberCargo.value;
+
+    if(!name || !username || !password || !cargo) {
+      memberMsg.textContent = "Todos os campos são obrigatórios.";
+      memberMsg.className = "error";
+      return;
+    }
+
+    // Verificar se usuário já existe
+    database.ref('members').orderByChild('username').equalTo(username).once('value', snapshot => {
+      if(snapshot.exists()) {
+        memberMsg.textContent = "Usuário já existe.";
+        memberMsg.className = "error";
+        return;
+      }
+
+      const newMember = {
+        name,
+        username,
+        password,
+        cargo
+      };
+
+      const newKey = database.ref('members').push().key;
+      const updates = {};
+      updates['members/' + newKey] = newMember;
+      database.ref().update(updates)
+        .then(() => {
+          memberMsg.textContent = "Membro registrado com sucesso!";
+          memberMsg.className = "success";
+          memberForm.reset();
+        })
+        .catch(() => {
+          memberMsg.textContent = "Erro ao registrar membro.";
+          memberMsg.className = "error";
+        });
+    });
+  });
+
+  // Mostrar membros
+  function renderMembers(members) {
+    if(!members) {
+      membersList.innerHTML = "<i>Nenhum membro registrado.</i>";
+      return;
+    }
+    const keys = Object.keys(members);
+    if(keys.length === 0) {
+      membersList.innerHTML = "<i>Nenhum membro registrado.</i>";
+      return;
+    }
+    membersList.innerHTML = "";
+    keys.forEach(key => {
+      const m = members[key];
+      membersList.insertAdjacentHTML('beforeend', `
+        <div class="item">
+          <strong>${m.name}</strong> (${m.username}) - <em>${m.cargo}</em>
+        </div>
+      `);
+    });
   }
 
-  // Alterar cargo de usuário (promover, rebaixar, exonerar)
-  function alterarCargo(usuarioAlvo, acao) {
-    if (!usuarioLogado) return alert('Você não está logado.');
-    const cargosOrdem = ['Agente', 'Escrivão', 'Delegado', 'Diretor'];
-    if (usuarioAlvo === usuarioLogado.usuario && acao === 'exonerar') {
-      return alert('Você não pode exonerar a si mesmo.');
-    }
-    const alvo = usuarios.find(u => u.usuario === usuarioAlvo);
-    if (!alvo) return alert('Usuário não encontrado.');
-
-    const posAtual = cargosOrdem.indexOf(alvo.cargo);
-    if (acao === 'promover') {
-      if (posAtual < cargosOrdem.length -1) {
-        // Não pode promover acima do Diretor e respeitar hierarquia
-        if (usuarioLogado.cargo === 'Delegado' && cargosOrdem[posAtual +1] === 'Diretor') {
-          return alert('Delegado não pode promover a Diretor.');
+  // Carregar membros no select de promoções
+  function loadMembersIntoSelect() {
+    database.ref('members').once('value', snapshot => {
+      const data = snapshot.val() || {};
+      // Também incluir fixedUser (Gabriel) no select para promoções
+      const allUsers = {...data, fixedUser: fixedUser};
+      promoUser.innerHTML = '<option value="">Selecione membro</option>';
+      Object.keys(allUsers).forEach(key => {
+        let u = allUsers[key];
+        // fixedUser não tem key igual a membros normais
+        if(key === "fixedUser") {
+          promoUser.insertAdjacentHTML('beforeend', `<option value="fixedUser">${u.name} (Diretor Geral)</option>`);
+        } else {
+          promoUser.insertAdjacentHTML('beforeend', `<option value="${key}">${u.name} (${u.cargo})</option>`);
         }
-        alvo.cargo = cargosOrdem[posAtual + 1];
-        alert(`${usuarioAlvo} foi promovido para ${alvo.cargo}.`);
-      } else {
-        alert(`${usuarioAlvo} já está no cargo máximo.`);
+      });
+    });
+  }
+
+  // Portarias
+  portariaForm.addEventListener('submit', e => {
+    e.preventDefault();
+    if(!loggedUser) return;
+
+    if(cargosHierarquia[loggedUser.cargo] < cargosHierarquia["Delegado"]) {
+      portariaMsg.textContent = "Apenas Delegado ou superior pode criar portarias.";
+      portariaMsg.className = "error";
+      return;
+    }
+
+    const titulo = portariaTitulo.value.trim();
+    const texto = portariaTexto.value.trim();
+    if(!titulo || !texto) {
+      portariaMsg.textContent = "Título e texto são obrigatórios.";
+      portariaMsg.className = "error";
+      return;
+    }
+
+    const novaPortaria = {
+      titulo,
+      texto,
+      autor: loggedUser.name || loggedUser.username,
+      cargo: loggedUser.cargo,
+      timestamp: Date.now()
+    };
+
+    const newKey = database.ref('portarias').push().key;
+    const updates = {};
+    updates['portarias/' + newKey] = novaPortaria;
+    database.ref().update(updates)
+      .then(() => {
+        portariaMsg.textContent = "Portaria publicada com sucesso!";
+        portariaMsg.className = "success";
+        portariaForm.reset();
+      })
+      .catch(() => {
+        portariaMsg.textContent = "Erro ao publicar portaria.";
+        portariaMsg.className = "error";
+      });
+  });
+
+  // Mostrar portarias
+  function renderPortarias(portarias) {
+    if(!portarias) {
+      portariasList.innerHTML = "<i>Nenhuma portaria publicada.</i>";
+      return;
+    }
+    const keys = Object.keys(portarias).sort((a,b) => portarias[b].timestamp - portarias[a].timestamp);
+    if(keys.length === 0) {
+      portariasList.innerHTML = "<i>Nenhuma portaria publicada.</i>";
+      return;
+    }
+    portariasList.innerHTML = "";
+    keys.forEach(key => {
+      const p = portarias[key];
+      const date = new Date(p.timestamp);
+      portariasList.insertAdjacentHTML('beforeend', `
+        <div class="item">
+          <strong>${p.titulo}</strong><br />
+          <small><em>Autor: ${p.autor} (${p.cargo}) - ${date.toLocaleString()}</em></small><br />
+          <p>${p.texto}</p>
+        </div>
+      `);
+    });
+  }
+
+  // Promoções, Rebaixamentos e Exonerações
+  promoForm.addEventListener('submit', e => {
+    e.preventDefault();
+    if(!loggedUser) return;
+
+    const userKey = promoUser.value;
+    const action = promoAction.value;
+    const obs = promoObs.value.trim();
+
+    if(!userKey || !action) {
+      promoMsg.textContent = "Selecione membro e ação.";
+      promoMsg.className = "error";
+      return;
+    }
+
+    // Checar hierarquia para permitir ação
+    // Só Diretor Geral pode exoneração
+    if(action === "exon" && cargosHierarquia[loggedUser.cargo] < cargosHierarquia["Diretor Geral"]) {
+      promoMsg.textContent = "Apenas Diretor Geral pode fazer exonerações.";
+      promoMsg.className = "error";
+      return;
+    }
+
+    // Promoção ou rebaixamento: usuário deve ter hierarquia menor que loggedUser
+    if(userKey === "fixedUser") {
+      promoMsg.textContent = "Não pode alterar o Diretor Geral.";
+      promoMsg.className = "error";
+      return;
+    }
+
+    database.ref('members/' + userKey).once('value', snapshot => {
+      const member = snapshot.val();
+      if(!member) {
+        promoMsg.textContent = "Membro não encontrado.";
+        promoMsg.className = "error";
+        return;
       }
-    } else if (acao === 'rebaixar') {
-      if (posAtual > 0) {
-        if (usuarioLogado.cargo === 'Delegado' && cargosOrdem[posAtual] === 'Delegado') {
-          return alert('Delegado não pode rebaixar outro Delegado.');
+
+      const hierLogged = cargosHierarquia[loggedUser.cargo];
+      const hierTarget = cargosHierarquia[member.cargo];
+
+      if(hierTarget >= hierLogged) {
+        promoMsg.textContent = "Não pode alterar membros com cargo igual ou superior ao seu.";
+        promoMsg.className = "error";
+        return;
+      }
+
+      // Calcula novo cargo
+      let novoCargo = member.cargo;
+      if(action === "promo") {
+        if(hierTarget >= 4) {
+          promoMsg.textContent = "Não é possível promover além do Diretor Geral.";
+          promoMsg.className = "error";
+          return;
         }
-        alvo.cargo = cargosOrdem[posAtual - 1];
-        alert(`${usuarioAlvo} foi rebaixado para ${alvo.cargo}.`);
-      } else {
-        alert(`${usuarioAlvo} já está no cargo mínimo.`);
+        // Promove para o próximo cargo acima
+        for (let c in cargosHierarquia) {
+          if(cargosHierarquia[c] === hierTarget + 1) {
+            novoCargo = c;
+            break;
+          }
+        }
+      } else if(action === "rebaix") {
+        if(hierTarget <= 1) {
+          promoMsg.textContent = "Não é possível rebaixar abaixo de Agente.";
+          promoMsg.className = "error";
+          return;
+        }
+        // Rebaixa para o próximo cargo abaixo
+        for (let c in cargosHierarquia) {
+          if(cargosHierarquia[c] === hierTarget -1) {
+            novoCargo = c;
+            break;
+          }
+        }
+      } else if(action === "exon") {
+        novoCargo = "Exonerado";
       }
-    } else if (acao === 'exonerar') {
-      if (usuarioLogado.cargo !== 'Diretor') {
-        return alert('Apenas Diretor pode exonerar membros.');
-      }
-      usuarios = usuarios.filter(u => u.usuario !== usuarioAlvo);
-      alert(`${usuarioAlvo} foi exonerado.`);
-    }
-    atualizarUsuariosTabela();
-    atualizarMembrosTabela();
-  }
 
-  // Form Banco Criminal
-  document.getElementById('formBancoCriminal').addEventListener('submit', e => {
-    e.preventDefault();
-    const nome = document.getElementById('nomeCriminoso').value.trim();
-    const tipo = document.getElementById('tipoCrime').value.trim();
-    const descricao = document.getElementById('descricaoCrime').value.trim();
-    if (nome && tipo && descricao) {
-      bancoCriminal.push({nome, tipo, descricao, data: new Date().toLocaleString()});
-      atualizarBancoCriminalTabela();
-      e.target.reset();
-      alert('Registro criminal adicionado com sucesso!');
-    } else {
-      alert('Preencha todos os campos do registro criminal.');
-    }
+      // Atualiza cargo no banco
+      database.ref('members/' + userKey).update({ cargo: novoCargo })
+        .then(() => {
+          // Registra histórico
+          const hist = {
+            membro: member.name,
+            username: member.username,
+            acao: action,
+            anterior: member.cargo,
+            novo: novoCargo,
+            executor: loggedUser.name || loggedUser.username,
+            executorCargo: loggedUser.cargo,
+            observacoes: obs,
+            timestamp: Date.now()
+          };
+          const newHistKey = database.ref('promo_hist').push().key;
+          const updates = {};
+          updates['promo_hist/' + newHistKey] = hist;
+          database.ref().update(updates)
+            .then(() => {
+              promoMsg.textContent = "Ação realizada com sucesso!";
+              promoMsg.className = "success";
+              promoForm.reset();
+              loadPromoHistory();
+              loadMembersIntoSelect();
+              loadMembers(); // Atualiza lista membros
+            })
+            .catch(() => {
+              promoMsg.textContent = "Erro ao registrar histórico.";
+              promoMsg.className = "error";
+            });
+        })
+        .catch(() => {
+          promoMsg.textContent = "Erro ao atualizar cargo.";
+          promoMsg.className = "error";
+        });
+    });
   });
 
-  // Atualizar tabela banco criminal
-  function atualizarBancoCriminalTabela() {
-    const tbody = document.querySelector('#tabelaBancoCriminal tbody');
-    tbody.innerHTML = '';
-    bancoCriminal.forEach(c => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${c.nome}</td><td>${c.tipo}</td><td>${c.descricao}</td><td>${c.data}</td>`;
-      tbody.appendChild(tr);
+  // Mostrar histórico promoções etc
+  function renderPromoHistory(histories) {
+    if(!histories) {
+      promoList.innerHTML = "<i>Nenhum histórico registrado.</i>";
+      return;
+    }
+    const keys = Object.keys(histories).sort((a,b) => histories[b].timestamp - histories[a].timestamp);
+    if(keys.length === 0) {
+      promoList.innerHTML = "<i>Nenhum histórico registrado.</i>";
+      return;
+    }
+    promoList.innerHTML = "";
+    keys.forEach(key => {
+      const h = histories[key];
+      const date = new Date(h.timestamp);
+      let acaoTexto = "";
+      if(h.acao === "promo") acaoTexto = "Promoção";
+      else if(h.acao === "rebaix") acaoTexto = "Rebaixamento";
+      else if(h.acao === "exon") acaoTexto = "Exoneração";
+      promoList.insertAdjacentHTML('beforeend', `
+        <div class="item">
+          <strong>${acaoTexto}</strong> de <em>${h.membro}</em> (${h.username})<br />
+          De: <strong>${h.anterior}</strong> para <strong>${h.novo}</strong><br />
+          Executado por: <em>${h.executor}</em> (${h.executorCargo})<br />
+          <small>${date.toLocaleString()}</small><br />
+          ${h.observacoes ? `<em>Obs:</em> ${h.observacoes}` : ''}
+        </div>
+      `);
     });
   }
 
-  // Form Portarias Internas
-  document.getElementById('formPortaria').addEventListener('submit', e => {
-    e.preventDefault();
-    if (usuarioLogado.cargo !== 'Delegado' && usuarioLogado.cargo !== 'Diretor') {
-      alert('Apenas Delegado ou Diretor pode criar portarias internas.');
-      return;
-    }
-    const titulo = document.getElementById('tituloPortaria').value.trim();
-    const conteudo = document.getElementById('conteudoPortaria').value.trim();
-    if (titulo && conteudo) {
-      portariasInternas.push({titulo, conteudo});
-      atualizarPortariasInternasLista();
-      e.target.reset();
-      alert('Portaria interna criada com sucesso!');
-    } else {
-      alert('Preencha todos os campos da portaria.');
-    }
-  });
-
-  // Atualizar lista portarias internas
-  function atualizarPortariasInternasLista() {
-    const lista = document.getElementById('listaPortariasInternas');
-    lista.innerHTML = '';
-    portariasInternas.forEach(p => {
-      const li = document.createElement('li');
-      li.innerHTML = `<strong>${p.titulo}:</strong> ${p.conteudo}`;
-      lista.appendChild(li);
+  // Função para carregar membros para listagem (painel)
+  function loadMembers() {
+    database.ref('members').once('value', snapshot => {
+      const data = snapshot.val();
+      renderMembers(data);
+      loadMembersIntoSelect();
     });
   }
 
-  // Form Registro Membros
-  document.getElementById('formRegistroMembros').addEventListener('submit', e => {
-    e.preventDefault();
-    if (usuarioLogado.cargo !== 'Diretor') {
-      alert('Apenas Diretor pode registrar novos membros.');
-      return;
-    }
-    const usuarioNovo = document.getElementById('novoUsuario').value.trim();
-    const senhaNova = document.getElementById('novaSenha').value;
-    const cargo = document.getElementById('cargoInicial').value;
-
-    if (!usuarioNovo || !senhaNova || !cargo) {
-      alert('Preencha todos os campos para registrar um novo membro.');
-      return;
-    }
-    if (usuarios.find(u => u.usuario === usuarioNovo)) {
-      alert('Usuário já existe.');
-      return;
-    }
-    usuarios.push({usuario: usuarioNovo, senha: senhaNova, cargo});
-    atualizarMembrosTabela();
-    e.target.reset();
-    alert('Novo membro registrado com sucesso!');
-  });
-
-  // Atualizar tabela membros
-  function atualizarMembrosTabela() {
-    const tbody = document.querySelector('#tabelaMembros tbody');
-    tbody.innerHTML = '';
-    usuarios.forEach(u => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${u.usuario}</td><td>${u.cargo}</td>`;
-      tbody.appendChild(tr);
+  // Função para carregar boletins
+  function loadBoletins() {
+    database.ref('boletins').once('value', snapshot => {
+      const data = snapshot.val();
+      renderBoletins(data);
     });
   }
 
-  // Inicialização: mostrar painel público e avisos públicos
-  function inicializar() {
-    mostrarDashboardPublico();
-    // Avisos públicos (exemplo)
-    const avisos = [
-      'Mantenha seus documentos atualizados.',
-      'Atente-se às novas regras de segurança do complexo.',
-      'Registro público de B.O disponível.'
-    ];
-    const ulAvisos = document.getElementById('listaAvisosPublicos');
-    for (let aviso of avisos) {
-      const li = document.createElement('li');
-      li.textContent = aviso;
-      ulAvisos.appendChild(li);
-    }
+  // Função para carregar portarias
+  function loadPortarias() {
+    database.ref('portarias').once('value', snapshot => {
+      const data = snapshot.val();
+      renderPortarias(data);
+    });
   }
 
-  inicializar();
+  // Função para carregar histórico promoções etc
+  function loadPromoHistory() {
+    database.ref('promo_hist').once('value', snapshot => {
+      const data = snapshot.val();
+      renderPromoHistory(data);
+    });
+  }
 
+  // Limpa mensagens de formulário
+  function clearMessages() {
+    boMsg.textContent = "";
+    memberMsg.textContent = "";
+    portariaMsg.textContent = "";
+    promoMsg.textContent = "";
+    loginMsg.textContent = "";
+  }
+
+  // Atualizações em tempo real para boletins, portarias, membros, histórico promo
+  database.ref('boletins').on('value', snapshot => {
+    renderBoletins(snapshot.val());
+  });
+
+  database.ref('portarias').on('value', snapshot => {
+    renderPortarias(snapshot.val());
+  });
+
+  database.ref('members').on('value', snapshot => {
+    renderMembers(snapshot.val());
+    loadMembersIntoSelect();
+  });
+
+  database.ref('promo_hist').on('value', snapshot => {
+    renderPromoHistory(snapshot.val());
+  });
+
+  // Inicializa
+  showPublicArea();
 </script>
-
 </body>
 </html>
 
