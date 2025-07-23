@@ -13,19 +13,26 @@
       margin: 0;
       padding: 0;
     }
+
     h1 {
       margin-top: 50px;
     }
-    button {
+
+    .menu-buttons {
       margin-top: 30px;
+    }
+
+    .menu-buttons button {
       padding: 15px 30px;
       font-size: 18px;
       background-color: #2563eb;
       color: white;
       border: none;
       border-radius: 5px;
+      margin: 0 10px;
       cursor: pointer;
     }
+
     form {
       margin-top: 30px;
       display: none;
@@ -34,25 +41,46 @@
       margin-right: auto;
       text-align: left;
     }
+
     label {
       display: block;
       margin: 10px 0 5px;
     }
+
     input, textarea {
       width: 100%;
       padding: 10px;
       border-radius: 4px;
       border: none;
     }
+
+    .form-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 15px;
+    }
+
+    .form-buttons button {
+      flex: 1;
+      margin: 5px;
+      padding: 10px;
+      font-size: 16px;
+    }
+
     #enviado {
       margin-top: 20px;
       color: #22c55e;
+      text-align: center;
     }
   </style>
 </head>
 <body>
   <h1>Bem-vindo ao site da Polícia Federal do Complexo RP</h1>
-  <button onclick="mostrarFormulario()">Boletim de Ocorrência</button>
+
+  <div class="menu-buttons">
+    <button onclick="mostrarFormulario()">Boletim de Ocorrência</button>
+    <button onclick="abrirPortarias()">Portarias</button>
+  </div>
 
   <form id="formBo">
     <label>Nome do denunciante / Reporter:</label>
@@ -64,13 +92,27 @@
     <label>Descrição / Description:</label>
     <textarea id="descricao" rows="4" required></textarea>
 
-    <button type="submit">Enviar</button>
+    <div class="form-buttons">
+      <button type="submit">Enviar</button>
+      <button type="button" onclick="voltar()">Voltar</button>
+    </div>
+
     <p id="enviado"></p>
   </form>
 
   <script>
     function mostrarFormulario() {
       document.getElementById('formBo').style.display = 'block';
+      document.getElementById('enviado').innerText = '';
+    }
+
+    function voltar() {
+      document.getElementById('formBo').style.display = 'none';
+    }
+
+    function abrirPortarias() {
+      // Por enquanto, não faz nada
+      alert("Em breve: Portarias");
     }
 
     document.getElementById('formBo').addEventListener('submit', function(e) {
