@@ -335,6 +335,7 @@ function mostrarAreaLogado() {
   document.getElementById('btn-back-boletins').onclick = mostrarAreaLogado;
   document.getElementById('btn-back-usuarios').onclick = mostrarAreaLogado;
   document.getElementById('btn-cancel-register-member').onclick = mostrarAreaLogado;
+  document.getElementById('btn-cancel-portaria').onclick = mostrarAreaLogado;
 
   // Evento logout
   document.getElementById('btn-logout').onclick = () => {
@@ -439,8 +440,7 @@ document.getElementById('btn-create-portaria').onclick = () => {
   document.getElementById('input-port-desc').value = '';
 };
 
-    //cancelar portaria
-    document.getElementById('btn-cancel-portaria').onclick = mostrarAreaLogado;
+   
     
   // Evento botão ver boletins
   document.getElementById('btn-view-boletins').onclick = mostrarListaBoletins;
