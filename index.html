@@ -266,11 +266,12 @@
     document.getElementById('input-descricao').value = '';
   }
 
-  // Mostrar área portarias
   function mostrarAreaPortarias() {
-    esconderTodos();
-    mostrar('area-portarias');
-  }
+  esconderTodos();
+  mostrar('area-portarias');
+  carregarPortarias(); // <- Aqui!
+}
+
 
   // Mostrar formulário login
   function mostrarFormLogin() {
@@ -355,6 +356,37 @@ function mostrarAreaLogado() {
       return;
     }
 
+// Evento submit portaria
+document.getElementById('btn-submit-portaria').onclick = async () => {
+  const titulo = document.getElementById('input-port-titulo').value.trim();
+  const descricao = document.getElementById('input-port-desc').value.trim();
+  const msg = document.getElementById('msg-portaria');
+
+  msg.classList.add('hidden');
+  msg.textContent = '';
+
+  if (!titulo || !descricao) {
+    msg.textContent = "Preencha todos os campos.";
+    msg.classList.remove('hidden');
+    return;
+  }
+
+  try {
+    await db.collection('portarias').add({
+      titulo,
+      descricao,
+      autor: usuarioLogado,
+      data: new Date()
+    });
+    alert('Portaria criada com sucesso!');
+    mostrarAreaLogado();
+  } catch (e) {
+    msg.textContent = 'Erro ao criar portaria: ' + e.message;
+    msg.classList.remove('hidden');
+  }
+};
+
+    
     try {
       await db.collection('boletins').add({
         nomeDenuncia: denuncia,
@@ -458,6 +490,43 @@ document.getElementById('btn-create-portaria').onclick = () => {
     }
   };
 
+async function carregarPortarias() {
+  const area = document.getElementById('area-portarias');
+  area.innerHTML = '<h2>Portarias</h2><p>Carregando...</p><button id="btn-back-portarias" class="btn-danger">Voltar</button>';
+
+  try {
+    const snapshot = await db.collection('portarias').orderBy('data', 'desc').get();
+    if (snapshot.empty) {
+      area.innerHTML = '<h2>Portarias</h2><p>Nenhuma portaria publicada ainda.</p><button id="btn-back-portarias" class="btn-danger">Voltar</button>';
+      return;
+    }
+
+    let html = '<h2>Portarias</h2>';
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const dataFormatada = data.data.toDate().toLocaleString();
+      html += `
+        <div class="list-item">
+          <strong>Título:</strong> ${data.titulo}<br/>
+          <strong>Descrição:</strong> ${data.descricao}<br/>
+          <strong>Autor:</strong> ${data.autor}<br/>
+          <strong>Data:</strong> ${dataFormatada}
+        </div>
+      `;
+    });
+    html += '<button id="btn-back-portarias" class="btn-danger">Voltar</button>';
+    area.innerHTML = html;
+
+    // Reatribuir evento de voltar
+    document.getElementById('btn-back-portarias').onclick = mostrarMenuPrincipal;
+
+  } catch (e) {
+    area.innerHTML = '<h2>Portarias</h2><p>Erro ao carregar portarias: ' + e.message + '</p><button id="btn-back-portarias" class="btn-danger">Voltar</button>';
+    document.getElementById('btn-back-portarias').onclick = mostrarMenuPrincipal;
+  }
+}
+
+    
   // Função para carregar boletins no container
   async function carregarBoletins() {
     const container = document.getElementById('boletins-container');
