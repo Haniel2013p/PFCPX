@@ -656,77 +656,68 @@ async function carregarPortarias() {
   }
 
   // Função para carregar usuários (admin)
-  async function carregarUsuarios() {
-    const container = document.getElementById('usuarios-container');
-    container.innerHTML = '<p>Carregando usuários...</p>';
-    try {
-      const snapshot = await db.collection('usuarios').get();
-      if(snapshot.empty) {
-        container.innerHTML = '<p>Nenhum usuário cadastrado.</p>';
-        return;
-      }
-      
-      // Impede alterar alguém com nível igual ou superior ao seu
-if (hierarquia[dados.cargo] >= hierarquia[cargoLogado]) {
-  alert("Você não pode alterar o cargo de alguém com hierarquia igual ou superior à sua.");
-  return;
-}
+async function carregarUsuarios() {
+  const container = document.getElementById('usuarios-container');
+  container.innerHTML = '<p>Carregando usuários...</p>';
 
-      container.innerHTML = '';
-      snapshot.forEach(doc => {
-        const data = doc.data();
-
-        const div = document.createElement('div');
-        div.classList.add('list-item');
-
-        div.innerHTML = `<strong>Usuário:</strong> ${data.usuario} <br/>
-                         <strong>Cargo:</strong> ${data.cargo} <br/>
-                         <div class="user-actions"></div>`;
-
-        // Botões de ação para cada usuário
-        const actionsDiv = div.querySelector('.user-actions');
-
-        // Se for diferente do usuário logado, pode promover ou rebaixar
-     if (data.usuario !== usuarioLogado) {
-  const nivelLogado = hierarquia[cargoLogado];
-  const nivelAlvo = hierarquia[data.cargo]; // Se o cargo estiver salvo no Firebase
-  const actionsDiv = document.createElement('div');
-
-  // Permissões para promover e rebaixar
-  if (nivelLogado >= hierarquia["Delegado"] && nivelLogado > nivelAlvo) {
-    // Botão promover
-    const btnPromover = document.createElement('button');
-    btnPromover.textContent = 'Promover';
-    btnPromover.onclick = () => alterarCargo(data.usuario, +1);
-    actionsDiv.appendChild(btnPromover);
-
-    // Botão rebaixar
-    const btnRebaixar = document.createElement('button');
-    btnRebaixar.textContent = 'Rebaixar';
-    btnRebaixar.onclick = () => alterarCargo(data.usuario, -1);
-    actionsDiv.appendChild(btnRebaixar);
-  }
-
-  // Permissão para exonerar (apenas Delegado Executivo+)
-  if (nivelLogado >= hierarquia["Delegado Executivo"] && nivelLogado > nivelAlvo) {
-    const btnRemover = document.createElement('button');
-    btnRemover.textContent = 'Remover';
-    btnRemover.classList.add('btn-danger');
-    btnRemover.onclick = () => removerUsuario(data.usuario);
-    actionsDiv.appendChild(btnRemover);
-  }
-
-  // Adiciona os botões na interface
-  containerUsuario.appendChild(actionsDiv);
-}
-
-
-        container.appendChild(div);
-      });
-    } catch(e) {
-      container.innerHTML = '<p>Erro ao carregar usuários: ' + e.message + '</p>';
+  try {
+    const snapshot = await db.collection('usuarios').get();
+    if (snapshot.empty) {
+      container.innerHTML = '<p>Nenhum usuário cadastrado.</p>';
+      return;
     }
+
+    container.innerHTML = '';
+    snapshot.forEach(doc => {
+      const data = doc.data();
+
+      const div = document.createElement('div');
+      div.classList.add('list-item');
+
+      div.innerHTML = `<strong>Usuário:</strong> ${data.usuario} <br/>
+                       <strong>Cargo:</strong> ${data.cargo} <br/>
+                       <div class="user-actions"></div>`;
+
+      const actionsDiv = div.querySelector('.user-actions'); // correto aqui
+
+      // Se for diferente do usuário logado, pode promover/rebaixar/exonerar subordinados
+      if (data.usuario !== usuarioLogado) {
+        const nivelLogado = hierarquia[cargoLogado];
+        const nivelAlvo = hierarquia[data.cargo];
+
+        // Promover e rebaixar: apenas Delegado+ e com nível superior
+        if (nivelLogado >= hierarquia["Delegado"] && nivelLogado > nivelAlvo) {
+          const btnPromover = document.createElement('button');
+          btnPromover.textContent = 'Promover';
+          btnPromover.onclick = () => alterarCargo(data.usuario, +1);
+          actionsDiv.appendChild(btnPromover);
+
+          const btnRebaixar = document.createElement('button');
+          btnRebaixar.textContent = 'Rebaixar';
+          btnRebaixar.onclick = () => alterarCargo(data.usuario, -1);
+          actionsDiv.appendChild(btnRebaixar);
+        }
+
+        // Exonerar: apenas Delegado Executivo+ e com nível superior
+        if (nivelLogado >= hierarquia["Delegado Executivo"] && nivelLogado > nivelAlvo) {
+          const btnRemover = document.createElement('button');
+          btnRemover.textContent = 'Remover';
+          btnRemover.classList.add('btn-danger');
+          btnRemover.onclick = () => removerUsuario(data.usuario);
+          actionsDiv.appendChild(btnRemover);
+        }
+      } else {
+        const span = document.createElement('span');
+        span.textContent = 'Você';
+        actionsDiv.appendChild(span);
+      }
+
+      container.appendChild(div);
+    });
+  } catch (e) {
+    container.innerHTML = '<p>Erro ao carregar usuários: ' + e.message + '</p>';
   }
+}
 
   // Função para alterar cargo do usuário
   async function alterarCargo(usuario, delta) {
