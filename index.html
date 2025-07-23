@@ -268,21 +268,22 @@
     document.getElementById('input-password').value = '';
   }
 
-  // Mostrar área logado
-  function mostrarAreaLogado() {
-    esconderTodos();
-    mostrar('area-logado');
-    document.getElementById('welcome-user').textContent = `Bem vindo, senhor ${usuarioLogado} (${cargoLogado}).`;
+ function mostrarAreaLogado() {
+  esconderTodos();
+  esconder('main-menu'); // <-- isso esconde os botões do menu principal ao logar
+  mostrar('area-logado');
+  document.getElementById('welcome-user').textContent = `Bem vindo, senhor ${usuarioLogado} (${cargoLogado}).`;
 
-    // Mostrar ou esconder botões admin conforme hierarquia
-    if(hierarquia[cargoLogado] >= hierarquia['Delegado']) {
-      mostrar('btn-admin');
-      mostrar('btn-register-member');
-    } else {
-      esconder('btn-admin');
-      esconder('btn-register-member');
-    }
+  // Mostrar ou esconder botões admin conforme hierarquia
+  if(hierarquia[cargoLogado] >= hierarquia['Delegado']) {
+    mostrar('btn-admin');
+    mostrar('btn-register-member');
+  } else {
+    esconder('btn-admin');
+    esconder('btn-register-member');
   }
+}
+
 
   // Mostrar lista boletins
   function mostrarListaBoletins() {
