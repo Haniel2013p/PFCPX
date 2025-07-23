@@ -12,7 +12,7 @@
   }
   button {
     padding: 10px 18px;
-    margin: 0 5px;
+    margin: 0 5px 10px 5px;
     cursor: pointer;
     border: none;
     border-radius: 4px;
@@ -20,17 +20,13 @@
     font-weight: bold;
   }
   button.blue {
-    background-color: #4a90e2; /* azul claro */
+    background-color: #3399ff; /* azul claro */
   }
-  button.dark-blue {
+  button.darkblue {
     background-color: #003366; /* azul escuro */
   }
   button.red {
-    background-color: #c0392b;
-  }
-  button.yellow {
-    background-color: #f1c40f;
-    color: black;
+    background-color: #cc3300;
   }
   input, textarea {
     padding: 8px;
@@ -41,16 +37,31 @@
   .hidden {
     display: none;
   }
-  #boletins-list, #usuarios-list {
+  #boletins-list {
     max-width: 600px;
     margin: 1rem auto;
     text-align: left;
   }
-  #boletins-list div, #usuarios-list div {
+  #boletins-list div {
     border-bottom: 1px solid #ccc;
     padding: 6px 0;
+    position: relative;
   }
-  .usuario-actions button {
+  .btn-small {
+    font-size: 0.8rem;
+    padding: 4px 8px;
+    margin-left: 8px;
+  }
+  #admin-list {
+    max-width: 600px;
+    margin: 1rem auto;
+    text-align: left;
+  }
+  #admin-list div {
+    border-bottom: 1px solid #999;
+    padding: 8px 0;
+  }
+  #admin-list button {
     margin-left: 6px;
   }
 </style>
@@ -62,9 +73,9 @@
 <h1 id="welcome-msg">Bem vindo ao site da Polícia Federal do Complexo RP</h1>
 
 <div id="main-buttons">
-  <button id="btn-boletim" class="dark-blue">Boletim de Ocorrência</button>
-  <button id="btn-portaria" disabled class="dark-blue">Portarias</button>
-  <button id="btn-logar" class="dark-blue">Logar</button>
+  <button id="btn-boletim" class="darkblue">Boletim de Ocorrência</button>
+  <button id="btn-portaria" class="darkblue" disabled>Portarias</button>
+  <button id="btn-logar" class="darkblue">Logar</button>
 </div>
 
 <!-- Formulário boletim -->
@@ -82,7 +93,7 @@
   <input type="password" id="input-senha" placeholder="Senha" /><br />
   <button class="blue" id="btn-entrar">Entrar</button>
   <button class="blue" id="btn-voltar-login">Voltar</button>
-  <p id="login-error" style="color:red;display:none;">Usuário ou senha incorretos.</p>
+  <p id="login-error" style="color:red;display:none;">Usuário ou senha incorretos ou exonerado.</p>
 </div>
 
 <!-- Após login -->
@@ -92,7 +103,13 @@
   <button id="btn-administracao" class="blue hidden">Administração</button>
   <button id="btn-sair" class="blue">Sair</button>
   <div id="boletins-list" class="hidden"></div>
-  <div id="usuarios-list" class="hidden"></div>
+</div>
+
+<!-- Área Administração -->
+<div id="admin-area" class="hidden">
+  <h2>Administração de Usuários</h2>
+  <button class="blue" id="btn-fechar-admin">Fechar</button>
+  <div id="admin-list"></div>
 </div>
 
 <script>
@@ -109,9 +126,6 @@
 
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
-
-  // Hierarquia
-  const hierarquia = ['Agente', 'Perito', 'Escrivão', 'Delegado', 'Diretor Geral'];
 
   // Elements
   const welcomeMsg = document.getElementById('welcome-msg');
@@ -140,21 +154,24 @@
   const btnAdministracao = document.getElementById('btn-administracao');
   const btnSair = document.getElementById('btn-sair');
   const boletinsList = document.getElementById('boletins-list');
-  const usuariosList = document.getElementById('usuarios-list');
 
-  // Estado login
-  let usuarioLogado = null;
-  let cargoLogado = null;
+  const adminArea = document.getElementById('admin-area');
+  const adminList = document.getElementById('admin-list');
+  const btnFecharAdmin = document.getElementById('btn-fechar-admin');
 
-  // Funções para mostrar e esconder telas
+  // Estados
+  let usuarioLogado = null; // objeto { id, usuario, cargo, senha }
+  const cargosHierarquia = ['Agente', 'Perito', 'Escrivão', 'Delegado', 'Diretor Geral'];
+
+  // Mostrar e esconder telas
   function mostrarMain() {
     welcomeMsg.textContent = "Bem vindo ao site da Polícia Federal do Complexo RP";
     mainButtons.style.display = 'block';
     boletimForm.classList.add('hidden');
     loginForm.classList.add('hidden');
     logadoArea.classList.add('hidden');
-    boletinsList.classList.add('hidden');
-    usuariosList.classList.add('hidden');
+    adminArea.classList.add('hidden');
+    loginError.style.display = 'none';
   }
   function mostrarBoletimForm() {
     mainButtons.style.display = 'none';
@@ -176,27 +193,117 @@
     boletimForm.classList.add('hidden');
     loginForm.classList.add('hidden');
     logadoArea.classList.remove('hidden');
-    msgLogado.textContent = `Bem vindo, senhor ${usuarioLogado}. (Cargo: ${cargoLogado})`;
+    adminArea.classList.add('hidden');
+    msgLogado.textContent = `Bem vindo, senhor ${usuarioLogado.usuario}. Cargo: ${usuarioLogado.cargo}`;
     boletinsList.classList.add('hidden');
-    usuariosList.classList.add('hidden');
 
-    // Mostrar botão administração só para Delegado ou superior
-    const nivelCargo = hierarquia.indexOf(cargoLogado);
-    if (nivelCargo >= hierarquia.indexOf('Delegado')) {
+    // Mostrar botão Administração só para Delegado ou Diretor Geral
+    if (cargosHierarquia.indexOf(usuarioLogado.cargo) >= cargosHierarquia.indexOf('Delegado')) {
       btnAdministracao.classList.remove('hidden');
     } else {
       btnAdministracao.classList.add('hidden');
     }
   }
+  function mostrarAdminArea() {
+    adminArea.classList.remove('hidden');
+    logadoArea.classList.add('hidden');
+    mainButtons.style.display = 'none';
+    boletimForm.classList.add('hidden');
+    loginForm.classList.add('hidden');
+    boletinsList.classList.add('hidden');
+    adminList.innerHTML = '<p>Carregando usuários...</p>';
+
+    // Busca todos os usuários
+    db.collection('usuarios').get()
+      .then(snapshot => {
+        if (snapshot.empty) {
+          adminList.innerHTML = '<p>Nenhum usuário encontrado.</p>';
+          return;
+        }
+        adminList.innerHTML = '';
+        snapshot.forEach(doc => {
+          const user = { id: doc.id, ...doc.data() };
+          const userCargoIndex = cargosHierarquia.indexOf(user.cargo);
+          const logadoCargoIndex = cargosHierarquia.indexOf(usuarioLogado.cargo);
+
+          // Definir se os botões devem aparecer (não pode mexer em si mesmo)
+          const podePromover = userCargoIndex < logadoCargoIndex && user.id !== usuarioLogado.id;
+          const podeRebaixar = userCargoIndex > 0 && userCargoIndex > logadoCargoIndex && user.id !== usuarioLogado.id;
+          const podeExonerar = userCargoIndex < logadoCargoIndex && user.id !== usuarioLogado.id;
+
+          // Botões só aparecem se o logado for delegado ou diretor geral e cargo do usuário for inferior
+          // Regras: não pode promover/rebaixar/exonerar superior ou igual
+          // Também não pode mexer em si mesmo
+          adminList.innerHTML += `
+            <div>
+              <strong>Usuário:</strong> ${user.usuario} <br/>
+              <strong>Senha:</strong> ${user.senha} <br/>
+              <strong>Cargo:</strong> ${user.cargo}
+              ${podePromover ? `<button class="btn-small blue" onclick="promoverUsuario('${user.id}', '${user.cargo}')">Promover</button>` : ''}
+              ${podeRebaixar ? `<button class="btn-small blue" onclick="rebaixarUsuario('${user.id}', '${user.cargo}')">Rebaixar</button>` : ''}
+              ${podeExonerar ? `<button class="btn-small red" onclick="exonerarUsuario('${user.id}')">Exonerar</button>` : ''}
+            </div>
+          `;
+        });
+      })
+      .catch(error => {
+        adminList.innerHTML = `<p>Erro ao carregar usuários: ${error.message}</p>`;
+      });
+  }
+
+  // Funções ação administração
+  window.promoverUsuario = function(id, cargoAtual) {
+    const idx = cargosHierarquia.indexOf(cargoAtual);
+    if (idx < 0 || idx >= cargosHierarquia.length - 1) {
+      alert('Não pode promover mais.');
+      return;
+    }
+    const novoCargo = cargosHierarquia[idx + 1];
+    db.collection('usuarios').doc(id).update({ cargo: novoCargo })
+      .then(() => {
+        alert('Usuário promovido para ' + novoCargo);
+        mostrarAdminArea();
+      }).catch(e => alert('Erro ao promover: ' + e.message));
+  };
+  window.rebaixarUsuario = function(id, cargoAtual) {
+    const idx = cargosHierarquia.indexOf(cargoAtual);
+    if (idx <= 0) {
+      alert('Não pode rebaixar mais.');
+      return;
+    }
+    const novoCargo = cargosHierarquia[idx - 1];
+    db.collection('usuarios').doc(id).update({ cargo: novoCargo })
+      .then(() => {
+        alert('Usuário rebaixado para ' + novoCargo);
+        mostrarAdminArea();
+      }).catch(e => alert('Erro ao rebaixar: ' + e.message));
+  };
+  window.exonerarUsuario = function(id) {
+    if (!confirm('Confirma exonerar esse usuário? Ele perderá acesso.')) return;
+    db.collection('usuarios').doc(id).delete()
+      .then(() => {
+        alert('Usuário exonerado e removido.');
+        mostrarAdminArea();
+      }).catch(e => alert('Erro ao exonerar: ' + e.message));
+  };
 
   // Botões principais
   btnBoletim.onclick = () => mostrarBoletimForm();
   btnPortaria.onclick = () => alert('Portarias: Teste 1 e Teste 2');
   btnLogar.onclick = () => mostrarLoginForm();
 
-  // Botões do formulário boletim
   btnVoltarBoletim.onclick = () => mostrarMain();
+  btnVoltarLogin.onclick = () => mostrarMain();
 
+  btnSair.onclick = () => {
+    usuarioLogado = null;
+    mostrarMain();
+  };
+
+  btnAdministracao.onclick = () => mostrarAdminArea();
+  btnFecharAdmin.onclick = () => mostrarLogadoArea();
+
+  // Enviar boletim
   btnEnviarBoletim.onclick = () => {
     const nomeD = nomeDenuncia.value.trim();
     const nomeA = nomeAcusado.value.trim();
@@ -207,7 +314,6 @@
       return;
     }
 
-    // Salvar no Firestore
     db.collection('boletins').add({
       nomeDenuncia: nomeD,
       nomeAcusado: nomeA,
@@ -221,37 +327,43 @@
     });
   };
 
-  // Botões login
-  btnVoltarLogin.onclick = () => mostrarMain();
-
+  // Login dinâmico
   btnEntrar.onclick = () => {
     const usuario = inputUsuario.value.trim();
     const senha = inputSenha.value.trim();
 
-    // Aqui buscar no Firestore usuário para login - POR ENQUANTO fixo
-    // Exemplo fixo:
-    // usuario = "Gabriel", senha = "DG", cargo = "Diretor Geral"
-    // Futuramente mudar para autenticação Firestore Auth ou similar
-
-    if (usuario === 'Gabriel' && senha === 'DG') {
-      usuarioLogado = usuario;
-      cargoLogado = 'Diretor Geral'; // fixo por enquanto
-      mostrarLogadoArea();
-    } else {
+    if (!usuario || !senha) {
       loginError.style.display = 'block';
+      loginError.textContent = 'Preencha usuário e senha.';
+      return;
     }
+
+    // Busca no Firestore
+    db.collection('usuarios')
+      .where('usuario', '==', usuario)
+      .where('senha', '==', senha)
+      .limit(1)
+      .get()
+      .then(snapshot => {
+        if (snapshot.empty) {
+          loginError.style.display = 'block';
+          loginError.textContent = 'Usuário ou senha incorretos ou exonerado.';
+          return;
+        }
+        // Encontrou o usuário válido
+        snapshot.forEach(doc => {
+          usuarioLogado = { id: doc.id, ...doc.data() };
+        });
+        mostrarLogadoArea();
+      })
+      .catch(e => {
+        loginError.style.display = 'block';
+        loginError.textContent = 'Erro ao tentar logar: ' + e.message;
+      });
   };
 
-  // Logado area
-  btnSair.onclick = () => {
-    usuarioLogado = null;
-    cargoLogado = null;
-    mostrarMain();
-  };
-
-  // Ver boletins - todos podem ver
+  // Ver boletins
   btnVerBoletins.onclick = () => {
-    usuariosList.classList.add('hidden');
     boletinsList.innerHTML = '<h3>Boletins Registrados:</h3>';
     boletinsList.classList.remove('hidden');
 
@@ -263,135 +375,48 @@
           boletinsList.innerHTML += '<p>Nenhum boletim encontrado.</p>';
           return;
         }
+        boletinsList.innerHTML = '<h3>Boletins Registrados:</h3>';
         querySnapshot.forEach(doc => {
           const dataObj = doc.data();
           const dataFormatada = new Date(dataObj.data.seconds * 1000).toLocaleString('pt-BR');
 
-          // Botão excluir só para Delegado ou superior
           let btnExcluirHTML = '';
-          if (hierarquia.indexOf(cargoLogado) >= hierarquia.indexOf('Delegado')) {
-            btnExcluirHTML = `<button class="red" data-id="${doc.id}">Excluir</button>`;
+
+          // Delegado e Diretor Geral podem excluir boletins
+          const cargoIndex = cargosHierarquia.indexOf(usuarioLogado.cargo);
+          const delegadoIndex = cargosHierarquia.indexOf('Delegado');
+          if (cargoIndex >= delegadoIndex) {
+            btnExcluirHTML = `<button class="btn-small red" onclick="excluirBoletim('${doc.id}')">Excluir</button>`;
           }
 
-          boletinsList.innerHTML +=
-            `<div>
+          boletinsList.innerHTML += `
+            <div>
               <strong>Denunciante:</strong> ${dataObj.nomeDenuncia} <br />
               <strong>Acusado:</strong> ${dataObj.nomeAcusado} <br />
               <strong>Descrição:</strong> ${dataObj.descricao} <br />
-              <small><em>Data: ${dataFormatada}</em></small> 
+              <small><em>Data: ${dataFormatada}</em></small>
               ${btnExcluirHTML}
-            </div>`;
-        });
-
-        // Associar evento excluir
-        boletinsList.querySelectorAll('button.red').forEach(btn => {
-          btn.onclick = () => {
-            if (confirm('Tem certeza que deseja excluir este boletim?')) {
-              db.collection('boletins').doc(btn.getAttribute('data-id')).delete()
-                .then(() => {
-                  alert('Boletim excluído.');
-                  btnVerBoletins.onclick(); // Recarrega a lista
-                }).catch(e => alert('Erro ao excluir: ' + e.message));
-            }
-          };
-        });
-      })
-      .catch(e => {
-        boletinsList.innerHTML += `<p>Erro ao buscar boletins: ${e.message}</p>`;
-      });
-  };
-
-  // Botão Administração - só para Delegado ou superior
-  btnAdministracao.onclick = () => {
-    boletinsList.classList.add('hidden');
-    usuariosList.innerHTML = '<h3>Lista de Usuários:</h3>';
-    usuariosList.classList.remove('hidden');
-
-    // Buscar todos usuários do Firestore
-    db.collection('usuarios').orderBy('nome').get()
-      .then(querySnapshot => {
-        if (querySnapshot.empty) {
-          usuariosList.innerHTML += '<p>Nenhum usuário encontrado.</p>';
-          return;
-        }
-        querySnapshot.forEach(doc => {
-          const user = doc.data();
-          const nivelLogado = hierarquia.indexOf(cargoLogado);
-          const nivelUser = hierarquia.indexOf(user.cargo);
-
-          // Botões só aparecem se usuário logado tem nível maior que o do usuário listado
-          const podeAlterar = nivelLogado > nivelUser;
-
-          usuariosList.innerHTML += `
-            <div>
-              <strong>Nome:</strong> ${user.nome} <br />
-              <strong>Senha:</strong> ${user.senha} <br />
-              <strong>Cargo:</strong> ${user.cargo}
-              <span class="usuario-actions">
-                ${podeAlterar ? `<button class="blue" data-id="${doc.id}" data-action="promover">Promover</button>` : ''}
-                ${podeAlterar ? `<button class="yellow" data-id="${doc.id}" data-action="rebaixar">Rebaixar</button>` : ''}
-                ${podeAlterar ? `<button class="red" data-id="${doc.id}" data-action="exonerar">Exonerar</button>` : ''}
-              </span>
             </div>
           `;
         });
-
-        // Eventos dos botões de ação
-        usuariosList.querySelectorAll('button').forEach(btn => {
-          btn.onclick = () => {
-            const id = btn.getAttribute('data-id');
-            const action = btn.getAttribute('data-action');
-
-            db.collection('usuarios').doc(id).get()
-              .then(doc => {
-                if (!doc.exists) {
-                  alert('Usuário não encontrado.');
-                  return;
-                }
-                const user = doc.data();
-                const nivelLogado = hierarquia.indexOf(cargoLogado);
-                const nivelUser = hierarquia.indexOf(user.cargo);
-
-                if (nivelLogado <= nivelUser) {
-                  alert('Você não pode alterar um usuário de mesmo ou superior cargo.');
-                  return;
-                }
-
-                if (action === 'promover') {
-                  if (nivelUser + 1 >= hierarquia.length) {
-                    alert('Não pode promover além do Diretor Geral.');
-                    return;
-                  }
-                  const novoCargo = hierarquia[nivelUser + 1];
-                  return doc.ref.update({cargo: novoCargo});
-                }
-                else if (action === 'rebaixar') {
-                  if (nivelUser - 1 < 0) {
-                    alert('Não pode rebaixar abaixo de Agente.');
-                    return;
-                  }
-                  const novoCargo = hierarquia[nivelUser - 1];
-                  return doc.ref.update({cargo: novoCargo});
-                }
-                else if (action === 'exonerar') {
-                  return doc.ref.delete();
-                }
-              })
-              .then(() => {
-                alert('Operação realizada com sucesso!');
-                btnAdministracao.onclick(); // Recarrega lista
-              })
-              .catch(e => alert('Erro: ' + e.message));
-          };
-        });
       })
       .catch(e => {
-        usuariosList.innerHTML += `<p>Erro ao buscar usuários: ${e.message}</p>`;
+        boletinsList.innerHTML = `<p>Erro ao buscar boletins: ${e.message}</p>`;
       });
   };
 
-  // Inicializa página
+  window.excluirBoletim = function(id) {
+    if (!confirm('Confirma exclusão deste boletim?')) return;
+    db.collection('boletins').doc(id).delete()
+      .then(() => {
+        alert('Boletim excluído.');
+        btnVerBoletins.click(); // Atualiza lista
+      }).catch(e => alert('Erro ao excluir boletim: ' + e.message));
+  };
+
+  // Inicializa
   mostrarMain();
+
 </script>
 
 </body>
