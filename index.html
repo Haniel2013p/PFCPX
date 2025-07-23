@@ -9,6 +9,8 @@
     font-family: Arial, sans-serif;
     text-align: center;
     margin: 2rem;
+    background-color: #121212; /* fundo escuro */
+    color: #ffffff; /* texto branco */
   }
   button {
     padding: 10px 18px;
@@ -20,13 +22,17 @@
     font-weight: bold;
   }
   button.blue {
-    background-color: #007bff;
+    background-color: #0d6efd; /* azul padrão */
   }
   input, textarea {
     padding: 8px;
     margin: 8px 0;
     width: 80%;
     max-width: 400px;
+    border-radius: 4px;
+    border: none;
+    background-color: #333; /* campo escuro */
+    color: white;
   }
   .hidden {
     display: none;
@@ -37,7 +43,7 @@
     text-align: left;
   }
   #boletins-list div {
-    border-bottom: 1px solid #ccc;
+    border-bottom: 1px solid #555;
     padding: 6px 0;
   }
 </style>
@@ -230,7 +236,7 @@
               <strong>Denunciante:</strong> ${dataObj.nomeDenuncia} <br />
               <strong>Acusado:</strong> ${dataObj.nomeAcusado} <br />
               <strong>Descrição:</strong> ${dataObj.descricao} <br />
-              <small><em>Data: ${dataFormatada}</em></small>
+                         <small><em>Data: ${dataFormatada}</em></small>
             </div>`;
         });
       })
@@ -245,3 +251,4 @@
 
 </body>
 </html>
+
