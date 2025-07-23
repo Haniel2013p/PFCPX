@@ -401,7 +401,18 @@ function mostrarAreaLogado() {
       msg.classList.remove('hidden');
     }
   };
+    
+// Evento botão Criar Portaria
+document.getElementById('btn-create-portaria').onclick = () => {
+  esconderTodos();
+  mostrar('form-portaria');
+  document.getElementById('input-port-titulo').value = '';
+  document.getElementById('input-port-desc').value = '';
+};
 
+    //cancelar portaria
+    document.getElementById('btn-cancel-portaria').onclick = mostrarAreaLogado;
+    
   // Evento botão ver boletins
   document.getElementById('btn-view-boletins').onclick = mostrarListaBoletins;
 
