@@ -146,6 +146,7 @@
         <button id="btn-view-boletins">Ver Boletins</button>
         <button id="btn-admin" class="btn-admin hidden">Administração</button>
         <button id="btn-register-member" class="btn-admin hidden">Registrar Membro</button>
+        <button id="btn-banco-criminais">Banco Criminais</button>
         <button id="btn-logout" class="btn-danger">Sair</button>
       </div>
     </div>
@@ -175,6 +176,26 @@
   <div id="msg-portaria" class="error-msg hidden"></div>
 </div>
 
+<div id="form-banco-criminais" class="hidden container">
+  <h2>Registro Criminal</h2>
+  <input id="input-criminoso-nome" placeholder="Nome do indivíduo" maxlength="100" />
+  <input id="input-criminoso-crime" placeholder="Crime cometido" maxlength="100" />
+  <textarea id="input-criminoso-desc" placeholder="Descrição do acontecido" maxlength="500"></textarea>
+
+  <div class="btn-group">
+    <button id="btn-submit-criminoso">Enviar</button>
+    <button id="btn-cancel-criminoso" class="btn-danger">Cancelar</button>
+  </div>
+
+  <hr/>
+  <h3>Pesquisar Registros</h3>
+  <input id="input-busca-criminoso" placeholder="Nome do indivíduo" />
+  <button id="btn-buscar-criminoso">Pesquisar</button>
+
+  <div id="resultado-busca-criminoso" class="list-container"></div>
+</div>
+
+    
     <!-- Registrar membro -->
     <div id="form-register-member" class="hidden container">
       <h2>Registrar Novo Membro</h2>
@@ -223,7 +244,7 @@
     document.getElementById(id).classList.add('hidden');
   }
   function esconderTodos() {
-    ['main-menu','form-boletim','area-portarias','form-login','area-logado','lista-boletins','lista-usuarios','form-register-member','form-portaria'].forEach(id => esconder(id));
+    ['main-menu','form-boletim','area-portarias','form-login','area-logado','lista-boletins','lista-usuarios','form-register-member','form-portaria','form-banco-criminais'].forEach(id => esconder(id));
     clearMessages();
   }
 
@@ -314,7 +335,55 @@ function mostrarAreaLogado() {
     mostrar('lista-usuarios');
     carregarUsuarios();
   }
+    
+document.getElementById('btn-banco-criminais').onclick = mostrarFormBancoCriminais;
 
+function mostrarFormBancoCriminais() {
+  esconderTodos();
+  mostrar('form-banco-criminais');
+  document.getElementById('input-criminoso-nome').value = '';
+  document.getElementById('input-criminoso-crime').value = '';
+  document.getElementById('input-criminoso-desc').value = '';
+  document.getElementById('input-busca-criminoso').value = '';
+  document.getElementById('resultado-busca-criminoso').innerHTML = '';
+}
+
+document.getElementById('btn-buscar-criminoso').onclick = async () => {
+  const nomeBusca = document.getElementById('input-busca-criminoso').value.trim().toLowerCase();
+  const resultado = document.getElementById('resultado-busca-criminoso');
+  resultado.innerHTML = 'Buscando...';
+
+  try {
+    const snapshot = await db.collection('bancoCriminais').get();
+    let achados = [];
+
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      if (data.nome.toLowerCase().includes(nomeBusca)) {
+        achados.push(data);
+      }
+    });
+
+    if (achados.length === 0) {
+      resultado.innerHTML = '<p>Nenhum registro encontrado.</p>';
+      return;
+    }
+
+    resultado.innerHTML = achados.map(d => `
+      <div class="list-item">
+        <strong>Nome:</strong> ${d.nome}<br/>
+        <strong>Crime:</strong> ${d.crime}<br/>
+        <strong>Descrição:</strong> ${d.descricao}<br/>
+        <strong>Autor do registro:</strong> ${d.autor}<br/>
+        <strong>Data:</strong> ${d.data.toDate().toLocaleString()}
+      </div>
+    `).join('');
+  } catch (e) {
+    resultado.innerHTML = '<p>Erro na busca: ' + e.message + '</p>';
+  }
+};
+
+    
   // Mostrar formulário registrar membro
   function mostrarFormRegistrarMembro() {
     esconderTodos();
@@ -336,6 +405,8 @@ function mostrarAreaLogado() {
   document.getElementById('btn-back-usuarios').onclick = mostrarAreaLogado;
   document.getElementById('btn-cancel-register-member').onclick = mostrarAreaLogado;
   document.getElementById('btn-cancel-portaria').onclick = mostrarAreaLogado;
+  document.getElementById('btn-cancel-criminoso').onclick = mostrarAreaLogado;
+
 
   // Evento logout
   document.getElementById('btn-logout').onclick = () => {
@@ -400,7 +471,34 @@ document.getElementById('btn-submit-portaria').onclick = async () => {
     msg.textContent = 'Erro ao criar portaria: ' + e.message;
     msg.classList.remove('hidden');
   }
+  
 };
+document.getElementById('btn-submit-criminoso').onclick = async () => {
+  const nome = document.getElementById('input-criminoso-nome').value.trim();
+  const crime = document.getElementById('input-criminoso-crime').value.trim();
+  const descricao = document.getElementById('input-criminoso-desc').value.trim();
+
+  if (!nome || !crime || !descricao) {
+    alert("Preencha todos os campos.");
+    return;
+  }
+
+  try {
+    await db.collection('bancoCriminais').add({
+      nome,
+      crime,
+      descricao,
+      autor: usuarioLogado,
+      data: new Date()
+    });
+    alert("Registro criminal enviado com sucesso!");
+    mostrarAreaLogado();
+  } catch (e) {
+    alert("Erro ao enviar registro: " + e.message);
+  }
+};
+
+    
   // Evento login
   document.getElementById('btn-submit-login').onclick = async () => {
     clearMessages();
