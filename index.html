@@ -141,6 +141,7 @@
     <div id="area-logado" class="hidden container">
       <div id="welcome-user" style="margin-bottom:16px; text-align:center;"></div>
       <div class="btn-group">
+        <button id="btn-create-portaria" class="btn-admin hidden">Criar Portaria</button>
         <button id="btn-view-boletins">Ver Boletins</button>
         <button id="btn-admin" class="btn-admin hidden">Administração</button>
         <button id="btn-register-member" class="btn-admin hidden">Registrar Membro</button>
@@ -161,6 +162,17 @@
       <div id="usuarios-container"></div>
       <button id="btn-back-usuarios" class="btn-danger">Voltar</button>
     </div>
+
+<div id="form-portaria" class="hidden container">
+  <h2>Criar Portaria</h2>
+  <input id="input-port-titulo" placeholder="Título da portaria" maxlength="100" />
+  <textarea id="input-port-desc" placeholder="Descrição da portaria" maxlength="500"></textarea>
+  <div class="btn-group">
+    <button id="btn-submit-portaria">Enviar Portaria</button>
+    <button id="btn-cancel-portaria" class="btn-danger">Cancelar</button>
+  </div>
+  <div id="msg-portaria" class="error-msg hidden"></div>
+</div>
 
     <!-- Registrar membro -->
     <div id="form-register-member" class="hidden container">
@@ -268,9 +280,8 @@
     document.getElementById('input-password').value = '';
   }
 
- function mostrarAreaLogado() {
+function mostrarAreaLogado() {
   esconderTodos();
-  esconder('main-menu'); // <-- isso esconde os botões do menu principal ao logar
   mostrar('area-logado');
   document.getElementById('welcome-user').textContent = `Bem vindo, senhor ${usuarioLogado} (${cargoLogado}).`;
 
@@ -278,11 +289,14 @@
   if(hierarquia[cargoLogado] >= hierarquia['Delegado']) {
     mostrar('btn-admin');
     mostrar('btn-register-member');
+    mostrar('btn-create-portaria'); // ✅ Mostrar botão de portaria também
   } else {
     esconder('btn-admin');
     esconder('btn-register-member');
+    esconder('btn-create-portaria'); // ✅ Esconder se não for Delegado ou superior
   }
 }
+
 
 
   // Mostrar lista boletins
