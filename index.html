@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -63,23 +64,6 @@
     padding: 3px 7px;
     border-radius: 3px;
   }
-  /* Novo estilo para formulário registro membro */
-  #registro-membro-form {
-    margin-top: 10px;
-    background-color: #003366;
-    padding: 15px;
-    border-radius: 6px;
-    max-width: 320px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-  #registro-membro-form input {
-    width: 90%;
-  }
-  #registro-membro-form button {
-    margin-top: 8px;
-    width: 45%;
-  }
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -117,21 +101,9 @@
   <h2 id="msg-logado"></h2>
   <button id="btn-ver-boletins" class="blue">Ver Boletins</button>
   <button id="btn-administracao" class="admin-btn hidden">Administração</button>
-  <!-- Novo botão registrar membro -->
-  <button id="btn-registrar-membro" class="admin-btn hidden">Registrar Membro</button>
   <button id="btn-sair" class="blue">Sair</button>
   <div id="boletins-list" class="hidden"></div>
   <div id="usuarios-list" class="hidden"></div>
-
-  <!-- Formulário para registrar membro novo -->
-  <div id="registro-membro-form" class="hidden">
-    <h3>Registrar Novo Membro</h3>
-    <input type="text" id="reg-usuario" placeholder="Usuário" autocomplete="username"/><br />
-    <input type="password" id="reg-senha" placeholder="Senha" autocomplete="new-password"/><br />
-    <button class="blue" id="btn-registrar">Registrar</button>
-    <button class="blue" id="btn-cancelar-registro">Cancelar</button>
-    <p id="reg-msg" style="color:#ffdd55; display:none;"></p>
-  </div>
 </div>
 
 <script>
@@ -183,18 +155,9 @@
   const msgLogado = document.getElementById('msg-logado');
   const btnVerBoletins = document.getElementById('btn-ver-boletins');
   const btnAdministracao = document.getElementById('btn-administracao');
-  const btnRegistrarMembro = document.getElementById('btn-registrar-membro');
   const btnSair = document.getElementById('btn-sair');
   const boletinsList = document.getElementById('boletins-list');
   const usuariosList = document.getElementById('usuarios-list');
-
-  // Form registro novo membro
-  const registroMembroForm = document.getElementById('registro-membro-form');
-  const regUsuario = document.getElementById('reg-usuario');
-  const regSenha = document.getElementById('reg-senha');
-  const btnRegistrar = document.getElementById('btn-registrar');
-  const btnCancelarRegistro = document.getElementById('btn-cancelar-registro');
-  const regMsg = document.getElementById('reg-msg');
 
   // Estado login
   let usuarioLogado = null;
@@ -223,7 +186,6 @@
     logadoArea.classList.add('hidden');
     boletinsList.classList.add('hidden');
     usuariosList.classList.add('hidden');
-    registroMembroForm.classList.add('hidden');
   }
   function mostrarBoletimForm() {
     mainButtons.style.display = 'none';
@@ -247,155 +209,274 @@
     logadoArea.classList.remove('hidden');
     boletinsList.classList.add('hidden');
     usuariosList.classList.add('hidden');
-    registroMembroForm.classList.add('hidden');
-    regMsg.style.display = 'none';
-    regUsuario.value = '';
-    regSenha.value = '';
-
     msgLogado.textContent = `Bem vindo, senhor ${usuarioLogado} (${cargoLogado}).`;
 
-   // Mostrar botão Administração e Registrar Membro só para Delegado e Diretor Geral
-if (cargoLogado === 'Delegado' || cargoLogado === 'Diretor Geral') {
-  btnAdministracao.classList.remove('hidden');
-  btnRegistrarMembro.classList.remove('hidden');
-} else {
-  btnAdministracao.classList.add('hidden');
-  btnRegistrarMembro.classList.add('hidden');
-}
-
-// Função para mostrar a área do usuário logado
-function mostrarLogadoArea() {
-  mainArea.classList.add('hidden');
-  loginForm.classList.add('hidden');
-  boletimForm.classList.add('hidden');
-  usuarioLogadoArea.classList.remove('hidden');
-
-  nomeUsuarioLogado.textContent = `Usuário: ${usuarioLogado} (${cargoLogado})`;
-
-  // Mostrar ou esconder botões dependendo do cargo
-  if (cargoLogado === 'Delegado' || cargoLogado === 'Diretor Geral') {
-    btnAdministracao.classList.remove('hidden');
-    btnRegistrarMembro.classList.remove('hidden');
-  } else {
-    btnAdministracao.classList.add('hidden');
-    btnRegistrarMembro.classList.add('hidden');
+    // Mostrar botão Administração só para Delegado e Diretor Geral
+    if (cargoLogado === 'Delegado' || cargoLogado === 'Diretor Geral') {
+      btnAdministracao.classList.remove('hidden');
+    } else {
+      btnAdministracao.classList.add('hidden');
+    }
   }
-}
 
-// Função para mostrar tela principal
-function mostrarMain() {
-  mainArea.classList.remove('hidden');
-  loginForm.classList.add('hidden');
-  boletimForm.classList.add('hidden');
-  usuarioLogadoArea.classList.add('hidden');
-  boletinsList.classList.add('hidden');
-  usuariosList.classList.add('hidden');
+  // Função para carregar boletins e mostrar botão excluir para cargos >= Delegado
+  async function carregarBoletins() {
+    boletinsList.innerHTML = '<h3>Boletins Registrados:</h3>';
+    boletinsList.classList.remove('hidden');
 
-  // Limpar erros de login
-  loginError.style.display = 'none';
-  inputUsuario.value = '';
-  inputSenha.value = '';
-
-  // Limpar formulário boletim
-  nomeDenuncia.value = '';
-  nomeAcusado.value = '';
-  descricao.value = '';
-
-  // Mostrar botões principais para não logados
-  btnAdministracao.classList.add('hidden');
-  btnRegistrarMembro.classList.add('hidden');
-}
-
-// Função para mostrar formulário de login
-function mostrarLoginForm() {
-  mainArea.classList.add('hidden');
-  loginForm.classList.remove('hidden');
-  boletimForm.classList.add('hidden');
-  usuarioLogadoArea.classList.add('hidden');
-
-  loginError.style.display = 'none';
-  inputUsuario.value = '';
-  inputSenha.value = '';
-}
-
-// Função para mostrar formulário boletim
-function mostrarBoletimForm() {
-  mainArea.classList.add('hidden');
-  loginForm.classList.add('hidden');
-  boletimForm.classList.remove('hidden');
-  usuarioLogadoArea.classList.add('hidden');
-
-  nomeDenuncia.value = '';
-  nomeAcusado.value = '';
-  descricao.value = '';
-}
-
-// Função para carregar e mostrar boletins no sistema
-function carregarBoletins() {
-  boletinsList.innerHTML = 'Carregando boletins...';
-  boletinsList.classList.remove('hidden');
-
-  db.collection('boletins').orderBy('data', 'desc').get()
-    .then(snapshot => {
+    try {
+      const snapshot = await db.collection('boletins').orderBy('data', 'desc').get();
       if (snapshot.empty) {
-        boletinsList.innerHTML = '<p>Nenhum boletim registrado.</p>';
+        boletinsList.innerHTML += '<p>Nenhum boletim encontrado.</p>';
         return;
       }
 
-      let html = '<ul>';
       snapshot.forEach(doc => {
-        const data = doc.data();
-        const dataFormatada = data.data.toDate().toLocaleString();
-        html += `<li><b>Denunciante:</b> ${data.nomeDenuncia} | <b>Acusado:</b> ${data.nomeAcusado} | <b>Descrição:</b> ${data.descricao} | <b>Data:</b> ${dataFormatada}</li>`;
+        const dataObj = doc.data();
+        const dataFormatada = new Date(dataObj.data.seconds * 1000).toLocaleString('pt-BR');
+
+        // Botão excluir aparece só para cargos >= Delegado
+        const podeExcluir = hierarquia[cargoLogado] >= hierarquia['Delegado'];
+        const deleteBtnHTML = podeExcluir ? `<button class="delete-btn user-action-btn" onclick="excluirBoletim('${doc.id}')">Excluir</button>` : '';
+
+        boletinsList.innerHTML +=
+          `<div>
+            <strong>Denunciante:</strong> ${dataObj.nomeDenuncia} <br />
+            <strong>Acusado:</strong> ${dataObj.nomeAcusado} <br />
+            <strong>Descrição:</strong> ${dataObj.descricao} <br />
+            <small><em>Data: ${dataFormatada}</em></small> 
+            ${deleteBtnHTML}
+          </div>`;
       });
-      html += '</ul>';
-      boletinsList.innerHTML = html;
-    })
-    .catch(e => {
-      boletinsList.innerHTML = `<p>Erro ao carregar boletins: ${e.message}</p>`;
-    });
-}
+    } catch(e) {
+      boletinsList.innerHTML += `<p>Erro ao buscar boletins: ${e.message}</p>`;
+    }
+  }
 
-// Função para mostrar lista de usuários para administração
-function mostrarUsuarios() {
-  usuariosList.innerHTML = 'Carregando usuários...';
-  usuariosList.classList.remove('hidden');
+  // Excluir boletim
+  window.excluirBoletim = async function(id) {
+    if (!confirm('Confirma exclusão do boletim?')) return;
+    try {
+      await db.collection('boletins').doc(id).delete();
+      alert('Boletim excluído.');
+      carregarBoletins();
+    } catch(e) {
+      alert('Erro ao excluir boletim: ' + e.message);
+    }
+  }
 
-  db.collection('usuarios').get()
-    .then(snapshot => {
+  // Mostrar lista de usuários para Administração
+  async function mostrarUsuarios() {
+    usuariosList.innerHTML = '<h3>Usuários Registrados:</h3>';
+    usuariosList.classList.remove('hidden');
+    boletinsList.classList.add('hidden');
+
+    try {
+      const snapshot = await db.collection('usuarios').orderBy('usuario').get();
       if (snapshot.empty) {
-        usuariosList.innerHTML = '<p>Nenhum usuário cadastrado.</p>';
+        usuariosList.innerHTML += '<p>Nenhum usuário encontrado.</p>';
         return;
       }
 
-      let html = '<ul>';
       snapshot.forEach(doc => {
-        const data = doc.data();
-        html += `<li><b>Usuário:</b> ${data.usuario} | <b>Cargo:</b> ${data.cargo}</li>`;
+        const user = doc.data();
+        const userId = doc.id;
+        const nivelUser = hierarquia[user.cargo] || 0;
+        const nivelLogado = hierarquia[cargoLogado] || 0;
+
+        // Permissões para promover/rebaixar/exonerar:
+        // Só pode mexer se o usuário alvo for de nível inferior
+        // Não pode mexer em si mesmo
+        let botoes = '';
+        if (userId !== usuarioLogado && nivelLogado > nivelUser) {
+          botoes += `<button class="user-action-btn" onclick="promoverUsuario('${userId}')">Promover</button>`;
+          botoes += `<button class="user-action-btn" onclick="rebaixarUsuario('${userId}')">Rebaixar</button>`;
+          botoes += `<button class="user-action-btn delete-btn" onclick="exonerarUsuario('${userId}')">Exonerar</button>`;
+        }
+
+        usuariosList.innerHTML += 
+          `<div>
+            <strong>Usuário:</strong> ${user.usuario} <br />
+            <strong>Senha:</strong> ${user.senha} <br />
+            <strong>Cargo:</strong> ${user.cargo}
+            ${botoes}
+          </div>`;
       });
-      html += '</ul>';
-      usuariosList.innerHTML = html;
-    })
-    .catch(e => {
-      usuariosList.innerHTML = `<p>Erro ao carregar usuários: ${e.message}</p>`;
-    });
-}
 
-// Função para garantir que exista o usuário Gabriel no banco
-async function garantirUsuarioGabriel() {
-  const gabrielRef = db.collection('usuarios').doc('Gabriel');
-  const doc = await gabrielRef.get();
-  if (!doc.exists) {
-    await gabrielRef.set({
-      usuario: 'Gabriel',
-      senha: 'DG',
-      cargo: 'Diretor Geral'
-    });
+    } catch(e) {
+      usuariosList.innerHTML += `<p>Erro ao buscar usuários: ${e.message}</p>`;
+    }
   }
-}
 
-// Chamada inicial
-garantirUsuarioGabriel().then(() => {
-  mostrarMain();
-});
+  // Funções administração
+  window.promoverUsuario = async function(userId) {
+    const doc = await db.collection('usuarios').doc(userId).get();
+    if (!doc.exists) return alert('Usuário não encontrado.');
 
+    const user = doc.data();
+    const nivelAtual = hierarquia[user.cargo];
+    if (nivelAtual >= Object.keys(hierarquia).length) {
+      return alert('Não pode promover mais.');
+    }
+
+    // Encontrar próximo cargo superior
+    const cargos = Object.entries(hierarquia).sort((a,b) => a[1] - b[1]);
+    const proximoCargo = cargos.find(([cargo, nivel]) => nivel === nivelAtual + 1);
+    if (!proximoCargo) return alert('Erro ao promover usuário.');
+
+    if (hierarquia[cargoLogado] <= hierarquia[user.cargo]) {
+      return alert('Você não pode promover usuário de nível igual ou superior.');
+    }
+
+    try {
+      await db.collection('usuarios').doc(userId).update({
+        cargo: proximoCargo[0]
+      });
+      alert(`Usuário promovido para ${proximoCargo[0]}.`);
+      mostrarUsuarios();
+    } catch(e) {
+      alert('Erro ao promover usuário: ' + e.message);
+    }
+  };
+
+  window.rebaixarUsuario = async function(userId) {
+    const doc = await db.collection('usuarios').doc(userId).get();
+    if (!doc.exists) return alert('Usuário não encontrado.');
+
+    const user = doc.data();
+    const nivelAtual = hierarquia[user.cargo];
+    if (nivelAtual <= 1) {
+      return alert('Não pode rebaixar mais.');
+    }
+
+    // Encontrar próximo cargo inferior
+    const cargos = Object.entries(hierarquia).sort((a,b) => a[1] - b[1]);
+    const proximoCargo = cargos.find(([cargo, nivel]) => nivel === nivelAtual - 1);
+    if (!proximoCargo) return alert('Erro ao rebaixar usuário.');
+
+    if (hierarquia[cargoLogado] <= hierarquia[user.cargo]) {
+      return alert('Você não pode rebaixar usuário de nível igual ou superior.');
+    }
+
+    try {
+      await db.collection('usuarios').doc(userId).update({
+        cargo: proximoCargo[0]
+      });
+      alert(`Usuário rebaixado para ${proximoCargo[0]}.`);
+      mostrarUsuarios();
+    } catch(e) {
+      alert('Erro ao rebaixar usuário: ' + e.message);
+    }
+  };
+
+  window.exonerarUsuario = async function(userId) {
+    if (!confirm('Tem certeza que deseja exonerar (remover) este usuário?')) return;
+    if (userId === usuarioLogado) return alert('Você não pode exonerar a si mesmo.');
+
+    const doc = await db.collection('usuarios').doc(userId).get();
+    if (!doc.exists) return alert('Usuário não encontrado.');
+
+    if (hierarquia[cargoLogado] <= hierarquia[doc.data().cargo]) {
+      return alert('Você não pode exonerar usuário de nível igual ou superior.');
+    }
+
+    try {
+      await db.collection('usuarios').doc(userId).delete();
+      alert('Usuário exonerado (removido) com sucesso.');
+      mostrarUsuarios();
+    } catch(e) {
+      alert('Erro ao exonerar usuário: ' + e.message);
+    }
+  };
+
+  // Botões principais
+  btnBoletim.onclick = () => mostrarBoletimForm();
+  btnPortaria.onclick = () => alert('Portarias: Teste 1 e Teste 2');
+  btnLogar.onclick = () => mostrarLoginForm();
+
+  // Botões formulário boletim
+  btnVoltarBoletim.onclick = () => mostrarMain();
+  btnEnviarBoletim.onclick = () => {
+    const nomeD = nomeDenuncia.value.trim();
+    const nomeA = nomeAcusado.value.trim();
+    const desc = descricao.value.trim();
+
+    if (!nomeD || !nomeA || !desc) {
+      alert('Preencha todos os campos.');
+      return;
+    }
+
+    db.collection('boletins').add({
+      nomeDenuncia: nomeD,
+      nomeAcusado: nomeA,
+      descricao: desc,
+      data: new Date()
+    }).then(() => {
+      alert('Boletim registrado com sucesso!');
+      mostrarMain();
+    }).catch(e => {
+      alert('Erro ao registrar boletim: ' + e.message);
+    });
+  };
+
+  // Botões login
+  btnVoltarLogin.onclick = () => mostrarMain();
+
+  btnEntrar.onclick = async () => {
+    const usuario = inputUsuario.value.trim();
+    const senha = inputSenha.value.trim();
+
+    if (!usuario || !senha) {
+      loginError.textContent = 'Preencha usuário e senha.';
+      loginError.style.display = 'block';
+      return;
+    }
+
+    try {
+      const doc = await db.collection('usuarios').doc(usuario).get();
+      if (!doc.exists) {
+                loginError.textContent = 'Usuário ou senha incorretos.';
+        loginError.style.display = 'block';
+        return;
+      }
+
+      const user = doc.data();
+      if (user.senha !== senha) {
+        loginError.textContent = 'Usuário ou senha incorretos.';
+        loginError.style.display = 'block';
+        return;
+      }
+
+      usuarioLogado = user.usuario;
+      cargoLogado = user.cargo;
+      mostrarLogadoArea();
+    } catch (e) {
+      loginError.textContent = 'Erro ao tentar logar: ' + e.message;
+      loginError.style.display = 'block';
+    }
+  };
+
+  // Botões após login
+  btnSair.onclick = () => {
+    usuarioLogado = null;
+    cargoLogado = null;
+    mostrarMain();
+  };
+
+  btnVerBoletins.onclick = () => {
+    carregarBoletins();
+    usuariosList.classList.add('hidden');
+  };
+
+  btnAdministracao.onclick = () => {
+    mostrarUsuarios();
+    boletinsList.classList.add('hidden');
+  };
+
+  // Inicializar
+  garantirUsuarioGabriel().then(() => {
+    mostrarMain();
+  });
+</script>
+</body>
+</html>
