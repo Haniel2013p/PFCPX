@@ -11,12 +11,30 @@
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     h1, h2, h3 {
       font-weight: normal;
+      text-align: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     .hidden {
       display: none;
+    }
+    .btn-group {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
     }
     button {
       background-color: #0074D9;
@@ -34,52 +52,41 @@
     }
     input, textarea {
       display: block;
-      margin: 8px 0;
+      margin: 8px auto;
       padding: 8px;
       border-radius: 5px;
       border: none;
-      width: 300px;
+      width: 100%;
+      max-width: 400px;
       font-size: 16px;
     }
     textarea {
-      width: 400px;
       height: 100px;
       resize: vertical;
     }
-    .error-msg {
-      color: #ff6b6b;
-      font-weight: bold;
+    .error-msg, .success-msg {
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
       margin-top: 5px;
-    }
-    .success-msg {
-      color: #2ecc71;
       font-weight: bold;
-      margin-top: 5px;
     }
-    .btn-danger {
-      background-color: #ff4136;
-    }
-    .btn-danger:hover {
-      background-color: #cc342a;
-    }
-    .btn-admin {
-      background-color: #39CCCC;
-    }
-    .btn-admin:hover {
-      background-color: #2a9a9a;
-    }
+    .error-msg { color: #ff6b6b; }
+    .success-msg { color: #2ecc71; }
+    .btn-danger { background-color: #ff4136; }
+    .btn-danger:hover { background-color: #cc342a; }
+    .btn-admin { background-color: #39CCCC; }
+    .btn-admin:hover { background-color: #2a9a9a; }
     .list-item {
       background-color: #003366;
       padding: 10px;
       margin-bottom: 8px;
       border-radius: 5px;
+      width: 100%;
+      max-width: 400px;
     }
-    .list-item strong {
-      font-weight: bold;
-    }
-    .user-actions button {
-      margin-left: 8px;
-    }
+    .list-item strong { font-weight: bold; }
+    .user-actions { display: flex; justify-content: center; gap: 8px; margin-top: 5px; }
   </style>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -89,76 +96,88 @@
 
   <h1 id="welcome-title">Bem vindo ao site da Polícia Federal do Complexo RP</h1>
 
-  <!-- Área principal com botões -->
-  <div id="main-menu">
-    <button id="btn-open-boletim">Registrar Boletim</button>
-    <button id="btn-open-portaria">Portarias</button>
-    <button id="btn-open-login">Login</button>
-  </div>
+  <div class="container">
 
-  <!-- Formulário para registrar boletim -->
-  <div id="form-boletim" class="hidden">
-    <h2>Registrar Boletim</h2>
-    <input id="input-denuncia" placeholder="Nome da denúncia" maxlength="50" />
-    <input id="input-acusado" placeholder="Nome do acusado" maxlength="50" />
-    <textarea id="input-descricao" placeholder="Descrição detalhada" maxlength="500"></textarea>
-    <button id="btn-submit-boletim">Enviar Boletim</button>
-    <button id="btn-cancel-boletim" class="btn-danger">Cancelar</button>
-    <div id="msg-boletim" class="error-msg hidden"></div>
-  </div>
+    <!-- Área principal -->
+    <div id="main-menu" class="btn-group">
+      <button id="btn-open-boletim">Registrar Boletim</button>
+      <button id="btn-open-portaria">Portarias</button>
+      <button id="btn-open-login">Login</button>
+    </div>
 
-  <!-- Área das portarias -->
-  <div id="area-portarias" class="hidden">
-    <h2>Portarias</h2>
-    <p>Aqui estarão as portarias publicadas.</p>
-    <button id="btn-back-portarias" class="btn-danger">Voltar</button>
-  </div>
+    <!-- Registrar Boletim -->
+    <div id="form-boletim" class="hidden container">
+      <h2>Registrar Boletim</h2>
+      <input id="input-denuncia" placeholder="Nome da denúncia" maxlength="50" />
+      <input id="input-acusado" placeholder="Nome do acusado" maxlength="50" />
+      <textarea id="input-descricao" placeholder="Descrição detalhada" maxlength="500"></textarea>
+      <div class="btn-group">
+        <button id="btn-submit-boletim">Enviar Boletim</button>
+        <button id="btn-cancel-boletim" class="btn-danger">Cancelar</button>
+      </div>
+      <div id="msg-boletim" class="error-msg hidden"></div>
+    </div>
 
-  <!-- Formulário login -->
-  <div id="form-login" class="hidden">
-    <h2>Login</h2>
-    <input id="input-username" placeholder="Usuário" maxlength="30" />
-    <input id="input-password" type="password" placeholder="Senha" maxlength="30" />
-    <button id="btn-submit-login">Entrar</button>
-    <button id="btn-cancel-login" class="btn-danger">Cancelar</button>
-    <div id="msg-login-error" class="error-msg hidden">Usuário ou senha inválidos.</div>
-  </div>
+    <!-- Portarias -->
+    <div id="area-portarias" class="hidden container">
+      <h2>Portarias</h2>
+      <p>Aqui estarão as portarias publicadas.</p>
+      <button id="btn-back-portarias" class="btn-danger">Voltar</button>
+    </div>
 
-  <!-- Área após login -->
-  <div id="area-logado" class="hidden">
-    <div id="welcome-user"></div>
-    <button id="btn-view-boletins">Ver Boletins</button>
-    <button id="btn-admin" class="btn-admin hidden">Administração</button>
-    <button id="btn-register-member" class="btn-admin hidden">Registrar Membro</button>
-    <button id="btn-logout" class="btn-danger">Sair</button>
-  </div>
+    <!-- Login -->
+    <div id="form-login" class="hidden container">
+      <h2>Login</h2>
+      <input id="input-username" placeholder="Usuário" maxlength="30" />
+      <input id="input-password" type="password" placeholder="Senha" maxlength="30" />
+      <div class="btn-group">
+        <button id="btn-submit-login">Entrar</button>
+        <button id="btn-cancel-login" class="btn-danger">Cancelar</button>
+      </div>
+      <div id="msg-login-error" class="error-msg hidden"></div>
+    </div>
 
-  <!-- Lista de boletins -->
-  <div id="lista-boletins" class="hidden">
-    <h3>Boletins Registrados</h3>
-    <div id="boletins-container"></div>
-    <button id="btn-back-boletins" class="btn-danger">Voltar</button>
-  </div>
+    <!-- Área logado -->
+    <div id="area-logado" class="hidden container">
+      <div id="welcome-user" style="margin-bottom:16px; text-align:center;"></div>
+      <div class="btn-group">
+        <button id="btn-view-boletins">Ver Boletins</button>
+        <button id="btn-admin" class="btn-admin hidden">Administração</button>
+        <button id="btn-register-member" class="btn-admin hidden">Registrar Membro</button>
+        <button id="btn-logout" class="btn-danger">Sair</button>
+      </div>
+    </div>
 
-  <!-- Lista de usuários para administração -->
-  <div id="lista-usuarios" class="hidden">
-    <h3>Gerenciar Usuários</h3>
-    <div id="usuarios-container"></div>
-    <button id="btn-back-usuarios" class="btn-danger">Voltar</button>
-  </div>
+    <!-- Lista de boletins -->
+    <div id="lista-boletins" class="hidden container">
+      <h3>Boletins Registrados</h3>
+      <div id="boletins-container"></div>
+      <button id="btn-back-boletins" class="btn-danger">Voltar</button>
+    </div>
 
-  <!-- Formulário registrar novo membro -->
-  <div id="form-register-member" class="hidden">
-    <h2>Registrar Novo Membro</h2>
-    <input id="input-new-username" placeholder="Novo Usuário" maxlength="30" />
-    <input id="input-new-password" type="password" placeholder="Senha" maxlength="30" />
-    <button id="btn-submit-register-member">Registrar</button>
-    <button id="btn-cancel-register-member" class="btn-danger">Cancelar</button>
-    <div id="msg-register-member" class="error-msg hidden"></div>
-  </div>
+    <!-- Lista de usuários -->
+    <div id="lista-usuarios" class="hidden container">
+      <h3>Gerenciar Usuários</h3>
+      <div id="usuarios-container"></div>
+      <button id="btn-back-usuarios" class="btn-danger">Voltar</button>
+    </div>
 
-<script>
-  // Firebase config original
+    <!-- Registrar membro -->
+    <div id="form-register-member" class="hidden container">
+      <h2>Registrar Novo Membro</h2>
+      <input id="input-new-username" placeholder="Novo Usuário" maxlength="30" />
+      <input id="input-new-password" type="password" placeholder="Senha" maxlength="30" />
+      <div class="btn-group">
+        <button id="btn-submit-register-member">Registrar</button>
+        <button id="btn-cancel-register-member" class="btn-danger">Cancelar</button>
+      </div>
+      <div id="msg-register-member" class="error-msg hidden"></div>
+    </div>
+
+  </div> <!-- fim container -->
+
+  <script>
+// Firebase config original
   const firebaseConfig = {
     apiKey: "AIzaSyBuaVeRTLVxpAyboRiWS6E4KYHWlYZgMEw",
     authDomain: "pfcpx-c0b9b.firebaseapp.com",
@@ -547,7 +566,7 @@
 
   // Inicializa mostrando o menu principal
   mostrarMenuPrincipal();
-</script>
+  </script>
 
 </body>
 </html>
