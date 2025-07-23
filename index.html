@@ -354,8 +354,22 @@ function mostrarAreaLogado() {
       msg.textContent = "Preencha todos os campos.";
       msg.classList.remove('hidden');
       return;
+    }   
+    try {
+      await db.collection('boletins').add({
+        nomeDenuncia: denuncia,
+        nomeAcusado: acusado,
+        descricao,
+        data: new Date()
+      });
+      alert('Boletim registrado com sucesso!');
+      mostrarMenuPrincipal();
+    } catch(e) {
+      const msg = document.getElementById('msg-boletim');
+      msg.textContent = 'Erro ao registrar boletim: ' + e.message;
+      msg.classList.remove('hidden');
     }
-
+  };
 // Evento submit portaria
 document.getElementById('btn-submit-portaria').onclick = async () => {
   const titulo = document.getElementById('input-port-titulo').value.trim();
@@ -385,24 +399,6 @@ document.getElementById('btn-submit-portaria').onclick = async () => {
     msg.classList.remove('hidden');
   }
 };
-
-    
-    try {
-      await db.collection('boletins').add({
-        nomeDenuncia: denuncia,
-        nomeAcusado: acusado,
-        descricao,
-        data: new Date()
-      });
-      alert('Boletim registrado com sucesso!');
-      mostrarMenuPrincipal();
-    } catch(e) {
-      const msg = document.getElementById('msg-boletim');
-      msg.textContent = 'Erro ao registrar boletim: ' + e.message;
-      msg.classList.remove('hidden');
-    }
-  };
-
   // Evento login
   document.getElementById('btn-submit-login').onclick = async () => {
     clearMessages();
