@@ -65,7 +65,7 @@
       margin: 5px;
       padding: 10px;
       font-size: 16px;
-      background-color: #2563eb; /* azul */
+      background-color: #2563eb;
       color: white;
       border: none;
       border-radius: 5px;
@@ -76,6 +76,23 @@
       margin-top: 20px;
       color: #22c55e;
       text-align: center;
+    }
+
+    #portarias {
+      display: none;
+      margin-top: 30px;
+    }
+
+    #portarias h2 {
+      margin-bottom: 10px;
+    }
+
+    .portaria-item {
+      background-color: #1e293b;
+      margin: 10px auto;
+      padding: 15px;
+      max-width: 400px;
+      border-radius: 5px;
     }
   </style>
 </head>
@@ -105,9 +122,16 @@
     <p id="enviado"></p>
   </form>
 
+  <div id="portarias">
+    <h2>Portarias</h2>
+    <div class="portaria-item">Teste 1</div>
+    <div class="portaria-item">Teste 2</div>
+  </div>
+
   <script>
     function mostrarFormulario() {
       document.getElementById('formBo').style.display = 'block';
+      document.getElementById('portarias').style.display = 'none';
       document.getElementById('enviado').innerText = '';
     }
 
@@ -116,8 +140,10 @@
     }
 
     function abrirPortarias() {
-      // Por enquanto, não faz nada
-      alert("Em breve: Portarias");
+      const portariaSecao = document.getElementById('portarias');
+      const formulario = document.getElementById('formBo');
+      formulario.style.display = 'none';
+      portariaSecao.style.display = 'block';
     }
 
     document.getElementById('formBo').addEventListener('submit', function(e) {
