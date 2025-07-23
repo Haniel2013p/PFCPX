@@ -59,6 +59,13 @@
     .btn-danger {
       background-color: #ff4136;
     }
+.btn-group {
+  display: flex;
+  justify-content: center;
+  gap: 10px; /* espaço entre os botões */
+  margin-bottom: 20px;
+}
+
     .btn-danger:hover {
       background-color: #cc342a;
     }
@@ -88,13 +95,13 @@
 <body>
 
   <h1 id="welcome-title">Bem vindo ao site da Polícia Federal do Complexo RP</h1>
+<!-- Área principal com botões -->
+<div id="main-menu" class="btn-group">
+  <button id="btn-open-boletim">Registrar Boletim</button>
+  <button id="btn-open-portaria">Portarias</button>
+  <button id="btn-open-login">Login</button>
+</div>
 
-  <!-- Área principal com botões -->
-  <div id="main-menu">
-    <button id="btn-open-boletim">Registrar Boletim</button>
-    <button id="btn-open-portaria">Portarias</button>
-    <button id="btn-open-login">Login</button>
-  </div>
 
   <!-- Formulário para registrar boletim -->
   <div id="form-boletim" class="hidden">
