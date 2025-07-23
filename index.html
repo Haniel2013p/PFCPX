@@ -25,7 +25,7 @@
     .menu-buttons button {
       padding: 15px 30px;
       font-size: 18px;
-      background-color: #2563eb; /* azul */
+      background-color: #2563eb;
       color: white;
       border: none;
       border-radius: 5px;
@@ -33,7 +33,7 @@
       cursor: pointer;
     }
 
-    form {
+    form, #loginForm {
       margin-top: 30px;
       display: none;
       max-width: 400px;
@@ -102,9 +102,10 @@
   <div class="menu-buttons">
     <button onclick="mostrarFormulario()">Boletim de Ocorrência</button>
     <button onclick="abrirPortarias()">Portarias</button>
-    <button>Logar</button> <!-- Botão vazio por enquanto -->
+    <button onclick="abrirLogin()">Logar</button>
   </div>
 
+  <!-- Formulário de Boletim -->
   <form id="formBo">
     <label>Nome do denunciante / Reporter:</label>
     <input type="text" id="denunciante" required>
@@ -123,16 +124,31 @@
     <p id="enviado"></p>
   </form>
 
+  <!-- Seção Portarias -->
   <div id="portarias">
     <h2>Portarias</h2>
     <div class="portaria-item">Teste 1</div>
     <div class="portaria-item">Teste 2</div>
   </div>
 
+  <!-- Formulário de Login -->
+  <div id="loginForm">
+    <label>Usuário:</label>
+    <input type="text" id="usuario">
+
+    <label>Senha:</label>
+    <input type="password" id="senha">
+
+    <div class="form-buttons">
+      <button onclick="entrarLogin()">Entrar</button>
+    </div>
+  </div>
+
   <script>
     function mostrarFormulario() {
       document.getElementById('formBo').style.display = 'block';
       document.getElementById('portarias').style.display = 'none';
+      document.getElementById('loginForm').style.display = 'none';
       document.getElementById('enviado').innerText = '';
     }
 
@@ -141,10 +157,20 @@
     }
 
     function abrirPortarias() {
-      const portariaSecao = document.getElementById('portarias');
-      const formulario = document.getElementById('formBo');
-      formulario.style.display = 'none';
-      portariaSecao.style.display = 'block';
+      document.getElementById('portarias').style.display = 'block';
+      document.getElementById('formBo').style.display = 'none';
+      document.getElementById('loginForm').style.display = 'none';
+    }
+
+    function abrirLogin() {
+      document.getElementById('loginForm').style.display = 'block';
+      document.getElementById('formBo').style.display = 'none';
+      document.getElementById('portarias').style.display = 'none';
+    }
+
+    function entrarLogin() {
+      // Ainda não faz nada — você pode adicionar ação depois
+      alert("Login clicado! (ainda sem função)");
     }
 
     document.getElementById('formBo').addEventListener('submit', function(e) {
