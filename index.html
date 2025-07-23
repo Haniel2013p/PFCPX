@@ -177,391 +177,397 @@
   </div> <!-- fim container -->
 
   <script>
-    // Firebase config original
-    const firebaseConfig = {
-      apiKey: "AIzaSyBuaVeRTLVxpAyboRiWS6E4KYHWlYZgMEw",
-      authDomain: "pfcpx-c0b9b.firebaseapp.com",
-      projectId: "pfcpx-c0b9b",
-      storageBucket: "pfcpx-c0b9b.firebasestorage.app",
-      messagingSenderId: "322312831509",
-      appId: "1:322312831509:web:e5fe68609d34db6345c41c",
-      measurementId: "G-24QF5E8Q5E"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+// Firebase config original
+  const firebaseConfig = {
+    apiKey: "AIzaSyBuaVeRTLVxpAyboRiWS6E4KYHWlYZgMEw",
+    authDomain: "pfcpx-c0b9b.firebaseapp.com",
+    projectId: "pfcpx-c0b9b",
+    storageBucket: "pfcpx-c0b9b.firebasestorage.app",
+    messagingSenderId: "322312831509",
+    appId: "1:322312831509:web:e5fe68609d34db6345c41c",
+    measurementId: "G-24QF5E8Q5E"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-    // Hierarquia para cargos
-    const hierarquia = {
-      "Agente":1,
-      "Perito":2,
-      "Escrivão":3,
-      "Delegado":4,
-      "Diretor Geral":5
-    };
+  // Hierarquia para cargos
+  const hierarquia = {
+    "Agente":1,
+    "Perito":2,
+    "Escrivão":3,
+    "Delegado":4,
+    "Diretor Geral":5
+  };
 
-    let usuarioLogado = null;
-    let cargoLogado = null;
+  let usuarioLogado = null;
+  let cargoLogado = null;
 
-    // Função para mostrar e esconder elementos
-    function mostrar(id) {
-      document.getElementById(id).classList.remove('hidden');
-    }
-    function esconder(id) {
-      document.getElementById(id).classList.add('hidden');
-    }
-    function esconderTodos() {
-      ['main-menu','form-boletim','area-portarias','form-login','area-logado','lista-boletins','lista-usuarios','form-register-member'].forEach(id => esconder(id));
-      clearMessages();
-    }
+  // Função para mostrar e esconder elementos
+  function mostrar(id) {
+    document.getElementById(id).classList.remove('hidden');
+  }
+  function esconder(id) {
+    document.getElementById(id).classList.add('hidden');
+  }
+  function esconderTodos() {
+    ['main-menu','form-boletim','area-portarias','form-login','area-logado','lista-boletins','lista-usuarios','form-register-member'].forEach(id => esconder(id));
+    clearMessages();
+  }
 
-    function clearMessages() {
-      ['msg-boletim','msg-login-error','msg-register-member'].forEach(id => {
-        const el = document.getElementById(id);
-        if(el) {
-          el.classList.add('hidden');
-          el.textContent = '';
-        }
+  function clearMessages() {
+    ['msg-boletim','msg-login-error','msg-register-member'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) {
+        el.classList.add('hidden');
+        el.textContent = '';
+      }
+    });
+  }
+
+  // Inicializar app, garantindo usuário Gabriel exista
+  async function init() {
+    const gabrielRef = db.collection('usuarios').doc('Gabriel');
+    const doc = await gabrielRef.get();
+    if(!doc.exists) {
+      await gabrielRef.set({
+        usuario: 'Gabriel',
+        senha: 'DG',
+        cargo: 'Diretor Geral'
       });
     }
-
-    // Inicializar app, garantindo usuário Gabriel exista
-    async function init() {
-      const gabrielRef = db.collection('usuarios').doc('Gabriel');
-      const doc = await gabrielRef.get();
-      if(!doc.exists) {
-        await gabrielRef.set({
-          usuario: 'Gabriel',
-          senha: 'DG',
-          cargo: 'Diretor Geral'
-        });
-      }
-    }
-    init();
-
-    // Mostrar menu principal
-    function mostrarMenuPrincipal() {
-  esconderTodos();
-  mostrar('main-menu');
-  document.getElementById('welcome-title').textContent = "Bem vindo ao site da Polícia Federal do Complexo RP";
-  usuarioLogado = null;
-  cargoLogado = null;
-}
-
-// Mostrar formulário para registrar boletim
-function mostrarFormBoletim() {
-  esconderTodos();
-  mostrar('form-boletim');
-  clearMessages();
-  document.getElementById('input-denuncia').value = '';
-  document.getElementById('input-acusado').value = '';
-  document.getElementById('input-descricao').value = '';
-}
-
-// Mostrar área de portarias
-function mostrarPortarias() {
-  esconderTodos();
-  mostrar('area-portarias');
-}
-
-// Mostrar formulário de login
-function mostrarFormLogin() {
-  esconderTodos();
-  mostrar('form-login');
-  clearMessages();
-  document.getElementById('input-username').value = '';
-  document.getElementById('input-password').value = '';
-}
-
-// Mostrar área para usuário logado
-function mostrarAreaLogado() {
-  esconderTodos();
-  mostrar('area-logado');
-  document.getElementById('welcome-user').textContent = `Olá, ${usuarioLogado} (${cargoLogado})`;
-
-  // Mostrar botões admin se cargo for alto
-  if (hierarquia[cargoLogado] >= hierarquia['Delegado']) {
-    document.getElementById('btn-admin').classList.remove('hidden');
-    document.getElementById('btn-register-member').classList.remove('hidden');
-  } else {
-    document.getElementById('btn-admin').classList.add('hidden');
-    document.getElementById('btn-register-member').classList.add('hidden');
   }
-}
+  init();
 
-// Enviar boletim para o Firestore
-async function enviarBoletim() {
-  clearMessages();
-  const denuncia = document.getElementById('input-denuncia').value.trim();
-  const acusado = document.getElementById('input-acusado').value.trim();
-  const descricao = document.getElementById('input-descricao').value.trim();
-
-  if (!denuncia || !acusado || !descricao) {
-    const msg = document.getElementById('msg-boletim');
-    msg.textContent = "Preencha todos os campos.";
-    msg.classList.remove('hidden');
-    return;
+  // Mostrar menu principal
+  function mostrarMenuPrincipal() {
+    esconderTodos();
+    mostrar('main-menu');
+    document.getElementById('welcome-title').textContent = "Bem vindo ao site da Polícia Federal do Complexo RP";
   }
 
-  try {
-    await db.collection('boletins').add({
-      denuncia,
-      acusado,
-      descricao,
-      data: new Date(),
-      autor: usuarioLogado || 'Visitante'
-    });
-    const msg = document.getElementById('msg-boletim');
-    msg.textContent = "Boletim registrado com sucesso!";
-    msg.classList.remove('hidden');
-    msg.classList.remove('error-msg');
-    msg.classList.add('success-msg');
-
-    // Limpar campos após sucesso
+  // Mostrar formulário boletim
+  function mostrarFormBoletim() {
+    esconderTodos();
+    mostrar('form-boletim');
     document.getElementById('input-denuncia').value = '';
     document.getElementById('input-acusado').value = '';
     document.getElementById('input-descricao').value = '';
-  } catch (error) {
-    const msg = document.getElementById('msg-boletim');
-    msg.textContent = "Erro ao registrar boletim: " + error.message;
-    msg.classList.remove('hidden');
-  }
-}
-
-// Realizar login
-async function login() {
-  clearMessages();
-  const username = document.getElementById('input-username').value.trim();
-  const password = document.getElementById('input-password').value.trim();
-
-  if (!username || !password) {
-    const msg = document.getElementById('msg-login-error');
-    msg.textContent = "Informe usuário e senha.";
-    msg.classList.remove('hidden');
-    return;
   }
 
-  try {
-    const userDoc = await db.collection('usuarios').doc(username).get();
-    if (!userDoc.exists) {
-      throw new Error("Usuário não encontrado.");
-    }
-    const data = userDoc.data();
-    if (data.senha !== password) {
-      throw new Error("Senha incorreta.");
-    }
-
-    usuarioLogado = username;
-    cargoLogado = data.cargo;
-
-    mostrarAreaLogado();
-  } catch (error) {
-    const msg = document.getElementById('msg-login-error');
-    msg.textContent = error.message;
-    msg.classList.remove('hidden');
+  // Mostrar área portarias
+  function mostrarAreaPortarias() {
+    esconderTodos();
+    mostrar('area-portarias');
   }
-}
 
-// Logout
-function logout() {
-  usuarioLogado = null;
-  cargoLogado = null;
-  mostrarMenuPrincipal();
-}
+  // Mostrar formulário login
+  function mostrarFormLogin() {
+    esconderTodos();
+    mostrar('form-login');
+    document.getElementById('input-username').value = '';
+    document.getElementById('input-password').value = '';
+  }
 
-// Mostrar lista de boletins
-async function mostrarBoletins() {
+ function mostrarAreaLogado() {
   esconderTodos();
-  mostrar('lista-boletins');
+  esconder('main-menu'); // <-- isso esconde os botões do menu principal ao logar
+  mostrar('area-logado');
+  document.getElementById('welcome-user').textContent = `Bem vindo, senhor ${usuarioLogado} (${cargoLogado}).`;
 
-  const container = document.getElementById('boletins-container');
-  container.innerHTML = 'Carregando...';
-
-  try {
-    const snapshot = await db.collection('boletins').orderBy('data', 'desc').get();
-    if (snapshot.empty) {
-      container.innerHTML = '<p>Nenhum boletim registrado.</p>';
-      return;
-    }
-    container.innerHTML = '';
-    snapshot.forEach(doc => {
-      const b = doc.data();
-      const dataFormatada = b.data.toDate().toLocaleString('pt-BR');
-      const div = document.createElement('div');
-      div.className = 'list-item';
-      div.innerHTML = `
-        <strong>Denúncia:</strong> ${b.denuncia} <br/>
-        <strong>Acusado:</strong> ${b.acusado} <br/>
-        <strong>Descrição:</strong> ${b.descricao} <br/>
-        <strong>Data:</strong> ${dataFormatada} <br/>
-        <strong>Autor:</strong> ${b.autor}
-      `;
-      container.appendChild(div);
-    });
-  } catch (error) {
-    container.innerHTML = `<p>Erro ao carregar boletins: ${error.message}</p>`;
+  // Mostrar ou esconder botões admin conforme hierarquia
+  if(hierarquia[cargoLogado] >= hierarquia['Delegado']) {
+    mostrar('btn-admin');
+    mostrar('btn-register-member');
+  } else {
+    esconder('btn-admin');
+    esconder('btn-register-member');
   }
 }
 
-// Mostrar lista de usuários para administração
-async function mostrarUsuarios() {
-  esconderTodos();
-  mostrar('lista-usuarios');
 
-  const container = document.getElementById('usuarios-container');
-  container.innerHTML = 'Carregando...';
-
-  try {
-    const snapshot = await db.collection('usuarios').get();
-    container.innerHTML = '';
-    snapshot.forEach(doc => {
-      const u = doc.data();
-      const div = document.createElement('div');
-      div.className = 'list-item';
-      div.innerHTML = `
-        <strong>${u.usuario}</strong> - ${u.cargo}
-        <div class="user-actions">
-          <button class="btn-admin" onclick="promoverUsuario('${u.usuario}')">Promover</button>
-          <button class="btn-admin" onclick="rebaixarUsuario('${u.usuario}')">Rebaixar</button>
-          <button class="btn-danger" onclick="removerUsuario('${u.usuario}')">Remover</button>
-        </div>
-      `;
-      container.appendChild(div);
-    });
-  } catch (error) {
-    container.innerHTML = `<p>Erro ao carregar usuários: ${error.message}</p>`;
-  }
-}
-
-// Promover usuário
-async function promoverUsuario(usuario) {
-  if (!confirm(`Deseja realmente promover ${usuario}?`)) return;
-
-  const userRef = db.collection('usuarios').doc(usuario);
-  const doc = await userRef.get();
-  if (!doc.exists) return alert('Usuário não encontrado.');
-
-  const cargoAtual = doc.data().cargo;
-  const nivelAtual = hierarquia[cargoAtual];
-  if (nivelAtual >= Object.values(hierarquia).reduce((a,b) => Math.max(a,b))) {
-    return alert('Usuário já está no cargo máximo.');
+  // Mostrar lista boletins
+  function mostrarListaBoletins() {
+    esconderTodos();
+    mostrar('lista-boletins');
+    carregarBoletins();
   }
 
-  const cargos = Object.keys(hierarquia);
-  const novoCargo = cargos.find(c => hierarquia[c] === nivelAtual + 1);
-
-  await userRef.update({ cargo: novoCargo });
-  alert(`${usuario} promovido a ${novoCargo}.`);
-  mostrarUsuarios();
-}
-
-// Rebaixar usuário
-async function rebaixarUsuario(usuario) {
-  if (!confirm(`Deseja realmente rebaixar ${usuario}?`)) return;
-
-  const userRef = db.collection('usuarios').doc(usuario);
-  const doc = await userRef.get();
-  if (!doc.exists) return alert('Usuário não encontrado.');
-
-  const cargoAtual = doc.data().cargo;
-  const nivelAtual = hierarquia[cargoAtual];
-  if (nivelAtual <= 1) {
-    return alert('Usuário já está no cargo mínimo.');
+  // Mostrar lista usuários para admin
+  function mostrarListaUsuarios() {
+    esconderTodos();
+    mostrar('lista-usuarios');
+    carregarUsuarios();
   }
 
-  const cargos = Object.keys(hierarquia);
-  const novoCargo = cargos.find(c => hierarquia[c] === nivelAtual - 1);
-
-  await userRef.update({ cargo: novoCargo });
-  alert(`${usuario} rebaixado para ${novoCargo}.`);
-  mostrarUsuarios();
-}
-
-// Remover usuário
-async function removerUsuario(usuario) {
-  if (!confirm(`Deseja realmente remover o usuário ${usuario}?`)) return;
-
-  await db.collection('usuarios').doc(usuario).delete();
-  alert(`${usuario} removido.`);
-  mostrarUsuarios();
-}
-
-// Mostrar formulário para registrar novo membro
-function mostrarFormRegisterMember() {
-  esconderTodos();
-  mostrar('form-register-member');
-  clearMessages();
-  document.getElementById('input-new-username').value = '';
-  document.getElementById('input-new-password').value = '';
-}
-
-// Registrar novo membro no Firestore
-async function registrarMembro() {
-  clearMessages();
-  const novoUser = document.getElementById('input-new-username').value.trim();
-  const novaSenha = document.getElementById('input-new-password').value.trim();
-
-  if (!novoUser || !novaSenha) {
-    const msg = document.getElementById('msg-register-member');
-    msg.textContent = "Preencha usuário e senha.";
-    msg.classList.remove('hidden');
-    return;
-  }
-
-  try {
-    const userDoc = await db.collection('usuarios').doc(novoUser).get();
-    if (userDoc.exists) {
-      throw new Error('Usuário já existe.');
-    }
-
-    await db.collection('usuarios').doc(novoUser).set({
-      usuario: novoUser,
-      senha: novaSenha,
-      cargo: 'Agente' // cargo padrão
-    });
-
-    const msg = document.getElementById('msg-register-member');
-    msg.textContent = "Membro registrado com sucesso!";
-    msg.classList.remove('hidden');
-    msg.classList.remove('error-msg');
-    msg.classList.add('success-msg');
-
+  // Mostrar formulário registrar membro
+  function mostrarFormRegistrarMembro() {
+    esconderTodos();
+    mostrar('form-register-member');
     document.getElementById('input-new-username').value = '';
     document.getElementById('input-new-password').value = '';
-  } catch (error) {
-    const msg = document.getElementById('msg-register-member');
-    msg.textContent = error.message;
-    msg.classList.remove('hidden');
   }
-}
 
-// Event listeners para botões
+  // Eventos botão menu principal
+  document.getElementById('btn-open-boletim').onclick = mostrarFormBoletim;
+  document.getElementById('btn-open-portaria').onclick = mostrarAreaPortarias;
+  document.getElementById('btn-open-login').onclick = mostrarFormLogin;
 
-document.getElementById('btn-open-boletim').addEventListener('click', mostrarFormBoletim);
-document.getElementById('btn-cancel-boletim').addEventListener('click', mostrarMenuPrincipal);
-document.getElementById('btn-submit-boletim').addEventListener('click', enviarBoletim);
+  // Eventos botões cancelar
+  document.getElementById('btn-cancel-boletim').onclick = mostrarMenuPrincipal;
+  document.getElementById('btn-back-portarias').onclick = mostrarMenuPrincipal;
+  document.getElementById('btn-cancel-login').onclick = mostrarMenuPrincipal;
+  document.getElementById('btn-back-boletins').onclick = mostrarAreaLogado;
+  document.getElementById('btn-back-usuarios').onclick = mostrarAreaLogado;
+  document.getElementById('btn-cancel-register-member').onclick = mostrarAreaLogado;
 
-document.getElementById('btn-open-portaria').addEventListener('click', mostrarPortarias);
-document.getElementById('btn-back-portarias').addEventListener('click', mostrarMenuPrincipal);
+  // Evento logout
+  document.getElementById('btn-logout').onclick = () => {
+    usuarioLogado = null;
+    cargoLogado = null;
+    mostrarMenuPrincipal();
+  };
 
-document.getElementById('btn-open-login').addEventListener('click', mostrarFormLogin);
-document.getElementById('btn-cancel-login').addEventListener('click', mostrarMenuPrincipal);
-document.getElementById('btn-submit-login').addEventListener('click', login);
+  // Evento registrar boletim
+  document.getElementById('btn-submit-boletim').onclick = async () => {
+    clearMessages();
+    const denuncia = document.getElementById('input-denuncia').value.trim();
+    const acusado = document.getElementById('input-acusado').value.trim();
+    const descricao = document.getElementById('input-descricao').value.trim();
 
-document.getElementById('btn-logout').addEventListener('click', logout);
+    if(!denuncia || !acusado || !descricao) {
+      const msg = document.getElementById('msg-boletim');
+      msg.textContent = "Preencha todos os campos.";
+      msg.classList.remove('hidden');
+      return;
+    }
 
-document.getElementById('btn-view-boletins').addEventListener('click', mostrarBoletins);
-document.getElementById('btn-back-boletins').addEventListener('click', mostrarAreaLogado);
+    try {
+      await db.collection('boletins').add({
+        nomeDenuncia: denuncia,
+        nomeAcusado: acusado,
+        descricao,
+        data: new Date()
+      });
+      alert('Boletim registrado com sucesso!');
+      mostrarMenuPrincipal();
+    } catch(e) {
+      const msg = document.getElementById('msg-boletim');
+      msg.textContent = 'Erro ao registrar boletim: ' + e.message;
+      msg.classList.remove('hidden');
+    }
+  };
 
-document.getElementById('btn-admin').addEventListener('click', mostrarUsuarios);
-document.getElementById('btn-back-usuarios').addEventListener('click', mostrarAreaLogado);
+  // Evento login
+  document.getElementById('btn-submit-login').onclick = async () => {
+    clearMessages();
+    const usuario = document.getElementById('input-username').value.trim();
+    const senha = document.getElementById('input-password').value.trim();
 
-document.getElementById('btn-register-member').addEventListener('click', mostrarFormRegisterMember);
-document.getElementById('btn-cancel-register-member').addEventListener('click', mostrarAreaLogado);
-document.getElementById('btn-submit-register-member').addEventListener('click', registrarMembro);
+    if(!usuario || !senha) {
+      const msg = document.getElementById('msg-login-error');
+      msg.textContent = "Preencha usuário e senha.";
+      msg.classList.remove('hidden');
+      return;
+    }
 
-// Inicialização do app
-mostrarMenuPrincipal();
+    try {
+      const doc = await db.collection('usuarios').doc(usuario).get();
+      if(!doc.exists || doc.data().senha !== senha) {
+        const msg = document.getElementById('msg-login-error');
+        msg.textContent = "Usuário ou senha inválidos.";
+        msg.classList.remove('hidden');
+        return;
+      }
+      usuarioLogado = usuario;
+      cargoLogado = doc.data().cargo;
+      mostrarAreaLogado();
+    } catch(e) {
+      const msg = document.getElementById('msg-login-error');
+      msg.textContent = "Erro no login: " + e.message;
+      msg.classList.remove('hidden');
+    }
+  };
 
+  // Evento botão ver boletins
+  document.getElementById('btn-view-boletins').onclick = mostrarListaBoletins;
+
+  // Evento administração (lista usuários)
+  document.getElementById('btn-admin').onclick = mostrarListaUsuarios;
+
+  // Evento registrar novo membro (abre formulário)
+  document.getElementById('btn-register-member').onclick = mostrarFormRegistrarMembro;
+
+  // Evento submit registrar membro
+  document.getElementById('btn-submit-register-member').onclick = async () => {
+    clearMessages();
+    const novoUser = document.getElementById('input-new-username').value.trim();
+    const novaSenha = document.getElementById('input-new-password').value.trim();
+
+    if(!novoUser || !novaSenha) {
+      const msg = document.getElementById('msg-register-member');
+      msg.textContent = "Preencha todos os campos.";
+      msg.classList.remove('hidden');
+      return;
+    }
+
+    try {
+      const doc = await db.collection('usuarios').doc(novoUser).get();
+      if(doc.exists) {
+        const msg = document.getElementById('msg-register-member');
+        msg.textContent = "Usuário já existe.";
+        msg.classList.remove('hidden');
+        return;
+      }
+
+      await db.collection('usuarios').doc(novoUser).set({
+        usuario: novoUser,
+        senha: novaSenha,
+        cargo: 'Agente'
+      });
+      alert('Novo membro registrado com sucesso!');
+      mostrarAreaLogado();
+    } catch(e) {
+      const msg = document.getElementById('msg-register-member');
+      msg.textContent = "Erro ao registrar membro: " + e.message;
+      msg.classList.remove('hidden');
+    }
+  };
+
+  // Função para carregar boletins no container
+  async function carregarBoletins() {
+    const container = document.getElementById('boletins-container');
+    container.innerHTML = '<p>Carregando...</p>';
+    try {
+      const snapshot = await db.collection('boletins').orderBy('data', 'desc').get();
+      if(snapshot.empty) {
+        container.innerHTML = '<p>Nenhum boletim registrado.</p>';
+        return;
+      }
+      container.innerHTML = '';
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const dataFormatada = data.data.toDate ? data.data.toDate().toLocaleString() : new Date(data.data).toLocaleString();
+
+        const div = document.createElement('div');
+        div.classList.add('list-item');
+        div.innerHTML = `<strong>Denúncia:</strong> ${data.nomeDenuncia}<br/>
+                         <strong>Acusado:</strong> ${data.nomeAcusado}<br/>
+                         <strong>Descrição:</strong> ${data.descricao}<br/>
+                         <strong>Data:</strong> ${dataFormatada}`;
+        container.appendChild(div);
+      });
+    } catch(e) {
+      container.innerHTML = '<p>Erro ao carregar boletins: ' + e.message + '</p>';
+    }
+  }
+
+  // Função para carregar usuários (admin)
+  async function carregarUsuarios() {
+    const container = document.getElementById('usuarios-container');
+    container.innerHTML = '<p>Carregando usuários...</p>';
+    try {
+      const snapshot = await db.collection('usuarios').get();
+      if(snapshot.empty) {
+        container.innerHTML = '<p>Nenhum usuário cadastrado.</p>';
+        return;
+      }
+      container.innerHTML = '';
+      snapshot.forEach(doc => {
+        const data = doc.data();
+
+        const div = document.createElement('div');
+        div.classList.add('list-item');
+
+        div.innerHTML = `<strong>Usuário:</strong> ${data.usuario} <br/>
+                         <strong>Cargo:</strong> ${data.cargo} <br/>
+                         <div class="user-actions"></div>`;
+
+        // Botões de ação para cada usuário
+        const actionsDiv = div.querySelector('.user-actions');
+
+        // Se for diferente do usuário logado, pode promover ou rebaixar
+        if(data.usuario !== usuarioLogado) {
+          // Botão promover
+          const btnPromover = document.createElement('button');
+          btnPromover.textContent = 'Promover';
+          btnPromover.onclick = () => alterarCargo(data.usuario, +1);
+          actionsDiv.appendChild(btnPromover);
+
+          // Botão rebaixar
+          const btnRebaixar = document.createElement('button');
+          btnRebaixar.textContent = 'Rebaixar';
+          btnRebaixar.onclick = () => alterarCargo(data.usuario, -1);
+          actionsDiv.appendChild(btnRebaixar);
+
+          // Botão remover (apenas se cargo menor que Diretor Geral)
+          if(hierarquia[cargoLogado] === hierarquia['Diretor Geral']) {
+            const btnRemover = document.createElement('button');
+            btnRemover.textContent = 'Remover';
+            btnRemover.classList.add('btn-danger');
+            btnRemover.onclick = () => removerUsuario(data.usuario);
+            actionsDiv.appendChild(btnRemover);
+          }
+        } else {
+          const span = document.createElement('span');
+          span.textContent = 'Você';
+          actionsDiv.appendChild(span);
+        }
+
+        container.appendChild(div);
+      });
+    } catch(e) {
+      container.innerHTML = '<p>Erro ao carregar usuários: ' + e.message + '</p>';
+    }
+  }
+
+  // Função para alterar cargo do usuário
+  async function alterarCargo(usuario, delta) {
+    try {
+      const docRef = db.collection('usuarios').doc(usuario);
+      const doc = await docRef.get();
+      if(!doc.exists) {
+        alert('Usuário não encontrado.');
+        return;
+      }
+      let cargoAtual = doc.data().cargo;
+      let nivelAtual = hierarquia[cargoAtual];
+      let novoNivel = nivelAtual + delta;
+
+      if(novoNivel < 1) novoNivel = 1;
+      if(novoNivel > 5) novoNivel = 5;
+
+      // Encontrar cargo pelo nível
+      const cargos = Object.entries(hierarquia);
+      const novoCargo = cargos.find(([key, val]) => val === novoNivel)[0];
+
+      if(hierarquia[cargoLogado] <= novoNivel) {
+        alert('Você não pode promover/rebaixar para um cargo igual ou superior ao seu.');
+        return;
+      }
+
+      await docRef.update({ cargo: novoCargo });
+      alert(`Cargo de ${usuario} alterado para ${novoCargo}`);
+      carregarUsuarios();
+    } catch(e) {
+      alert('Erro ao alterar cargo: ' + e.message);
+    }
+  }
+
+  // Função remover usuário (apenas Diretor Geral)
+  async function removerUsuario(usuario) {
+    if(!confirm(`Tem certeza que deseja remover o usuário ${usuario}?`)) return;
+    try {
+      await db.collection('usuarios').doc(usuario).delete();
+      alert(`Usuário ${usuario} removido.`);
+      carregarUsuarios();
+    } catch(e) {
+      alert('Erro ao remover usuário: ' + e.message);
+    }
+  }
+
+  // Inicializa mostrando o menu principal
+  mostrarMenuPrincipal();
   </script>
+
 </body>
 </html>
