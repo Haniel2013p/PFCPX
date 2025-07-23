@@ -22,14 +22,16 @@
       margin-top: 30px;
     }
 
-    .menu-buttons button {
+    .menu-buttons button,
+    .form-buttons button,
+    #logoutButton {
       padding: 15px 30px;
       font-size: 18px;
       background-color: #2563eb;
       color: white;
       border: none;
       border-radius: 5px;
-      margin: 0 10px;
+      margin: 10px;
       cursor: pointer;
     }
 
@@ -62,14 +64,6 @@
 
     .form-buttons button {
       flex: 1;
-      margin: 5px;
-      padding: 10px;
-      font-size: 16px;
-      background-color: #2563eb;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
     }
 
     #enviado {
@@ -94,16 +88,23 @@
       max-width: 400px;
       border-radius: 5px;
     }
+
+    #logoutButton {
+      display: none;
+    }
   </style>
 </head>
 <body>
-  <h1>Bem-vindo ao site da Polícia Federal do Complexo RP</h1>
+  <h1 id="titulo">Bem-vindo ao site da Polícia Federal do Complexo RP</h1>
 
-  <div class="menu-buttons">
+  <div class="menu-buttons" id="menu">
     <button onclick="mostrarFormulario()">Boletim de Ocorrência</button>
     <button onclick="abrirPortarias()">Portarias</button>
     <button onclick="abrirLogin()">Logar</button>
   </div>
+
+  <!-- Botão de logout -->
+  <button id="logoutButton" onclick="sair()">Sair</button>
 
   <!-- Formulário de Boletim -->
   <form id="formBo">
@@ -169,8 +170,28 @@
     }
 
     function entrarLogin() {
-      // Ainda não faz nada — você pode adicionar ação depois
-      alert("Login clicado! (ainda sem função)");
+      const usuario = document.getElementById('usuario').value;
+      const senha = document.getElementById('senha').value;
+
+      if (usuario === "Gabriel" && senha === "DG") {
+        document.getElementById('titulo').innerText = "Bem-vindo, senhor Gabriel.";
+        document.getElementById('menu').style.display = 'none';
+        document.getElementById('formBo').style.display = 'none';
+        document.getElementById('portarias').style.display = 'none';
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('logoutButton').style.display = 'inline-block';
+      } else {
+        alert("Usuário ou senha incorretos.");
+      }
+    }
+
+    function sair() {
+      document.getElementById('titulo').innerText = "Bem-vindo ao site da Polícia Federal do Complexo RP";
+      document.getElementById('menu').style.display = 'block';
+      document.getElementById('logoutButton').style.display = 'none';
+      document.getElementById('formBo').style.display = 'none';
+      document.getElementById('portarias').style.display = 'none';
+      document.getElementById('loginForm').style.display = 'none';
     }
 
     document.getElementById('formBo').addEventListener('submit', function(e) {
