@@ -9,7 +9,7 @@
     font-family: Arial, sans-serif;
     text-align: center;
     margin: 2rem;
-    background-color: #002147; /* azul escuro */
+    background-color: #0b1a33; /* azul escuro */
     color: white;
   }
   button {
@@ -18,13 +18,11 @@
     cursor: pointer;
     border: none;
     border-radius: 4px;
-    color: white;
     font-weight: bold;
-    background-color: #4da6ff; /* azul claro */
-    transition: background-color 0.3s ease;
   }
-  button:hover {
-    background-color: #3399ff; /* azul claro hover */
+  button.blue {
+    background-color: #4a90e2; /* azul claro */
+    color: white;
   }
   input, textarea {
     padding: 8px;
@@ -32,12 +30,7 @@
     width: 80%;
     max-width: 400px;
     border-radius: 4px;
-    border: 1px solid #3399ff;
-    background-color: #003366;
-    color: white;
-  }
-  input::placeholder, textarea::placeholder {
-    color: #b3d1ff;
+    border: 1px solid #4a90e2;
   }
   .hidden {
     display: none;
@@ -46,10 +39,26 @@
     max-width: 600px;
     margin: 1rem auto;
     text-align: left;
+    background: #122a66;
+    padding: 15px;
+    border-radius: 8px;
   }
   #boletins-list div {
-    border-bottom: 1px solid #3399ff;
-    padding: 6px 0;
+    border-bottom: 1px solid #3b5998;
+    padding: 10px 0;
+  }
+  .btn-excluir {
+    background-color: #e74c3c;
+    padding: 5px 10px;
+    font-size: 0.85rem;
+    border-radius: 3px;
+    border: none;
+    cursor: pointer;
+    color: white;
+    float: right;
+  }
+  #welcome-msg {
+    margin-bottom: 30px;
   }
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -60,34 +69,34 @@
 <h1 id="welcome-msg">Bem vindo ao site da Polícia Federal do Complexo RP</h1>
 
 <div id="main-buttons">
-  <button id="btn-boletim">Boletim de Ocorrência</button>
-  <button id="btn-portaria" disabled>Portarias</button>
-  <button id="btn-logar">Logar</button>
+  <button id="btn-boletim" class="blue">Boletim de Ocorrência</button>
+  <button id="btn-portaria" class="blue" disabled>Portarias</button>
+  <button id="btn-logar" class="blue">Logar</button>
 </div>
 
 <!-- Formulário boletim -->
 <div id="boletim-form" class="hidden">
-  <input type="text" id="nome-denuncia" placeholder="Nome de quem denuncia" /><br />
-  <input type="text" id="nome-acusado" placeholder="Nome do acusado" /><br />
-  <textarea id="descricao" placeholder="Descrição"></textarea><br />
-  <button id="btn-enviar-boletim">Enviar</button>
-  <button id="btn-voltar-boletim">Voltar</button>
+  <input type="text" id="nome-denuncia" placeholder="Nome de quem denuncia" autocomplete="off" /><br />
+  <input type="text" id="nome-acusado" placeholder="Nome do acusado" autocomplete="off" /><br />
+  <textarea id="descricao" placeholder="Descrição" rows="5"></textarea><br />
+  <button class="blue" id="btn-enviar-boletim">Enviar</button>
+  <button class="blue" id="btn-voltar-boletim">Voltar</button>
 </div>
 
 <!-- Formulário login -->
 <div id="login-form" class="hidden">
-  <input type="text" id="input-usuario" placeholder="Usuário" /><br />
-  <input type="password" id="input-senha" placeholder="Senha" /><br />
-  <button id="btn-entrar">Entrar</button>
-  <button id="btn-voltar-login">Voltar</button>
-  <p id="login-error" style="color:#ff6666;display:none;">Usuário ou senha incorretos.</p>
+  <input type="text" id="input-usuario" placeholder="Usuário" autocomplete="off" /><br />
+  <input type="password" id="input-senha" placeholder="Senha" autocomplete="off" /><br />
+  <button class="blue" id="btn-entrar">Entrar</button>
+  <button class="blue" id="btn-voltar-login">Voltar</button>
+  <p id="login-error" style="color:#e74c3c;display:none;">Usuário ou senha incorretos.</p>
 </div>
 
-<!-- Após login -->
+<!-- Área usuário logado -->
 <div id="logado-area" class="hidden">
   <h2 id="msg-logado"></h2>
-  <button id="btn-ver-boletins">Ver Boletins</button>
-  <button id="btn-sair">Sair</button>
+  <button id="btn-ver-boletins" class="blue">Ver Boletins</button>
+  <button id="btn-sair" class="blue">Sair</button>
   <div id="boletins-list" class="hidden"></div>
 </div>
 
@@ -106,7 +115,7 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  // Elements
+  // Elementos do DOM
   const welcomeMsg = document.getElementById('welcome-msg');
   const mainButtons = document.getElementById('main-buttons');
   const btnBoletim = document.getElementById('btn-boletim');
@@ -135,14 +144,23 @@
 
   // Estado login
   let usuarioLogado = null;
+  let cargoLogado = null;
 
-  // Funções para mostrar e esconder telas
+  // Usuário fixo Gabriel com cargo diretor geral
+  const usuarioFixo = {
+    usuario: 'Gabriel',
+    senha: 'DG',
+    cargo: 'diretor geral'
+  };
+
+  // Funções para mostrar/ocultar telas
   function mostrarMain() {
     welcomeMsg.textContent = "Bem vindo ao site da Polícia Federal do Complexo RP";
     mainButtons.style.display = 'block';
     boletimForm.classList.add('hidden');
     loginForm.classList.add('hidden');
     logadoArea.classList.add('hidden');
+    boletinsList.classList.add('hidden');
   }
   function mostrarBoletimForm() {
     mainButtons.style.display = 'none';
@@ -164,7 +182,7 @@
     boletimForm.classList.add('hidden');
     loginForm.classList.add('hidden');
     logadoArea.classList.remove('hidden');
-    msgLogado.textContent = `Bem vindo, senhor ${usuarioLogado}.`;
+    msgLogado.textContent = `Bem vindo, senhor ${usuarioLogado} (${cargoLogado}).`;
     boletinsList.classList.add('hidden');
   }
 
@@ -173,7 +191,7 @@
   btnPortaria.onclick = () => alert('Portarias: Teste 1 e Teste 2');
   btnLogar.onclick = () => mostrarLoginForm();
 
-  // Botões do formulário boletim
+  // Botões formulário boletim
   btnVoltarBoletim.onclick = () => mostrarMain();
 
   btnEnviarBoletim.onclick = () => {
@@ -186,7 +204,6 @@
       return;
     }
 
-    // Salvar no Firestore
     db.collection('boletins').add({
       nomeDenuncia: nomeD,
       nomeAcusado: nomeA,
@@ -195,7 +212,7 @@
     }).then(() => {
       alert('Boletim registrado com sucesso!');
       mostrarMain();
-    }).catch((e) => {
+    }).catch(e => {
       alert('Erro ao registrar boletim: ' + e.message);
     });
   };
@@ -207,8 +224,9 @@
     const usuario = inputUsuario.value.trim();
     const senha = inputSenha.value.trim();
 
-    if (usuario === 'Gabriel' && senha === 'DG') {
-      usuarioLogado = usuario;
+    if (usuario === usuarioFixo.usuario && senha === usuarioFixo.senha) {
+      usuarioLogado = usuarioFixo.usuario;
+      cargoLogado = usuarioFixo.cargo;
       mostrarLogadoArea();
     } else {
       loginError.style.display = 'block';
@@ -218,42 +236,67 @@
   // Logado area
   btnSair.onclick = () => {
     usuarioLogado = null;
+    cargoLogado = null;
     mostrarMain();
   };
 
-      btnVerBoletins.onclick = () => {
-      boletinsList.innerHTML = '<h3>Boletins Registrados:</h3>';
-      boletinsList.classList.remove('hidden');
+  // Ver boletins (todos logados podem ver)
+  btnVerBoletins.onclick = () => {
+    boletinsList.innerHTML = '<h3>Boletins Registrados:</h3>';
+    boletinsList.classList.remove('hidden');
 
-      db.collection('boletins')
-        .orderBy('data', 'desc')
-        .get()
-        .then(querySnapshot => {
-          if (querySnapshot.empty) {
-            boletinsList.innerHTML += '<p>Nenhum boletim encontrado.</p>';
-            return;
+    db.collection('boletins')
+      .orderBy('data', 'desc')
+      .get()
+      .then(querySnapshot => {
+        if (querySnapshot.empty) {
+          boletinsList.innerHTML += '<p>Nenhum boletim encontrado.</p>';
+          return;
+        }
+        querySnapshot.forEach(doc => {
+          const dataObj = doc.data();
+          const dataFormatada = new Date(dataObj.data.seconds * 1000).toLocaleString('pt-BR');
+
+          let btnExcluirHTML = '';
+          if (cargoLogado === 'diretor geral') {
+            btnExcluirHTML = `<button data-id="${doc.id}" class="btn-excluir">Excluir</button>`;
           }
-          querySnapshot.forEach(doc => {
-            const dataObj = doc.data();
-            const dataFormatada = new Date(dataObj.data.seconds * 1000).toLocaleString('pt-BR');
-            boletinsList.innerHTML +=
-              `<div>
-                <strong>Denunciante:</strong> ${dataObj.nomeDenuncia} <br />
-                <strong>Acusado:</strong> ${dataObj.nomeAcusado} <br />
-                <strong>Descrição:</strong> ${dataObj.descricao} <br />
-                <small><em>Data: ${dataFormatada}</em></small>
-              </div>`;
-          });
-        })
-        .catch(e => {
-          boletinsList.innerHTML += `<p>Erro ao buscar boletins: ${e.message}</p>`;
-        });
-    };
 
-    // Inicializa página
-    mostrarMain();
+          boletinsList.innerHTML +=
+            `<div>
+              <strong>Denunciante:</strong> ${dataObj.nomeDenuncia} <br />
+              <strong>Acusado:</strong> ${dataObj.nomeAcusado} <br />
+              <strong>Descrição:</strong> ${dataObj.descricao} <br />
+              <small><em>Data: ${dataFormatada}</em></small>
+              ${btnExcluirHTML}
+            </div>`;
+        });
+
+        // Eventos excluir
+        document.querySelectorAll('.btn-excluir').forEach(btn => {
+          btn.onclick = () => {
+            const id = btn.getAttribute('data-id');
+            if (confirm('Tem certeza que deseja excluir este boletim?')) {
+              db.collection('boletins').doc(id).delete()
+                .then(() => {
+                  alert('Boletim excluído com sucesso.');
+                  btnVerBoletins.onclick(); // recarregar lista
+                })
+                .catch(e => {
+                  alert('Erro ao excluir boletim: ' + e.message);
+                });
+            }
+          };
+        });
+      })
+      .catch(e => {
+        boletinsList.innerHTML += `<p>Erro ao buscar boletins: ${e.message}</p>`;
+      });
+  };
+
+  // Inicia página
+  mostrarMain();
 </script>
 
 </body>
 </html>
-
