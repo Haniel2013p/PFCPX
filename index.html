@@ -1,204 +1,247 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Polícia Federal do Complexo RP</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #0f172a;
-      color: white;
-      text-align: center;
-      margin: 0;
-      padding: 0;
-    }
-
-    h1 {
-      margin-top: 50px;
-    }
-
-    .menu-buttons {
-      margin-top: 30px;
-    }
-
-    .menu-buttons button,
-    .form-buttons button,
-    #logoutButton {
-      padding: 15px 30px;
-      font-size: 18px;
-      background-color: #2563eb;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      margin: 10px;
-      cursor: pointer;
-    }
-
-    form, #loginForm {
-      margin-top: 30px;
-      display: none;
-      max-width: 400px;
-      margin-left: auto;
-      margin-right: auto;
-      text-align: left;
-    }
-
-    label {
-      display: block;
-      margin: 10px 0 5px;
-    }
-
-    input, textarea {
-      width: 100%;
-      padding: 10px;
-      border-radius: 4px;
-      border: none;
-    }
-
-    .form-buttons {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 15px;
-    }
-
-    .form-buttons button {
-      flex: 1;
-    }
-
-    #enviado {
-      margin-top: 20px;
-      color: #22c55e;
-      text-align: center;
-    }
-
-    #portarias {
-      display: none;
-      margin-top: 30px;
-    }
-
-    #portarias h2 {
-      margin-bottom: 10px;
-    }
-
-    .portaria-item {
-      background-color: #1e293b;
-      margin: 10px auto;
-      padding: 15px;
-      max-width: 400px;
-      border-radius: 5px;
-    }
-
-    #logoutButton {
-      display: none;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Polícia Federal do Complexo RP</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 2rem;
+  }
+  button {
+    padding: 10px 18px;
+    margin: 0 5px;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    font-weight: bold;
+  }
+  button.blue {
+    background-color: #007bff;
+  }
+  input, textarea {
+    padding: 8px;
+    margin: 8px 0;
+    width: 80%;
+    max-width: 400px;
+  }
+  .hidden {
+    display: none;
+  }
+  #boletins-list {
+    max-width: 600px;
+    margin: 1rem auto;
+    text-align: left;
+  }
+  #boletins-list div {
+    border-bottom: 1px solid #ccc;
+    padding: 6px 0;
+  }
+</style>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <h1 id="titulo">Bem-vindo ao site da Polícia Federal do Complexo RP</h1>
 
-  <div class="menu-buttons" id="menu">
-    <button onclick="mostrarFormulario()">Boletim de Ocorrência</button>
-    <button onclick="abrirPortarias()">Portarias</button>
-    <button onclick="abrirLogin()">Logar</button>
-  </div>
+<h1 id="welcome-msg">Bem vindo ao site da Polícia Federal do Complexo RP</h1>
 
-  <!-- Botão de logout -->
-  <button id="logoutButton" onclick="sair()">Sair</button>
+<div id="main-buttons">
+  <button id="btn-boletim">Boletim de Ocorrência</button>
+  <button id="btn-portaria" disabled>Portarias</button>
+  <button id="btn-logar">Logar</button>
+</div>
 
-  <!-- Formulário de Boletim -->
-  <form id="formBo">
-    <label>Nome do denunciante / Reporter:</label>
-    <input type="text" id="denunciante" required>
+<!-- Formulário boletim -->
+<div id="boletim-form" class="hidden">
+  <input type="text" id="nome-denuncia" placeholder="Nome de quem denuncia" /><br />
+  <input type="text" id="nome-acusado" placeholder="Nome do acusado" /><br />
+  <textarea id="descricao" placeholder="Descrição"></textarea><br />
+  <button class="blue" id="btn-enviar-boletim">Enviar</button>
+  <button class="blue" id="btn-voltar-boletim">Voltar</button>
+</div>
 
-    <label>Nome do acusado / Accused:</label>
-    <input type="text" id="acusado" required>
+<!-- Formulário login -->
+<div id="login-form" class="hidden">
+  <input type="text" id="input-usuario" placeholder="Usuário" /><br />
+  <input type="password" id="input-senha" placeholder="Senha" /><br />
+  <button class="blue" id="btn-entrar">Entrar</button>
+  <button class="blue" id="btn-voltar-login">Voltar</button>
+  <p id="login-error" style="color:red;display:none;">Usuário ou senha incorretos.</p>
+</div>
 
-    <label>Descrição / Description:</label>
-    <textarea id="descricao" rows="4" required></textarea>
+<!-- Após login -->
+<div id="logado-area" class="hidden">
+  <h2 id="msg-logado"></h2>
+  <button id="btn-ver-boletins" class="blue">Ver Boletins</button>
+  <button id="btn-sair" class="blue">Sair</button>
+  <div id="boletins-list" class="hidden"></div>
+</div>
 
-    <div class="form-buttons">
-      <button type="submit">Enviar</button>
-      <button type="button" onclick="voltar()">Voltar</button>
-    </div>
+<script>
+  // Config Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyBuaVeRTLVxpAyboRiWS6E4KYHWlYZgMEw",
+    authDomain: "pfcpx-c0b9b.firebaseapp.com",
+    projectId: "pfcpx-c0b9b",
+    storageBucket: "pfcpx-c0b9b.firebasestorage.app",
+    messagingSenderId: "322312831509",
+    appId: "1:322312831509:web:e5fe68609d34db6345c41c",
+    measurementId: "G-24QF5E8Q5E"
+  };
 
-    <p id="enviado"></p>
-  </form>
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-  <!-- Seção Portarias -->
-  <div id="portarias">
-    <h2>Portarias</h2>
-    <div class="portaria-item">Teste 1</div>
-    <div class="portaria-item">Teste 2</div>
-  </div>
+  // Elements
+  const welcomeMsg = document.getElementById('welcome-msg');
+  const mainButtons = document.getElementById('main-buttons');
+  const btnBoletim = document.getElementById('btn-boletim');
+  const btnPortaria = document.getElementById('btn-portaria');
+  const btnLogar = document.getElementById('btn-logar');
 
-  <!-- Formulário de Login -->
-  <div id="loginForm">
-    <label>Usuário:</label>
-    <input type="text" id="usuario">
+  const boletimForm = document.getElementById('boletim-form');
+  const nomeDenuncia = document.getElementById('nome-denuncia');
+  const nomeAcusado = document.getElementById('nome-acusado');
+  const descricao = document.getElementById('descricao');
+  const btnEnviarBoletim = document.getElementById('btn-enviar-boletim');
+  const btnVoltarBoletim = document.getElementById('btn-voltar-boletim');
 
-    <label>Senha:</label>
-    <input type="password" id="senha">
+  const loginForm = document.getElementById('login-form');
+  const inputUsuario = document.getElementById('input-usuario');
+  const inputSenha = document.getElementById('input-senha');
+  const btnEntrar = document.getElementById('btn-entrar');
+  const btnVoltarLogin = document.getElementById('btn-voltar-login');
+  const loginError = document.getElementById('login-error');
 
-    <div class="form-buttons">
-      <button onclick="entrarLogin()">Entrar</button>
-    </div>
-  </div>
+  const logadoArea = document.getElementById('logado-area');
+  const msgLogado = document.getElementById('msg-logado');
+  const btnVerBoletins = document.getElementById('btn-ver-boletins');
+  const btnSair = document.getElementById('btn-sair');
+  const boletinsList = document.getElementById('boletins-list');
 
-  <script>
-    function mostrarFormulario() {
-      document.getElementById('formBo').style.display = 'block';
-      document.getElementById('portarias').style.display = 'none';
-      document.getElementById('loginForm').style.display = 'none';
-      document.getElementById('enviado').innerText = '';
+  // Estado login
+  let usuarioLogado = null;
+
+  // Funções para mostrar e esconder telas
+  function mostrarMain() {
+    welcomeMsg.textContent = "Bem vindo ao site da Polícia Federal do Complexo RP";
+    mainButtons.style.display = 'block';
+    boletimForm.classList.add('hidden');
+    loginForm.classList.add('hidden');
+    logadoArea.classList.add('hidden');
+  }
+  function mostrarBoletimForm() {
+    mainButtons.style.display = 'none';
+    boletimForm.classList.remove('hidden');
+    nomeDenuncia.value = '';
+    nomeAcusado.value = '';
+    descricao.value = '';
+  }
+  function mostrarLoginForm() {
+    mainButtons.style.display = 'none';
+    loginForm.classList.remove('hidden');
+    inputUsuario.value = '';
+    inputSenha.value = '';
+    loginError.style.display = 'none';
+  }
+  function mostrarLogadoArea() {
+    welcomeMsg.textContent = '';
+    mainButtons.style.display = 'none';
+    boletimForm.classList.add('hidden');
+    loginForm.classList.add('hidden');
+    logadoArea.classList.remove('hidden');
+    msgLogado.textContent = `Bem vindo, senhor ${usuarioLogado}.`;
+    boletinsList.classList.add('hidden');
+  }
+
+  // Botões principais
+  btnBoletim.onclick = () => mostrarBoletimForm();
+  btnPortaria.onclick = () => alert('Portarias: Teste 1 e Teste 2');
+  btnLogar.onclick = () => mostrarLoginForm();
+
+  // Botões do formulário boletim
+  btnVoltarBoletim.onclick = () => mostrarMain();
+
+  btnEnviarBoletim.onclick = () => {
+    const nomeD = nomeDenuncia.value.trim();
+    const nomeA = nomeAcusado.value.trim();
+    const desc = descricao.value.trim();
+
+    if (!nomeD || !nomeA || !desc) {
+      alert('Preencha todos os campos.');
+      return;
     }
 
-    function voltar() {
-      document.getElementById('formBo').style.display = 'none';
-    }
-
-    function abrirPortarias() {
-      document.getElementById('portarias').style.display = 'block';
-      document.getElementById('formBo').style.display = 'none';
-      document.getElementById('loginForm').style.display = 'none';
-    }
-
-    function abrirLogin() {
-      document.getElementById('loginForm').style.display = 'block';
-      document.getElementById('formBo').style.display = 'none';
-      document.getElementById('portarias').style.display = 'none';
-    }
-
-    function entrarLogin() {
-      const usuario = document.getElementById('usuario').value;
-      const senha = document.getElementById('senha').value;
-
-      if (usuario === "Gabriel" && senha === "DG") {
-        document.getElementById('titulo').innerText = "Bem-vindo, senhor Gabriel.";
-        document.getElementById('menu').style.display = 'none';
-        document.getElementById('formBo').style.display = 'none';
-        document.getElementById('portarias').style.display = 'none';
-        document.getElementById('loginForm').style.display = 'none';
-        document.getElementById('logoutButton').style.display = 'inline-block';
-      } else {
-        alert("Usuário ou senha incorretos.");
-      }
-    }
-
-    function sair() {
-      document.getElementById('titulo').innerText = "Bem-vindo ao site da Polícia Federal do Complexo RP";
-      document.getElementById('menu').style.display = 'block';
-      document.getElementById('logoutButton').style.display = 'none';
-      document.getElementById('formBo').style.display = 'none';
-      document.getElementById('portarias').style.display = 'none';
-      document.getElementById('loginForm').style.display = 'none';
-    }
-
-    document.getElementById('formBo').addEventListener('submit', function(e) {
-      e.preventDefault();
-      document.getElementById('enviado').innerText = "Boletim enviado com sucesso!";
-      this.reset();
+    // Salvar no Firestore
+    db.collection('boletins').add({
+      nomeDenuncia: nomeD,
+      nomeAcusado: nomeA,
+      descricao: desc,
+      data: new Date()
+    }).then(() => {
+      alert('Boletim registrado com sucesso!');
+      mostrarMain();
+    }).catch((e) => {
+      alert('Erro ao registrar boletim: ' + e.message);
     });
-  </script>
+  };
+
+  // Botões login
+  btnVoltarLogin.onclick = () => mostrarMain();
+
+  btnEntrar.onclick = () => {
+    const usuario = inputUsuario.value.trim();
+    const senha = inputSenha.value.trim();
+
+    if (usuario === 'Gabriel' && senha === 'DG') {
+      usuarioLogado = usuario;
+      mostrarLogadoArea();
+    } else {
+      loginError.style.display = 'block';
+    }
+  };
+
+  // Logado area
+  btnSair.onclick = () => {
+    usuarioLogado = null;
+    mostrarMain();
+  };
+
+  btnVerBoletins.onclick = () => {
+    boletinsList.innerHTML = '<h3>Boletins Registrados:</h3>';
+    boletinsList.classList.remove('hidden');
+
+    db.collection('boletins')
+      .orderBy('data', 'desc')
+      .get()
+      .then(querySnapshot => {
+        if (querySnapshot.empty) {
+          boletinsList.innerHTML += '<p>Nenhum boletim encontrado.</p>';
+          return;
+        }
+        querySnapshot.forEach(doc => {
+          const dataObj = doc.data();
+          const dataFormatada = new Date(dataObj.data.seconds * 1000).toLocaleString('pt-BR');
+          boletinsList.innerHTML +=
+            `<div>
+              <strong>Denunciante:</strong> ${dataObj.nomeDenuncia} <br />
+              <strong>Acusado:</strong> ${dataObj.nomeAcusado} <br />
+              <strong>Descrição:</strong> ${dataObj.descricao} <br />
+              <small><em>Data: ${dataFormatada}</em></small>
+            </div>`;
+        });
+      })
+      .catch(e => {
+        boletinsList.innerHTML += `<p>Erro ao buscar boletins: ${e.message}</p>`;
+      });
+  };
+
+  // Inicializa página
+  mostrarMain();
+</script>
+
 </body>
 </html>
