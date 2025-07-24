@@ -733,7 +733,7 @@ async function carregarUsuarios() {
       let novoNivel = nivelAtual + delta;
 
       if(novoNivel < 1) novoNivel = 1;
-      if(novoNivel > 5) novoNivel = 5;
+      if(novoNivel > 10) novoNivel = 10;
 
       // Encontrar cargo pelo nível
       const cargos = Object.entries(hierarquia);
