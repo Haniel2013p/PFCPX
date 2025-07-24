@@ -691,7 +691,7 @@ async function carregarUsuarios() {
         const nivelAlvo = hierarquia[data.cargo];
 
         // Promover e rebaixar: apenas Delegado+ e com nível superior
-        if (nivelLogado >= hierarquia["Delegado"] && nivelLogado > nivelAlvo) {
+        if (nivelLogado >= hierarquia["Superintendente Regional"] && nivelLogado > nivelAlvo) {
           const btnPromover = document.createElement('button');
           btnPromover.textContent = 'Promover';
           btnPromover.onclick = () => alterarCargo(data.usuario, +1);
@@ -704,7 +704,7 @@ async function carregarUsuarios() {
         }
 
         // Exonerar: apenas Delegado Executivo+ e com nível superior
-        if (nivelLogado >= hierarquia["Delegado Executivo"] && nivelLogado > nivelAlvo) {
+        if (nivelLogado >= hierarquia["Diretor"] && nivelLogado > nivelAlvo) {
           const btnRemover = document.createElement('button');
           btnRemover.textContent = 'Remover';
           btnRemover.classList.add('btn-danger');
