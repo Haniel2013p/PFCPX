@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -178,22 +179,11 @@
 
 <div id="form-banco-criminais" class="hidden container">
   <h2>Registro Criminal</h2>
-
   <input id="input-criminoso-nome" placeholder="Nome do indivíduo" maxlength="100" />
-
   <input id="input-criminoso-crime" placeholder="Crime cometido" maxlength="100" />
-
   <textarea id="input-criminoso-desc" placeholder="Descrição do acontecido" maxlength="500"></textarea>
 
-  <!-- Novo campo de upload de foto -->
-  <label for="input-criminoso-foto">Foto do preso:</label>
-  <input type="file" id="input-criminoso-foto" accept="image/*" />
-
-  <button id="btn-salvar-criminoso">Salvar Registro</button>
-</div>
-
-
-  <div class="hidden containe">
+  <div class="btn-group">
     <button id="btn-submit-criminoso">Enviar</button>
     <button id="btn-cancel-criminoso" class="btn-danger">Cancelar</button>
   </div>
@@ -362,9 +352,7 @@ function mostrarFormBancoCriminais() {
   document.getElementById('input-criminoso-desc').value = '';
   document.getElementById('input-busca-criminoso').value = '';
   document.getElementById('resultado-busca-criminoso').innerHTML = '';
-  document.getElementById('input-criminoso-foto').value = ''; // novo
 }
-
 
 document.getElementById('btn-buscar-criminoso').onclick = async () => {
   const nomeBusca = document.getElementById('input-busca-criminoso').value.trim().toLowerCase();
@@ -491,47 +479,27 @@ document.getElementById('btn-submit-portaria').onclick = async () => {
   }
   
 };
-    
-
-
 document.getElementById('btn-submit-criminoso').onclick = async () => {
   const nome = document.getElementById('input-criminoso-nome').value.trim();
   const crime = document.getElementById('input-criminoso-crime').value.trim();
   const descricao = document.getElementById('input-criminoso-desc').value.trim();
-  const fotoInput = document.getElementById('input-criminoso-foto');
-  const fotoArquivo = fotoInput.files[0];
 
-  if (!nome || !crime || !descricao || !fotoArquivo) {
-    alert("Preencha todos os campos e selecione uma foto.");
+  if (!nome || !crime || !descricao) {
+    alert("Preencha todos os campos.");
     return;
   }
 
   try {
-    // Cria referência no Firebase Storage
-    const storageRef = firebase.storage().ref();
-    const fotoRef = storageRef.child('fotos-presos/' + Date.now() + '-' + fotoArquivo.name);
-
-    // Faz upload da imagem
-    await fotoRef.put(fotoArquivo);
-
-    // Obtém a URL da imagem
-    const fotoUrl = await fotoRef.getDownloadURL();
-
-    // Salva no Firestore
     await db.collection('bancoCriminais').add({
       nome,
       crime,
       descricao,
-      fotoUrl,
       autor: usuarioLogado,
       data: new Date()
     });
-
     alert("Registro criminal enviado com sucesso!");
-    mostrarAreaLogado(); // ou mostrarFormBancoCriminais();
-
+    mostrarAreaLogado();
   } catch (e) {
-    console.error("Erro:", e);
     alert("Erro ao enviar registro: " + e.message);
   }
 };
