@@ -446,7 +446,7 @@ document.getElementById('btn-buscar-criminoso').onclick = async () => {
       await db.collection('boletins').add({
         nomeDenuncia: denuncia,
         nomeAcusado: acusado,
-        nomeDiscord: denunciado,
+        nomeDiscord: denunciador,
         descricao,
         data: new Date()
       });
