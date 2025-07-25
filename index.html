@@ -117,6 +117,7 @@
       <h2>Registrar Boletim</h2>
       <input id="input-denuncia" placeholder="Crimes cometidos" maxlength="50" />
       <input id="input-acusado" placeholder="Nome do acusado" maxlength="50" />
+      <input id="input-Discord" placeholder="Discord do denunciador" maxlength="50" />
       <textarea id="input-descricao" placeholder="Descrição detalhada" maxlength="500"></textarea>
       <div class="btn-group">
         <button id="btn-submit-boletim">Enviar Boletim</button>
@@ -296,6 +297,7 @@
     mostrar('form-boletim');
     document.getElementById('input-denuncia').value = '';
     document.getElementById('input-acusado').value = '';
+    document.getElementById('input-Discord').value = '';
     document.getElementById('input-descricao').value = '';
   }
 
@@ -431,9 +433,10 @@ document.getElementById('btn-buscar-criminoso').onclick = async () => {
     clearMessages();
     const denuncia = document.getElementById('input-denuncia').value.trim();
     const acusado = document.getElementById('input-acusado').value.trim();
+    const denunciador = document.getElementById('input-Discord').value.trim();
     const descricao = document.getElementById('input-descricao').value.trim();
 
-    if(!denuncia || !acusado || !descricao) {
+    if(!denuncia || !acusado || !denunciador || !descricao) {
       const msg = document.getElementById('msg-boletim');
       msg.textContent = "Preencha todos os campos.";
       msg.classList.remove('hidden');
@@ -443,6 +446,7 @@ document.getElementById('btn-buscar-criminoso').onclick = async () => {
       await db.collection('boletins').add({
         nomeDenuncia: denuncia,
         nomeAcusado: acusado,
+        nomeDiscord: denunciado,
         descricao,
         data: new Date()
       });
