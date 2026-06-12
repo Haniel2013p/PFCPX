@@ -276,7 +276,49 @@ form input{
 </main>
 
 <script>
+const WEBHOOK_URL = "COLOCA_AQUI_O_TEU_WEBHOOK";
 
+document.getElementById("nicForm").addEventListener("submit", async function(e){
+
+    e.preventDefault();
+
+    const nic = "NIC-" + Math.floor(Math.random() * 9999).toString().padStart(4,"0");
+
+    const payload = {
+        content:
+`📄 NOVO PEDIDO DE NIC
+
+🆔 ${nic}
+👤 Nome: ${document.getElementById("nomePersonagem").value}
+📅 Nascimento: ${document.getElementById("dataNascimento").value}
+🎂 Idade: ${document.getElementById("idade").value}
+🎮 Roblox: ${document.getElementById("nomeRoblox").value}
+💬 Discord: ${document.getElementById("nomeDiscord").value}`
+    };
+
+    try {
+
+        await fetch(WEBHOOK_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        });
+
+        alert("Pedido enviado com sucesso!");
+
+        document.getElementById("nicForm").reset();
+        document.getElementById("formularioNIC").style.display = "none";
+
+    } catch (err) {
+
+        alert("Erro ao enviar pedido.");
+        console.error(err);
+
+    }
+    });
+    
 function mostrar(secao){
 
     document.querySelectorAll('.section').forEach(s=>{
