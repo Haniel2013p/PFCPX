@@ -160,13 +160,16 @@ form input{
     </div>
 </header>
 
+
 <nav>
     <button class="nav-btn" onclick="mostrar('primeiroministro')">Primeiro Ministro</button>
     <button class="nav-btn" onclick="mostrar('presidencia')">Presidência</button>
     <button class="nav-btn" onclick="mostrar('assembleia')">Assembleia</button>
     <button class="nav-btn" onclick="mostrar('servicos')">Serviços</button>
-</nav>
 
+    <button class="nav-btn" onclick="abrirLogin()">Área Restrita</button>
+</nav>
+    
 <main>
 
 <!-- PRIMEIRO MINISTRO -->
@@ -246,6 +249,9 @@ form input{
 
     </div>
 
+<div id="loginArea" style="display:none;">
+<div id="adminPanel" style="display:none;">
+    
     <!-- FORM NIC -->
     <div id="formularioNIC" style="display:none; margin-top:40px;">
 
@@ -331,7 +337,11 @@ window.enviarNIC = async function(){
 ========================= */
 
 let userLogado = null;
-
+window.abrirLogin = function(){
+    document.getElementById("loginArea").style.display = "block";
+    window.scrollTo(0,0);
+}
+    
 window.login = async function(){
 
     const nic = document.getElementById("loginNIC").value;
