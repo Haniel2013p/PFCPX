@@ -164,7 +164,7 @@ p{
     color: #0f2042;
 }
 
-/* FORMULÁRIOS GERANÉRICOS */
+/* FORMULÁRIOS */
 form{
     display: flex;
     flex-direction: column;
@@ -212,6 +212,23 @@ form input:focus, form select:focus, form textarea:focus {
     background: #1e3a67;
 }
 
+/* BLUING RESULTADOS DA CONSULTA */
+.resultado-consulta {
+    margin-top: 25px;
+    padding: 20px;
+    background: #f8fafc;
+    border-left: 5px solid #0f2042;
+    border-radius: 6px;
+}
+.badge-status {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+.badge-clean { background: #d4edda; color: #155724; }
+.badge-dirty { background: #f8d7da; color: #721c24; }
+
 /* PAINEL RESTRITO INTERNO */
 .login-box {
     max-width: 400px;
@@ -224,7 +241,7 @@ form input:focus, form select:focus, form textarea:focus {
 
 .restrito-layout {
     display: grid;
-    grid-template-columns: 250px 1fr;
+    grid-template-columns: 260px 1fr;
     gap: 30px;
     margin-top: 20px;
 }
@@ -265,6 +282,15 @@ form input:focus, form select:focus, form textarea:focus {
     font-weight: bold;
     margin-left: 10px;
 }
+
+/* FILAS DE PEDIDOS COM CARDS */
+.pedido-card {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+}
 </style>
 </head>
 
@@ -287,57 +313,70 @@ form input:focus, form select:focus, form textarea:focus {
 
 <main>
 
-    <!-- PRIMEIRO MINISTRO -->
     <section id="primeiroministro" class="section active">
         <h2>Primeiro Ministro</h2>
         <h3>Acerca</h3>
         <p>Haniel Santos nasceu em 16 de abril de 1989. Concluiu a licenciatura em Direito no ano de 2012...</p>
     </section>
 
-    <!-- PRESIDÊNCIA -->
     <section id="presidencia" class="section">
         <h2>Presidência</h2>
         <p>Estrutura máxima do Estado responsável pela representação da República da Lusitânia RP.</p>
     </section>
 
-    <!-- ASSEMBLEIA -->
     <section id="assembleia" class="section">
         <h2>Assembleia</h2>
         <p>Órgão legislativo responsável pela criação e aprovação de leis.</p>
     </section>
 
-    <!-- SERVIÇOS -->
     <section id="servicos" class="section">
         <h2>Serviços Governamentais</h2>
         <div class="servicos-grid">
-            <div class="card-servico" onclick="mostrarFormularioNIC()">
+            <div class="card-servico" onclick="abrirServicoForm('formularioNIC')">
                 <h3>Tirar NIC</h3>
                 <p>Solicitar emissão do documento de identidade civil.</p>
             </div>
-            <div class="card-servico"><h3>Consultar NIC</h3><p>Consulta pública de identificação civil.</p></div>
+            <div class="card-servico" onclick="abrirServicoForm('formularioConsulta')">
+                <h3>Consultar NIC</h3>
+                <p>Consulta pública de identificação civil, registos e porte.</p>
+            </div>
             <div class="card-servico"><h3>Abrir Empresa</h3><p>Registo de novas empresas.</p></div>
             <div class="card-servico"><h3>Pagar Impostos</h3><p>Gestão e pagamento de impostos.</p></div>
         </div>
 
         <div id="formularioNIC" style="display:none; margin-top:40px;">
-            <h2>Pedido de NIC</h2>
+            <h2>Pedido de Emissão de NIC</h2>
             <form id="publicNicForm">
-                <input type="text" placeholder="Nome do Personagem" required>
-                <input type="date" required>
-                <input type="number" placeholder="Idade" required>
-                <input type="text" placeholder="Nome do Roblox" required>
-                <input type="text" placeholder="Nome do Discord" required>
-                <input type="file" accept="image/*" required>
-                <button type="submit" class="enviar-btn">Enviar Pedido</button>
+                <label>Nome do Personagem</label>
+                <input type="text" id="pNome" placeholder="Nome Completo" required>
+                <label>Data de Nascimento</label>
+                <input type="date" id="pDataNasc" required>
+                <label>Idade</label>
+                <input type="number" id="pIdade" placeholder="Idade" required>
+                <label>Nome do Roblox</label>
+                <input type="text" id="pRoblox" placeholder="Usuário" required>
+                <label>Nome do Discord</label>
+                <input type="text" id="pDiscord" placeholder="Ex: @username" required>
+                <button type="submit" class="enviar-btn">Enviar Pedido para Análise</button>
             </form>
+        </div>
+
+        <div id="formularioConsulta" style="display:none; margin-top:40px;">
+            <h2>Consulta ao Registo Civil Nacional</h2>
+            <form id="publicSearchForm">
+                <label>Pesquisar por NIC ou Nome Completo</label>
+                <input type="text" id="searchQuery" placeholder="Insira o número do NIC ou o Nome do Cidadão..." required>
+                <button type="submit" class="enviar-btn" style="background:#1e3a67;">Efetuar Busca</button>
+            </form>
+
+            <div id="boxResultados" class="resultado-consulta" style="display:none;">
+                </div>
         </div>
     </section>
 
-    <!-- ÁREA RESTRITA -->
     <section id="restrito" class="section">
         <h2>Painel Governamental Restrito</h2>
         
-        <!-- Formulário de Login -->
         <div id="loginRestrito" class="login-box">
             <h3>Autenticação de Agente</h3>
             <form id="formLoginRestrito">
@@ -349,14 +388,13 @@ form input:focus, form select:focus, form textarea:focus {
             </form>
         </div>
 
-        <!-- Conteúdo do Painel Logado (Oculto inicialmente) -->
         <div id="painelInternoRestrito" style="display: none;">
             <p>Bem-vindo, Agente. Nível de Acesso: <span id="txtNivelAgente" class="badge-nivel">0</span></p>
             
             <div class="restrito-layout">
-                <!-- Menu Lateral das Ferramentas -->
                 <div class="restrito-sidebar">
-                    <button class="sub-nav-btn active-sub" onclick="mudarSubAba('abaCriarNic')">📝 Criar NIC</button>
+                    <button class="sub-nav-btn active-sub" onclick="mudarSubAba('abaPedidosNic')">📥 Inbox de Pedidos</button>
+                    <button class="sub-nav-btn" onclick="mudarSubAba('abaCriarNic')">📝 Criar NIC</button>
                     <button class="sub-nav-btn" onclick="mudarSubAba('abaAcessoNic')">🔑 Dar Acesso a NIC</button>
                     <button class="sub-nav-btn" onclick="mudarSubAba('abaRemoverNic')">❌ Remover NIC</button>
                     <button class="sub-nav-btn" onclick="mudarSubAba('abaRegistoCriminal')">🚨 Add Registo Criminal</button>
@@ -364,27 +402,40 @@ form input:focus, form select:focus, form textarea:focus {
                     <button class="sub-nav-btn" style="color: red; margin-top: 20px;" onclick="fazerLogout()">Logout</button>
                 </div>
 
-                <!-- Janelas das Funções -->
                 <div class="restrito-content">
                     
-                    <!-- Criar Nic -->
-                    <div id="abaCriarNic" class="sub-secao" style="display: block;">
+                    <div id="abaPedidosNic" class="sub-secao" style="display: block;">
+                        <h3>Pedidos de NIC Recebidos (Serviços Públicos)</h3>
+                        <br>
+                        <div id="listaPedidosContainer">
+                            <p style="color:#777;">A carregar pedidos enviados pelos cidadãos...</p>
+                        </div>
+                    </div>
+
+                    <div id="abaCriarNic" class="sub-secao" style="display: none;">
                         <h3>Criar Novo NIC</h3>
                         <form id="formCriarNic">
-                            <input type="text" placeholder="Nome Completo" required>
-                            <input type="number" placeholder="Número do NIC Pretendido" required>
-                            <input type="password" placeholder="Definir Senha de Acesso" required>
-                            <button type="submit" class="enviar-btn">Registrar Cidadão</button>
+                            <label>Nome Completo</label>
+                            <input type="text" id="cNome" placeholder="Nome Completo" required>
+                            <label>Número do NIC Pretendido</label>
+                            <input type="number" id="cNic" placeholder="Número do NIC" required>
+                            <label>Definir Senha de Acesso</label>
+                            <input type="password" id="cSenha" placeholder="Senha inicial" required>
+                            <label>Idade</label>
+                            <input type="number" id="cIdade" placeholder="Ex: 25" required>
+                            <label>Data de Nascimento</label>
+                            <input type="date" id="cDataNasc" required>
+                            <button type="submit" class="enviar-btn">Registrar Cidadão (Nível 0)</button>
                         </form>
                     </div>
 
-                    <!-- Dar Acesso a Nic -->
                     <div id="abaAcessoNic" class="sub-secao" style="display: none;">
                         <h3>Dar Acesso Administrativo</h3>
                         <form id="formDarAcesso">
                             <input type="number" placeholder="Número do NIC" required>
                             <label>Nível de Acesso Governamental</label>
                             <select id="selectNivelAcesso">
+                                <option value="0">Nível 0 - Cidadão Comum</option>
                                 <option value="1">Nível 1 - Estagiário / Consulta</option>
                                 <option value="2">Nível 2 - Oficial</option>
                                 <option value="3">Nível 3 - Investigador</option>
@@ -395,7 +446,6 @@ form input:focus, form select:focus, form textarea:focus {
                         </form>
                     </div>
 
-                    <!-- Remover Nic -->
                     <div id="abaRemoverNic" class="sub-secao" style="display: none;">
                         <h3>Remover Cidadão do Sistema</h3>
                         <form id="formRemoverNic">
@@ -404,7 +454,6 @@ form input:focus, form select:focus, form textarea:focus {
                         </form>
                     </div>
 
-                    <!-- Add Registro Criminal -->
                     <div id="abaRegistoCriminal" class="sub-secao" style="display: none;">
                         <h3>Adicionar Registo Criminal</h3>
                         <form id="formRegistoCriminal">
@@ -415,7 +464,6 @@ form input:focus, form select:focus, form textarea:focus {
                         </form>
                     </div>
 
-                    <!-- Add Porte de Armas -->
                     <div id="abaPorteArmas" class="sub-secao" style="display: none;">
                         <h3>Atribuir Licença de Porte de Armas</h3>
                         <form id="formPorteArmas">
@@ -436,12 +484,10 @@ form input:focus, form select:focus, form textarea:focus {
 
 </main>
 
-<!-- LIGAÇÃO AO FIREBASE (V9 APIS MODERNAS) -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-    import { getFirestore, doc, setDoc, getDoc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, deleteDoc, updateDoc, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-    // Configuração do teu Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyDc1XMATAsjne5g7N-UISUkwZh9VZ3ld0Y",
         authDomain: "pfcpx-c0b9b.firebaseapp.com",
@@ -452,12 +498,132 @@ form input:focus, form select:focus, form textarea:focus {
         measurementId: "G-ZGQ0WYRZD9"
     };
 
-    // Inicialização do Firebase & Firestore
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Guardar dados globais do utilizador logado localmente
     let usuarioLogado = null;
+
+    // --- ENVIAR PEDIDO DE NIC (A PARTIR DE SERVIÇOS) ---
+    document.getElementById('publicNicForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+            await addDoc(collection(db, "pedidos_nic"), {
+                nome: document.getElementById('pNome').value,
+                dataNascimento: document.getElementById('pDataNasc').value,
+                idade: document.getElementById('pIdade').value,
+                roblox: document.getElementById('pRoblox').value,
+                discord: document.getElementById('pDiscord').value,
+                dataEnvio: new Date().toLocaleDateString('pt-PT')
+            });
+            alert("Pedido enviado com sucesso ao Governo! Fique atento ao Discord.");
+            e.target.reset();
+            carregarPedidosRestritos(); // Atualiza a lista interna se o admin estiver a ver
+        } catch (error) {
+            alert("Erro ao enviar pedido: " + error.message);
+        }
+    });
+
+    // --- PUXAR E CARREGAR PEDIDOS NA ÁREA RESTRITA ---
+    async function carregarPedidosRestritos() {
+        const container = document.getElementById('listaPedidosContainer');
+        container.innerHTML = "";
+        try {
+            const querySnapshot = await getDocs(collection(db, "pedidos_nic"));
+            if (querySnapshot.empty) {
+                container.innerHTML = "<p style='color:green;'>Nenhum pedido pendente na caixa de entrada.</p>";
+                return;
+            }
+            querySnapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                const card = document.createElement('div');
+                card.className = 'pedido-card';
+                card.innerHTML = `
+                    <strong>Cidadão:</strong> ${data.nome} | <strong>Idade:</strong> ${data.idade} anos<br>
+                    <strong>Nascimento:</strong> ${data.dataNascimento} | <strong>Enviado em:</strong> ${data.dataEnvio}<br>
+                    <strong>Roblox:</strong> ${data.roblox} | <strong>Discord:</strong> ${data.discord}
+                `;
+                container.appendChild(card);
+            });
+        } catch (error) {
+            container.innerHTML = "<p style='color:red;'>Erro ao carregar os dados.</p>";
+        }
+    }
+
+    // --- SISTEMA DE CONSULTA PÚBLICA DE NIC ---
+    document.getElementById('publicSearchForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const queryVal = document.getElementById('searchQuery').value.trim();
+        const boxResultados = document.getElementById('boxResultados');
+        boxResultados.style.display = 'block';
+        boxResultados.innerHTML = "A pesquisar nos arquivos de identificação civil...";
+
+        try {
+            let dadosCidadao = null;
+            let nicEncontrado = null;
+
+            // 1. Procurar por ID de Documento (Se for número de NIC direto)
+            const docRef = doc(db, "usuarios", queryVal);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                dadosCidadao = docSnap.data();
+                nicEncontrado = queryVal;
+            } else {
+                // 2. Procurar por Nome Completo na coleção
+                const q = query(collection(db, "usuarios"), where("nome", "==", queryVal));
+                const querySnapshot = await getDocs(q);
+                if (!querySnapshot.empty) {
+                    dadosCidadao = querySnapshot.docs[0].data();
+                    nicEncontrado = dadosCidadao.nic;
+                }
+            }
+
+            if (!dadosCidadao) {
+                boxResultados.innerHTML = "<span style='color:red;'>Nenhum registo civil encontrado para o parâmetro fornecido.</span>";
+                return;
+            }
+
+            // 3. Puxar histórico criminal do NIC encontrado
+            let fichaCriminalHtml = "<li>Nenhum antecedente registado.</li>";
+            const qCriminas = query(collection(db, "registos_criminais"), where("nicCidadao", "==", String(nicEncontrado)));
+            const snapCrimes = await getDocs(qCriminas);
+            let hasCrimes = false;
+            
+            if(!snapCrimes.empty) {
+                fichaCriminalHtml = "";
+                hasCrimes = true;
+                snapCrimes.forEach(docC => {
+                    const c = docC.data();
+                    fichaCriminalHtml += `<li>[${c.dataRegisto || 'Pendente'}] <strong>${c.crime}:</strong> ${c.detalhes}</li>`;
+                });
+            }
+
+            // 4. Puxar Licença de Armas
+            let licencaHtml = "<span style='color:#777;'>Não Possui Licença ativa</span>";
+            const armaDoc = await getDoc(doc(db, "licencas_armas", String(nicEncontrado)));
+            if (armaDoc.exists()) {
+                licencaHtml = `<span style='color:green; font-weight:bold;'>ATIVA (${armaDoc.data().tipoLicenca})</span>`;
+            }
+
+            // Montar Interface Final da Consulta
+            boxResultados.innerHTML = `
+                <h3 style="margin-top:0;">Registro Civil: ${dadosCidadao.nome}</h3>
+                <p><strong>Nº de NIC:</strong> ${nicEncontrado}</p>
+                <p><strong>Idade:</strong> ${dadosCidadao.idade || 'Não informada'} anos</p>
+                <p><strong>Data de Nascimento:</strong> ${dadosCidadao.dataNascimento || 'Não informada'}</p>
+                <p><strong>Porte de Armas:</strong> ${licencaHtml}</p>
+                <br>
+                <strong>Histórico de Antecedentes Criminais:</strong> 
+                <span class="badge-status ${hasCrimes ? 'badge-dirty' : 'badge-clean'}">${hasCrimes ? 'Ficha Limpa: NÃO' : 'Ficha Limpa: SIM'}</span>
+                <ul style="margin-left: 20px; margin-top:10px; line-height:1.5;">
+                    ${fichaCriminalHtml}
+                </ul>
+            `;
+
+        } catch (error) {
+            boxResultados.innerHTML = "Erro ao processar a consulta base: " + error.message;
+        }
+    });
 
     // --- SISTEMA DE LOGIN RESTRITO ---
     document.getElementById('formLoginRestrito').addEventListener('submit', async (e) => {
@@ -465,14 +631,12 @@ form input:focus, form select:focus, form textarea:focus {
         const nic = document.getElementById('loginNic').value;
         const senha = document.getElementById('loginSenha').value;
 
-        // VALIDAÇÃO LOCAL DA CONTA MESTRE (NIC 1 / SENHA 1)
         if(nic === "1" && senha === "1") {
             usuarioLogado = { nic: "1", nivel: 5, nome: "Administrador Mestre" };
             carregarPainelRestrito(5);
             return;
         }
 
-        // Se não for a conta mestre, procura no Firestore do Firebase
         try {
             const userRef = doc(db, "usuarios", nic);
             const userSnap = await getDoc(userRef);
@@ -481,84 +645,79 @@ form input:focus, form select:focus, form textarea:focus {
                 const dadosUser = userSnap.data();
                 if(dadosUser.senha === senha) {
                     usuarioLogado = dadosUser;
-                    carregarPainelRestrito(dadosUser.nivel || 1);
+                    carregarPainelRestrito(dadosUser.nivel ?? 0);
                 } else {
-                    alert("Senha incorreta para este NIC!");
+                    alert("Senha incorreta!");
                 }
             } else {
-                alert("NIC de agente não encontrado no sistema Firebase.");
+                alert("NIC não cadastrado no Firebase.");
             }
         } catch (error) {
-            console.error(error);
-            alert("Erro ao conectar com a base de dados.");
+            alert("Erro na ligação ao servidor.");
         }
     });
 
-    // Função que destranca a interface após o Login
     function carregarPainelRestrito(nivel) {
         document.getElementById('loginRestrito').style.display = 'none';
         document.getElementById('painelInternoRestrito').style.display = 'block';
         document.getElementById('txtNivelAgente').innerText = nivel;
-        alert("Autenticado com sucesso! Nível " + nivel);
+        carregarPedidosRestritos(); // Carrega a inbox de pedidos logo no login
     }
 
-    // --- OPERAÇÃO: CRIAR NIC ---
+    // --- CRIAR NIC (NÍVEL INICIAL ATRIBUÍDO A 0) ---
     document.getElementById('formCriarNic').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const inputs = e.target.querySelectorAll('input');
-        const nome = inputs[0].value;
-        const nicNum = inputs[1].value;
-        const senhaDefinida = inputs[2].value;
+        const nome = document.getElementById('cNome').value;
+        const nicNum = document.getElementById('cNic').value;
+        const senhaDefinida = document.getElementById('cSenha').value;
+        const idade = document.getElementById('cIdade').value;
+        const dataNasc = document.getElementById('cDataNasc').value;
 
         try {
             await setDoc(doc(db, "usuarios", nicNum), {
                 nome: nome,
                 nic: nicNum,
                 senha: senhaDefinida,
-                nivel: 1 // Por padrão entra em nível 1, pode ser promovido na aba de acessos
+                idade: parseInt(idade),
+                dataNascimento: dataNasc,
+                nivel: 0 // Garantido nível 0 como padrão inicial
             });
-            alert(`Cidadão ${nome} (NIC: ${nicNum}) criado no Firebase com sucesso!`);
+            alert(`NIC ${nicNum} (${nome}) inserido com sucesso como Nível 0.`);
             e.target.reset();
         } catch (error) {
-            alert("Erro ao criar NIC no Firebase: " + error.message);
+            alert("Erro ao criar utilizador no Firebase.");
         }
     });
 
-    // --- OPERAÇÃO: DAR ACESSO A NIC ---
+    // --- ATUALIZAR ACESSO ---
     document.getElementById('formDarAcesso').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const nicNum = document.getElementById('formDarAcesso').querySelectorAll('input')[0].value;
+        const nicNum = e.target.querySelectorAll('input')[0].value;
         const nivelSelecionado = parseInt(document.getElementById('selectNivelAcesso').value);
 
         try {
-            const userRef = doc(db, "usuarios", nicNum);
-            await updateDoc(userRef, {
-                nivel: nivelSelecionado
-            });
-            alert(`Sucesso! NIC ${nicNum} promovido para o Nível ${nivelSelecionado}.`);
+            await updateDoc(doc(db, "usuarios", nicNum), { nivel: nivelSelecionado });
+            alert(`Permissões do NIC ${nicNum} redefinidas para o Nível ${nivelSelecionado}!`);
             e.target.reset();
         } catch (error) {
-            alert("Erro! Certifica-te de que o NIC existe no Firebase antes de alterar permissões.");
+            alert("Falha ao atualizar. Verifique se o NIC existe.");
         }
     });
 
-    // --- OPERAÇÃO: REMOVER NIC ---
+    // --- REMOVER NIC ---
     document.getElementById('formRemoverNic').addEventListener('submit', async (e) => {
         e.preventDefault();
         const nicNum = e.target.querySelector('input').value;
-
-        if(confirm(`Tens a certeza que queres eliminar o NIC ${nicNum}?`)){
+        if(confirm("Deseja expurgar este registo do sistema?")){
             try {
                 await deleteDoc(doc(db, "usuarios", nicNum));
-                alert(`NIC ${nicNum} foi completamente removido.`);
+                alert("Registo eliminado.");
                 e.target.reset();
-            } catch (error) {
-                alert("Erro ao remover: " + error.message);
-            }
+            } catch (error) { alert(error.message); }
         }
     });
 
-    // --- OPERAÇÃO: ADD REGISTO CRIMINAL ---
+    // --- ADD REGISTO CRIMINAL ---
     document.getElementById('formRegistoCriminal').addEventListener('submit', async (e) => {
         e.preventDefault();
         const nicNum = e.target.querySelectorAll('input')[0].value;
@@ -566,42 +725,34 @@ form input:focus, form select:focus, form textarea:focus {
         const detalhes = e.target.querySelector('textarea').value;
 
         try {
-            // Gera um ID único baseado no tempo para o crime não sobrescrever outro
-            const idCrime = "crime_" + Date.now();
-            await setDoc(doc(db, "registos_criminais", idCrime), {
-                nicCidadao: nicNum,
+            await addDoc(collection(db, "registos_criminais"), {
+                nicCidadao: String(nicNum),
                 crime: crime,
                 detalhes: detalhes,
                 dataRegisto: new Date().toLocaleDateString('pt-PT')
             });
-            alert(`Registo criminal associado ao NIC ${nicNum}!`);
+            alert("Registo criminal averbado!");
             e.target.reset();
-        } catch (error) {
-            alert("Erro ao guardar registo criminal.");
-        }
+        } catch (error) { alert("Erro ao salvar."); }
     });
 
-    // --- OPERAÇÃO: ADD PORTE DE ARMAS ---
+    // --- ADD PORTE DE ARMAS ---
     document.getElementById('formPorteArmas').addEventListener('submit', async (e) => {
         e.preventDefault();
         const nicNum = e.target.querySelector('input').value;
         const tipo = document.getElementById('tipoLicenca').value;
 
         try {
-            await setDoc(doc(db, "licencas_armas", nicNum), {
-                nicCidadao: nicNum,
+            await setDoc(doc(db, "licencas_armas", String(nicNum)), {
+                nicCidadao: String(nicNum),
                 tipoLicenca: tipo,
-                status: "Ativo",
                 dataEmissao: new Date().toLocaleDateString('pt-PT')
             });
-            alert(`Porte de Arma (${tipo}) concedido ao NIC ${nicNum}!`);
+            alert("Licença de porte emitida!");
             e.target.reset();
-        } catch (error) {
-            alert("Erro ao emitir porte de armas.");
-        }
+        } catch (error) { alert("Erro."); }
     });
 
-    // Função de Logout colocada no escopo global para o botão funcionar
     window.fazerLogout = function() {
         usuarioLogado = null;
         document.getElementById('painelInternoRestrito').style.display = 'none';
@@ -610,33 +761,25 @@ form input:focus, form select:focus, form textarea:focus {
     };
 </script>
 
-<!-- CONTROLO DE INTERFACE BÁSICO (SEÇÕES ANTIGAS + SUB-ABAS) -->
 <script>
 function mostrar(secao){
-    document.querySelectorAll('.section').forEach(s=>{
-        s.classList.remove('active');
-    });
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.classList.remove('active-nav');
-    });
+    document.querySelectorAll('.section').forEach(s=>{ s.classList.remove('active'); });
+    document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('active-nav'); });
     document.getElementById(secao).classList.add('active');
     event.currentTarget.classList.add('active-nav');
 }
 
-function mostrarFormularioNIC(){
-    document.getElementById("formularioNIC").style.display = "block";
-    document.getElementById("formularioNIC").scrollIntoView({ behavior: 'smooth' });
+function abrirServicoForm(idForm) {
+    document.getElementById("formularioNIC").style.display = "none";
+    document.getElementById("formularioConsulta").style.display = "none";
+    
+    document.getElementById(idForm).style.display = "block";
+    document.getElementById(idForm).scrollIntoView({ behavior: 'smooth' });
 }
 
-// Navegação interna das abas restritas
 function mudarSubAba(idSubAba) {
-    document.querySelectorAll('.sub-secao').forEach(aba => {
-        aba.style.display = 'none';
-    });
-    document.querySelectorAll('.sub-nav-btn').forEach(btn => {
-        btn.classList.remove('active-sub');
-    });
-    
+    document.querySelectorAll('.sub-secao').forEach(aba => { aba.style.display = 'none'; });
+    document.querySelectorAll('.sub-nav-btn').forEach(btn => { btn.classList.remove('active-sub'); });
     document.getElementById(idSubAba).style.display = 'block';
     event.currentTarget.classList.add('active-sub');
 }
