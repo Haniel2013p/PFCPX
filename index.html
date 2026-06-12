@@ -293,6 +293,7 @@ form input:focus, form select:focus, form textarea:focus {
     padding: 15px;
     border-radius: 6px;
     margin-bottom: 15px;
+    line-height: 1.6;
 }
 </style>
 </head>
@@ -326,7 +327,7 @@ form input:focus, form select:focus, form textarea:focus {
     <!-- PRESIDÊNCIA -->
     <section id="presidencia" class="section">
         <h2>Presidência</h2>
-        <p>Estrutura máxima do Estado responsável pela representação da República da Lusitânia RP.</p>
+        <p>Estrutura máxima do State responsável pela representação da República da Lusitânia RP.</p>
     </section>
 
     <!-- ASSEMBLEIA -->
@@ -437,13 +438,14 @@ form input:focus, form select:focus, form textarea:focus {
                     <button class="sub-nav-btn" onclick="mudarSubAba('abaRemoverNipc')">🗑️ Remover NIPC</button>
                     <button class="sub-nav-btn" onclick="mudarSubAba('abaRegistoCriminal')">🚨 Add Registo Criminal</button>
                     <button class="sub-nav-btn" onclick="mudarSubAba('abaPorteArmas')">🔫 Add Porte de Armas</button>
+                    <button class="sub-nav-btn" onclick="mudarSubAba('abaRemoverArmas')" style="color: #d97706;">🚫 Remover Porte de Armas</button>
                     <button class="sub-nav-btn" style="color: red; margin-top: 20px;" onclick="fazerLogout()">Logout</button>
                 </div>
 
                 <!-- Janelas das Funções -->
                 <div class="restrito-content">
                     
-                    <!-- Inbox Pedidos Nic -->
+                    <!-- Inbox Pedidos Nic Completa -->
                     <div id="abaPedidosNic" class="sub-secao" style="display: block;">
                         <h3>Pedidos de NIC Pendentes</h3><br>
                         <div id="listaPedidosContainer"><p style="color:#777;">A carregar pedidos...</p></div>
@@ -557,6 +559,16 @@ form input:focus, form select:focus, form textarea:focus {
                         </form>
                     </div>
 
+                    <!-- Remover Porte de Armas -->
+                    <div id="abaRemoverArmas" class="sub-secao" style="display: none;">
+                        <h3>Cassação / Remoção de Porte de Armas</h3>
+                        <form id="formRemoverArmas">
+                            <label>Número do NIC do Cidadão</label>
+                            <input type="number" id="rArmasNic" placeholder="Introduza o NIC para revogar licença" required>
+                            <button type="submit" class="enviar-btn" style="background: #d97706;">Revogar Licença de Armas</button>
+                        </form>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -612,27 +624,32 @@ form input:focus, form select:focus, form textarea:focus {
                 tipo: document.getElementById('empTipo').value,
                 dataEnvio: new Date().toLocaleDateString('pt-PT')
             });
-            alert("Pedido de abertura de empresa enviado com sucesso ao Ministério da Economia!");
+            alert("Pedido de abertura de empresa enviado com sucesso!");
             e.target.reset();
             if(usuarioLogado) carregarPedidosNipcRestritos();
         } catch (error) { alert(error.message); }
     });
 
-    // --- CARREGAR PEDIDOS NIC ---
+    // --- CARREGAR PEDIDOS NIC COMPLETO ---
     async function carregarPedidosRestritos() {
         const container = document.getElementById('listaPedidosContainer');
         container.innerHTML = "";
         try {
             const snap = await getDocs(collection(db, "pedidos_nic"));
-            if (snap.empty) { container.innerHTML = "<p>Sem pedidos civis.</p>"; return; }
+            if (snap.empty) { container.innerHTML = "<p>Sem pedidos civis pendentes.</p>"; return; }
             snap.forEach((docSnap) => {
                 const data = docSnap.data();
                 const card = document.createElement('div');
                 card.className = 'pedido-card';
-                card.innerHTML = `<strong>Nome:</strong> ${data.nome} | <strong>Roblox:</strong> ${data.roblox} | <strong>Discord:</strong> ${data.discord} (${data.dataEnvio})`;
+                card.innerHTML = `
+                    <strong>👤 Nome Civil:</strong> ${data.nome}<br>
+                    <strong>📅 Nascido em:</strong> ${data.dataNascimento || 'Não informada'} | <strong>🎂 Idade:</strong> ${data.idade || 'N/A'} anos<br>
+                    <strong>🎮 Roblox:</strong> ${data.roblox} | <strong>💬 Discord:</strong> ${data.discord}<br>
+                    <small style="color:#777;">Enviado em: ${data.dataEnvio}</small>
+                `;
                 container.appendChild(card);
             });
-        } catch (e) { container.innerHTML = "Erro."; }
+        } catch (e) { container.innerHTML = "Erro ao processar base de dados."; }
     }
 
     // --- CARREGAR PEDIDOS EMPRESA ---
@@ -652,7 +669,7 @@ form input:focus, form select:focus, form textarea:focus {
         } catch (e) { container.innerHTML = "Erro."; }
     }
 
-    // --- CONSULTA PÚBLICA (EXPANDIDA COM VEICULAÇÃO DE NIPC) ---
+    // --- CONSULTA PÚBLICA ---
     document.getElementById('publicSearchForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const queryVal = document.getElementById('searchQuery').value.trim();
@@ -682,7 +699,7 @@ form input:focus, form select:focus, form textarea:focus {
                 return;
             }
 
-            // Pesquisar se o cidadão possui alguma empresa (NIPC) associada ao seu NIC
+            // Pesquisar empresas (NIPC)
             let empresasHtml = "<li>Nenhuma empresa registada em nome deste titular.</li>";
             const qEmpresas = query(collection(db, "empresas"), where("nicDono", "==", String(nicEncontrado)));
             const snapEmpresas = await getDocs(qEmpresas);
@@ -729,7 +746,7 @@ form input:focus, form select:focus, form textarea:focus {
         } catch (error) { boxResultados.innerHTML = "Erro: " + error.message; }
     });
 
-    // --- AUTENTICAÇÃO COM BLOQUEIO DE NÍVEL 0 ---
+    // --- AUTENTICAÇÃO COM REJEIÇÃO NÍVEL 0 ---
     document.getElementById('formLoginRestrito').addEventListener('submit', async (e) => {
         e.preventDefault();
         const nic = document.getElementById('loginNic').value;
@@ -747,13 +764,10 @@ form input:focus, form select:focus, form textarea:focus {
                 const dadosUser = userSnap.data();
                 if(dadosUser.senha === senha) {
                     const nivelUser = dadosUser.nivel ?? 0;
-                    
-                    // REGRA 1: Bloquear Nível 0 de entrar na área restrita
                     if (nivelUser === 0) {
-                        alert("⚠️ Acesso Recusado! Cidadãos com Nível 0 não possuem credenciais governamentais.");
+                        alert("⚠️ Acesso Recusado! Cidadãos com Nível 0 não possuem permissões de agentes.");
                         return;
                     }
-
                     usuarioLogado = dadosUser;
                     carregarPainelRestrito(nivelUser);
                 } else { alert("Senha incorreta!"); }
@@ -769,7 +783,7 @@ form input:focus, form select:focus, form textarea:focus {
         carregarPedidosNipcRestritos();
     }
 
-    // --- RESTRITO: CRIAR NIC (PADRÃO NÍVEL 0) ---
+    // --- RESTRITO: CRIAR NIC ---
     document.getElementById('formCriarNic').addEventListener('submit', async (e) => {
         e.preventDefault();
         try {
@@ -782,7 +796,7 @@ form input:focus, form select:focus, form textarea:focus {
                 dataNascimento: document.getElementById('cDataNasc').value,
                 nivel: 0 
             });
-            alert("NIC criado com sucesso no Firebase (Nível inicial: 0).");
+            alert("NIC criado com sucesso (Nível: 0).");
             e.target.reset();
         } catch (error) { alert("Erro ao criar."); }
     });
@@ -796,17 +810,17 @@ form input:focus, form select:focus, form textarea:focus {
             await updateDoc(doc(db, "usuarios", nicNum), { nivel: nivelSelecionado });
             alert("Nível de acesso atualizado!");
             e.target.reset();
-        } catch (error) { alert("Erro ao atualizar."); }
+        } catch (error) { alert("Erro."); }
     });
 
     // --- RESTRITO: REMOVER NIC ---
     document.getElementById('formRemoverNic').addEventListener('submit', async (e) => {
         e.preventDefault();
         const nicNum = e.target.querySelector('input').value;
-        if(confirm("Confirmar exclusão de cidadão?")){
+        if(confirm("Confirmar exclusão permanente do cidadão?")){
             try {
                 await deleteDoc(doc(db, "usuarios", nicNum));
-                alert("NIC deletado.");
+                alert("NIC removido.");
                 e.target.reset();
             } catch (e) { alert("Erro."); }
         }
@@ -824,25 +838,25 @@ form input:focus, form select:focus, form textarea:focus {
                 tipo: document.getElementById('cNipcTipo').value,
                 dataRegisto: new Date().toLocaleDateString('pt-PT')
             });
-            alert(`NIPC ${nipcNum} registrado e ativo na base comercial!`);
+            alert(`NIPC ${nipcNum} criado e associado.`);
             e.target.reset();
-        } catch (error) { alert("Erro ao registrar empresa."); }
+        } catch (error) { alert("Erro."); }
     });
 
     // --- RESTRITO: REMOVER NIPC ---
     document.getElementById('formRemoverNipc').addEventListener('submit', async (e) => {
         e.preventDefault();
         const nipcNum = document.getElementById('rNipcNum').value;
-        if(confirm(`Deseja mesmo banir/remover o NIPC ${nipcNum}?`)){
+        if(confirm(`Deseja mesmo remover o NIPC ${nipcNum}?`)){
             try {
                 await deleteDoc(doc(db, "empresas", nipcNum));
-                alert("Empresa removida com sucesso.");
+                alert("Empresa eliminada.");
                 e.target.reset();
-            } catch (error) { alert("Erro ao remover NIPC."); }
+            } catch (error) { alert("Erro."); }
         }
     });
 
-    // --- OUTROS MÓDULOS RESTRITOS ---
+    // --- RESTRITO: ADICIONAR REGISTO CRIMINAL ---
     document.getElementById('formRegistoCriminal').addEventListener('submit', async (e) => {
         e.preventDefault();
         try {
@@ -857,6 +871,7 @@ form input:focus, form select:focus, form textarea:focus {
         } catch (e) { alert("Erro."); }
     });
 
+    // --- RESTRITO: EMITIR PORTE DE ARMAS ---
     document.getElementById('formPorteArmas').addEventListener('submit', async (e) => {
         e.preventDefault();
         try {
@@ -869,6 +884,26 @@ form input:focus, form select:focus, form textarea:focus {
             alert("Licença de armamento concedida!");
             e.target.reset();
         } catch (e) { alert("Erro."); }
+    });
+
+    // --- RESTRITO: REMOVER PORTE DE ARMAS ---
+    document.getElementById('formRemoverArmas').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nicNum = document.getElementById('rArmasNic').value;
+        if(confirm(`Confirmar a revogação e apreensão definitiva da licença de armas do NIC ${nicNum}?`)){
+            try {
+                const docRef = doc(db, "licencas_armas", String(nicNum));
+                const docSnap = await getDoc(docRef);
+                
+                if(docSnap.exists()){
+                    await deleteDoc(docRef);
+                    alert(`Licença de armas do cidadão [NIC: ${nicNum}] removida do sistema com sucesso!`);
+                } else {
+                    alert("Este cidadão não possui nenhuma licença ativa registada.");
+                }
+                e.target.reset();
+            } catch (error) { alert("Erro ao revogar porte de armas."); }
+        }
     });
 
     window.fazerLogout = function() {
