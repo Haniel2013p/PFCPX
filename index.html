@@ -212,7 +212,7 @@ form input:focus, form select:focus, form textarea:focus {
     background: #1e3a67;
 }
 
-/* BLUING RESULTADOS DA CONSULTA */
+/* RESULTADOS DA CONSULTA */
 .resultado-consulta {
     margin-top: 25px;
     padding: 20px;
@@ -254,6 +254,8 @@ form input:focus, form select:focus, form textarea:focus {
     flex-direction: column;
     gap: 10px;
     border-radius: 6px;
+    max-height: 80vh;
+    overflow-y: auto;
 }
 
 .sub-nav-btn {
@@ -265,6 +267,7 @@ form input:focus, form select:focus, form textarea:focus {
     cursor: pointer;
     font-weight: 500;
     transition: 0.2s;
+    font-size: 14px;
 }
 
 .sub-nav-btn:hover, .sub-nav-btn.active-sub {
@@ -283,7 +286,7 @@ form input:focus, form select:focus, form textarea:focus {
     margin-left: 10px;
 }
 
-/* FILAS DE PEDIDOS COM CARDS */
+/* CARDS DE PEDIDOS */
 .pedido-card {
     background: #f1f5f9;
     border: 1px solid #e2e8f0;
@@ -313,22 +316,26 @@ form input:focus, form select:focus, form textarea:focus {
 
 <main>
 
+    <!-- PRIMEIRO MINISTRO -->
     <section id="primeiroministro" class="section active">
         <h2>Primeiro Ministro</h2>
         <h3>Acerca</h3>
         <p>Haniel Santos nasceu em 16 de abril de 1989. Concluiu a licenciatura em Direito no ano de 2012...</p>
     </section>
 
+    <!-- PRESIDÊNCIA -->
     <section id="presidencia" class="section">
         <h2>Presidência</h2>
         <p>Estrutura máxima do Estado responsável pela representação da República da Lusitânia RP.</p>
     </section>
 
+    <!-- ASSEMBLEIA -->
     <section id="assembleia" class="section">
         <h2>Assembleia</h2>
         <p>Órgão legislativo responsável pela criação e aprovação de leis.</p>
     </section>
 
+    <!-- SERVIÇOS -->
     <section id="servicos" class="section">
         <h2>Serviços Governamentais</h2>
         <div class="servicos-grid">
@@ -338,12 +345,16 @@ form input:focus, form select:focus, form textarea:focus {
             </div>
             <div class="card-servico" onclick="abrirServicoForm('formularioConsulta')">
                 <h3>Consultar NIC</h3>
-                <p>Consulta pública de identificação civil, registos e porte.</p>
+                <p>Consulta pública de identificação civil, registos, portes e NIPCs.</p>
             </div>
-            <div class="card-servico"><h3>Abrir Empresa</h3><p>Registo de novas empresas.</p></div>
+            <div class="card-servico" onclick="abrirServicoForm('formularioNIPC')">
+                <h3>Abrir Empresa</h3>
+                <p>Registo de novas marcas, empresas e entidades coletivas (NIPC).</p>
+            </div>
             <div class="card-servico"><h3>Pagar Impostos</h3><p>Gestão e pagamento de impostos.</p></div>
         </div>
 
+        <!-- FORM PEDIDO NIC (PÚBLICO) -->
         <div id="formularioNIC" style="display:none; margin-top:40px;">
             <h2>Pedido de Emissão de NIC</h2>
             <form id="publicNicForm">
@@ -361,6 +372,7 @@ form input:focus, form select:focus, form textarea:focus {
             </form>
         </div>
 
+        <!-- FORM CONSULTA NIC (PÚBLICO) -->
         <div id="formularioConsulta" style="display:none; margin-top:40px;">
             <h2>Consulta ao Registo Civil Nacional</h2>
             <form id="publicSearchForm">
@@ -368,15 +380,36 @@ form input:focus, form select:focus, form textarea:focus {
                 <input type="text" id="searchQuery" placeholder="Insira o número do NIC ou o Nome do Cidadão..." required>
                 <button type="submit" class="enviar-btn" style="background:#1e3a67;">Efetuar Busca</button>
             </form>
+            <div id="boxResultados" class="resultado-consulta" style="display:none;"></div>
+        </div>
 
-            <div id="boxResultados" class="resultado-consulta" style="display:none;">
-                </div>
+        <!-- FORM PEDIDO DE NIPC / EMPRESA (PÚBLICO) -->
+        <div id="formularioNIPC" style="display:none; margin-top:40px;">
+            <h2>Pedido de Registo de Empresa (NIPC)</h2>
+            <form id="publicNipcForm">
+                <label>Número do NIC do Proprietário</label>
+                <input type="number" id="empNic" placeholder="Seu NIC" required>
+                <label>Nome da Empresa / Entidade</label>
+                <input type="text" id="empNome" placeholder="Nome comercial pretendido" required>
+                <label>Tipo de Entidade</label>
+                <select id="empTipo">
+                    <option value="Associações">Associações</option>
+                    <option value="Fundações">Fundações</option>
+                    <option value="Cooperativas">Cooperativas</option>
+                    <option value="Entidades diversas">Entidades diversas</option>
+                    <option value="Empresa pública">Empresa pública</option>
+                    <option value="Entidade privada">Entidade privada</option>
+                </select>
+                <button type="submit" class="enviar-btn">Enviar Pedido de Empresa</button>
+            </form>
         </div>
     </section>
 
+    <!-- ÁREA RESTRITA -->
     <section id="restrito" class="section">
         <h2>Painel Governamental Restrito</h2>
         
+        <!-- Formulário de Login -->
         <div id="loginRestrito" class="login-box">
             <h3>Autenticação de Agente</h3>
             <form id="formLoginRestrito">
@@ -388,30 +421,41 @@ form input:focus, form select:focus, form textarea:focus {
             </form>
         </div>
 
+        <!-- Conteúdo do Painel Logado -->
         <div id="painelInternoRestrito" style="display: none;">
             <p>Bem-vindo, Agente. Nível de Acesso: <span id="txtNivelAgente" class="badge-nivel">0</span></p>
             
             <div class="restrito-layout">
+                <!-- Menu Lateral -->
                 <div class="restrito-sidebar">
-                    <button class="sub-nav-btn active-sub" onclick="mudarSubAba('abaPedidosNic')">📥 Inbox de Pedidos</button>
+                    <button class="sub-nav-btn active-sub" onclick="mudarSubAba('abaPedidosNic')">📥 Inbox Pedidos NIC</button>
+                    <button class="sub-nav-btn" onclick="mudarSubAba('abaPedidosNipc')">🏢 Inbox Pedidos Empresa</button>
                     <button class="sub-nav-btn" onclick="mudarSubAba('abaCriarNic')">📝 Criar NIC</button>
                     <button class="sub-nav-btn" onclick="mudarSubAba('abaAcessoNic')">🔑 Dar Acesso a NIC</button>
                     <button class="sub-nav-btn" onclick="mudarSubAba('abaRemoverNic')">❌ Remover NIC</button>
+                    <button class="sub-nav-btn" onclick="mudarSubAba('abaCriarNipc')">🏬 Criar NIPC (Empresa)</button>
+                    <button class="sub-nav-btn" onclick="mudarSubAba('abaRemoverNipc')">🗑️ Remover NIPC</button>
                     <button class="sub-nav-btn" onclick="mudarSubAba('abaRegistoCriminal')">🚨 Add Registo Criminal</button>
                     <button class="sub-nav-btn" onclick="mudarSubAba('abaPorteArmas')">🔫 Add Porte de Armas</button>
                     <button class="sub-nav-btn" style="color: red; margin-top: 20px;" onclick="fazerLogout()">Logout</button>
                 </div>
 
+                <!-- Janelas das Funções -->
                 <div class="restrito-content">
                     
+                    <!-- Inbox Pedidos Nic -->
                     <div id="abaPedidosNic" class="sub-secao" style="display: block;">
-                        <h3>Pedidos de NIC Recebidos (Serviços Públicos)</h3>
-                        <br>
-                        <div id="listaPedidosContainer">
-                            <p style="color:#777;">A carregar pedidos enviados pelos cidadãos...</p>
-                        </div>
+                        <h3>Pedidos de NIC Pendentes</h3><br>
+                        <div id="listaPedidosContainer"><p style="color:#777;">A carregar pedidos...</p></div>
                     </div>
 
+                    <!-- Inbox Pedidos Empresa -->
+                    <div id="abaPedidosNipc" class="sub-secao" style="display: none;">
+                        <h3>Pedidos de Abertura de Empresa Pendentes</h3><br>
+                        <div id="listaPedidosNipcContainer"><p style="color:#777;">A carregar solicitações de NIPC...</p></div>
+                    </div>
+
+                    <!-- Criar Nic -->
                     <div id="abaCriarNic" class="sub-secao" style="display: none;">
                         <h3>Criar Novo NIC</h3>
                         <form id="formCriarNic">
@@ -420,22 +464,23 @@ form input:focus, form select:focus, form textarea:focus {
                             <label>Número do NIC Pretendido</label>
                             <input type="number" id="cNic" placeholder="Número do NIC" required>
                             <label>Definir Senha de Acesso</label>
-                            <input type="password" id="cSenha" placeholder="Senha inicial" required>
+                            <input type="password" id="cSenha" placeholder="Senha" required>
                             <label>Idade</label>
-                            <input type="number" id="cIdade" placeholder="Ex: 25" required>
+                            <input type="number" id="cIdade" placeholder="Idade" required>
                             <label>Data de Nascimento</label>
                             <input type="date" id="cDataNasc" required>
                             <button type="submit" class="enviar-btn">Registrar Cidadão (Nível 0)</button>
                         </form>
                     </div>
 
+                    <!-- Dar Acesso a Nic -->
                     <div id="abaAcessoNic" class="sub-secao" style="display: none;">
                         <h3>Dar Acesso Administrativo</h3>
                         <form id="formDarAcesso">
                             <input type="number" placeholder="Número do NIC" required>
                             <label>Nível de Acesso Governamental</label>
                             <select id="selectNivelAcesso">
-                                <option value="0">Nível 0 - Cidadão Comum</option>
+                                <option value="0">Nível 0 - Cidadão Comum (Sem acesso)</option>
                                 <option value="1">Nível 1 - Estagiário / Consulta</option>
                                 <option value="2">Nível 2 - Oficial</option>
                                 <option value="3">Nível 3 - Investigador</option>
@@ -446,6 +491,7 @@ form input:focus, form select:focus, form textarea:focus {
                         </form>
                     </div>
 
+                    <!-- Remover Nic -->
                     <div id="abaRemoverNic" class="sub-secao" style="display: none;">
                         <h3>Remover Cidadão do Sistema</h3>
                         <form id="formRemoverNic">
@@ -454,6 +500,39 @@ form input:focus, form select:focus, form textarea:focus {
                         </form>
                     </div>
 
+                    <!-- Criar NIPC -->
+                    <div id="abaCriarNipc" class="sub-secao" style="display: none;">
+                        <h3>Registrar e Oficializar Empresa (NIPC)</h3>
+                        <form id="formCriarNipc">
+                            <label>Número de NIPC Gerado</label>
+                            <input type="number" id="cNipcNum" placeholder="Ex: 500123456" required>
+                            <label>Nome Oficial da Empresa</label>
+                            <input type="text" id="cNipcNome" placeholder="Nome de Registo" required>
+                            <label>NIC do Proprietário Responsável</label>
+                            <input type="number" id="cNipcDono" placeholder="NIC do titular" required>
+                            <label>Tipo de Entidade</label>
+                            <select id="cNipcTipo">
+                                <option value="Associações">Associações</option>
+                                <option value="Fundações">Fundações</option>
+                                <option value="Cooperativas">Cooperativas</option>
+                                <option value="Entidades diversas">Entidades diversas</option>
+                                <option value="Empresa pública">Empresa pública</option>
+                                <option value="Entidade privada">Entidade privada</option>
+                            </select>
+                            <button type="submit" class="enviar-btn">Validar e Criar NIPC</button>
+                        </form>
+                    </div>
+
+                    <!-- Remover NIPC -->
+                    <div id="abaRemoverNipc" class="sub-secao" style="display: none;">
+                        <h3>Revogar Registo de Empresa (NIPC)</h3>
+                        <form id="formRemoverNipc">
+                            <input type="number" id="rNipcNum" placeholder="Insira o NIPC a eliminar" required>
+                            <button type="submit" class="enviar-btn" style="background: #ff4d4d;">Deletar Empresa do Sistema</button>
+                        </form>
+                    </div>
+
+                    <!-- Add Registro Criminal -->
                     <div id="abaRegistoCriminal" class="sub-secao" style="display: none;">
                         <h3>Adicionar Registo Criminal</h3>
                         <form id="formRegistoCriminal">
@@ -464,6 +543,7 @@ form input:focus, form select:focus, form textarea:focus {
                         </form>
                     </div>
 
+                    <!-- Add Porte de Armas -->
                     <div id="abaPorteArmas" class="sub-secao" style="display: none;">
                         <h3>Atribuir Licença de Porte de Armas</h3>
                         <form id="formPorteArmas">
@@ -484,6 +564,7 @@ form input:focus, form select:focus, form textarea:focus {
 
 </main>
 
+<!-- LIGAÇÃO AO FIREBASE -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
     import { getFirestore, doc, setDoc, getDoc, deleteDoc, updateDoc, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
@@ -503,7 +584,7 @@ form input:focus, form select:focus, form textarea:focus {
 
     let usuarioLogado = null;
 
-    // --- ENVIAR PEDIDO DE NIC (A PARTIR DE SERVIÇOS) ---
+    // --- ENVIAR PEDIDO DE NIC ---
     document.getElementById('publicNicForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         try {
@@ -515,61 +596,79 @@ form input:focus, form select:focus, form textarea:focus {
                 discord: document.getElementById('pDiscord').value,
                 dataEnvio: new Date().toLocaleDateString('pt-PT')
             });
-            alert("Pedido enviado com sucesso ao Governo! Fique atento ao Discord.");
+            alert("Pedido de NIC submetido!");
             e.target.reset();
-            carregarPedidosRestritos(); // Atualiza a lista interna se o admin estiver a ver
-        } catch (error) {
-            alert("Erro ao enviar pedido: " + error.message);
-        }
+            if(usuarioLogado) carregarPedidosRestritos();
+        } catch (error) { alert(error.message); }
     });
 
-    // --- PUXAR E CARREGAR PEDIDOS NA ÁREA RESTRITA ---
+    // --- ENVIAR PEDIDO DE EMPRESA (NIPC) ---
+    document.getElementById('publicNipcForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+            await addDoc(collection(db, "pedidos_nipc"), {
+                nicDono: document.getElementById('empNic').value,
+                nomeEmpresa: document.getElementById('empNome').value,
+                tipo: document.getElementById('empTipo').value,
+                dataEnvio: new Date().toLocaleDateString('pt-PT')
+            });
+            alert("Pedido de abertura de empresa enviado com sucesso ao Ministério da Economia!");
+            e.target.reset();
+            if(usuarioLogado) carregarPedidosNipcRestritos();
+        } catch (error) { alert(error.message); }
+    });
+
+    // --- CARREGAR PEDIDOS NIC ---
     async function carregarPedidosRestritos() {
         const container = document.getElementById('listaPedidosContainer');
         container.innerHTML = "";
         try {
-            const querySnapshot = await getDocs(collection(db, "pedidos_nic"));
-            if (querySnapshot.empty) {
-                container.innerHTML = "<p style='color:green;'>Nenhum pedido pendente na caixa de entrada.</p>";
-                return;
-            }
-            querySnapshot.forEach((docSnap) => {
+            const snap = await getDocs(collection(db, "pedidos_nic"));
+            if (snap.empty) { container.innerHTML = "<p>Sem pedidos civis.</p>"; return; }
+            snap.forEach((docSnap) => {
                 const data = docSnap.data();
                 const card = document.createElement('div');
                 card.className = 'pedido-card';
-                card.innerHTML = `
-                    <strong>Cidadão:</strong> ${data.nome} | <strong>Idade:</strong> ${data.idade} anos<br>
-                    <strong>Nascimento:</strong> ${data.dataNascimento} | <strong>Enviado em:</strong> ${data.dataEnvio}<br>
-                    <strong>Roblox:</strong> ${data.roblox} | <strong>Discord:</strong> ${data.discord}
-                `;
+                card.innerHTML = `<strong>Nome:</strong> ${data.nome} | <strong>Roblox:</strong> ${data.roblox} | <strong>Discord:</strong> ${data.discord} (${data.dataEnvio})`;
                 container.appendChild(card);
             });
-        } catch (error) {
-            container.innerHTML = "<p style='color:red;'>Erro ao carregar os dados.</p>";
-        }
+        } catch (e) { container.innerHTML = "Erro."; }
     }
 
-    // --- SISTEMA DE CONSULTA PÚBLICA DE NIC ---
+    // --- CARREGAR PEDIDOS EMPRESA ---
+    async function carregarPedidosNipcRestritos() {
+        const container = document.getElementById('listaPedidosNipcContainer');
+        container.innerHTML = "";
+        try {
+            const snap = await getDocs(collection(db, "pedidos_nipc"));
+            if (snap.empty) { container.innerHTML = "<p>Sem pedidos empresariais.</p>"; return; }
+            snap.forEach((docSnap) => {
+                const data = docSnap.data();
+                const card = document.createElement('div');
+                card.className = 'pedido-card';
+                card.innerHTML = `<strong>Empresa:</strong> ${data.nomeEmpresa} | <strong>NIC Titular:</strong> ${data.nicDono} | <strong>Tipo:</strong> ${data.tipo} (${data.dataEnvio})`;
+                container.appendChild(card);
+            });
+        } catch (e) { container.innerHTML = "Erro."; }
+    }
+
+    // --- CONSULTA PÚBLICA (EXPANDIDA COM VEICULAÇÃO DE NIPC) ---
     document.getElementById('publicSearchForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const queryVal = document.getElementById('searchQuery').value.trim();
         const boxResultados = document.getElementById('boxResultados');
         boxResultados.style.display = 'block';
-        boxResultados.innerHTML = "A pesquisar nos arquivos de identificação civil...";
+        boxResultados.innerHTML = "A pesquisar ficheiros arquivados...";
 
         try {
             let dadosCidadao = null;
             let nicEncontrado = null;
 
-            // 1. Procurar por ID de Documento (Se for número de NIC direto)
-            const docRef = doc(db, "usuarios", queryVal);
-            const docSnap = await getDoc(docRef);
-
+            const docSnap = await getDoc(doc(db, "usuarios", queryVal));
             if (docSnap.exists()) {
                 dadosCidadao = docSnap.data();
                 nicEncontrado = queryVal;
             } else {
-                // 2. Procurar por Nome Completo na coleção
                 const q = query(collection(db, "usuarios"), where("nome", "==", queryVal));
                 const querySnapshot = await getDocs(q);
                 if (!querySnapshot.empty) {
@@ -579,53 +678,58 @@ form input:focus, form select:focus, form textarea:focus {
             }
 
             if (!dadosCidadao) {
-                boxResultados.innerHTML = "<span style='color:red;'>Nenhum registo civil encontrado para o parâmetro fornecido.</span>";
+                boxResultados.innerHTML = "<span style='color:red;'>Nenhum registo civil encontrado.</span>";
                 return;
             }
 
-            // 3. Puxar histórico criminal do NIC encontrado
+            // Pesquisar se o cidadão possui alguma empresa (NIPC) associada ao seu NIC
+            let empresasHtml = "<li>Nenhuma empresa registada em nome deste titular.</li>";
+            const qEmpresas = query(collection(db, "empresas"), where("nicDono", "==", String(nicEncontrado)));
+            const snapEmpresas = await getDocs(qEmpresas);
+            if (!snapEmpresas.empty) {
+                empresasHtml = "";
+                snapEmpresas.forEach(docE => {
+                    const emp = docE.data();
+                    empresasHtml += `<li>🏢 <strong>${emp.nomeEmpresa}</strong> (NIPC: ${emp.nipc}) - <em>${emp.tipo}</em></li>`;
+                });
+            }
+
+            // Histórico criminal
             let fichaCriminalHtml = "<li>Nenhum antecedente registado.</li>";
             const qCriminas = query(collection(db, "registos_criminais"), where("nicCidadao", "==", String(nicEncontrado)));
             const snapCrimes = await getDocs(qCriminas);
-            let hasCrimes = false;
-            
-            if(!snapCrimes.empty) {
+            let hasCrimes = !snapCrimes.empty;
+            if(hasCrimes) {
                 fichaCriminalHtml = "";
-                hasCrimes = true;
                 snapCrimes.forEach(docC => {
                     const c = docC.data();
                     fichaCriminalHtml += `<li>[${c.dataRegisto || 'Pendente'}] <strong>${c.crime}:</strong> ${c.detalhes}</li>`;
                 });
             }
 
-            // 4. Puxar Licença de Armas
-            let licencaHtml = "<span style='color:#777;'>Não Possui Licença ativa</span>";
+            // Licença de Armas
+            let licencaHtml = "<span style='color:#777;'>Não Possui</span>";
             const armaDoc = await getDoc(doc(db, "licencas_armas", String(nicEncontrado)));
-            if (armaDoc.exists()) {
-                licencaHtml = `<span style='color:green; font-weight:bold;'>ATIVA (${armaDoc.data().tipoLicenca})</span>`;
-            }
+            if (armaDoc.exists()) licencaHtml = `<span style='color:green; font-weight:bold;'>ATIVA (${armaDoc.data().tipoLicenca})</span>`;
 
-            // Montar Interface Final da Consulta
             boxResultados.innerHTML = `
                 <h3 style="margin-top:0;">Registro Civil: ${dadosCidadao.nome}</h3>
                 <p><strong>Nº de NIC:</strong> ${nicEncontrado}</p>
-                <p><strong>Idade:</strong> ${dadosCidadao.idade || 'Não informada'} anos</p>
-                <p><strong>Data de Nascimento:</strong> ${dadosCidadao.dataNascimento || 'Não informada'}</p>
+                <p><strong>Idade:</strong> ${dadosCidadao.idade || 'N/A'} anos | <strong>Nascimento:</strong> ${dadosCidadao.dataNascimento || 'N/A'}</p>
                 <p><strong>Porte de Armas:</strong> ${licencaHtml}</p>
                 <br>
-                <strong>Histórico de Antecedentes Criminais:</strong> 
-                <span class="badge-status ${hasCrimes ? 'badge-dirty' : 'badge-clean'}">${hasCrimes ? 'Ficha Limpa: NÃO' : 'Ficha Limpa: SIM'}</span>
-                <ul style="margin-left: 20px; margin-top:10px; line-height:1.5;">
-                    ${fichaCriminalHtml}
+                <strong>Empresas e Atividades Vinculadas (NIPC):</strong>
+                <ul style="margin-left: 20px; margin-top:5px; margin-bottom: 15px; line-height:1.5; color:#1e3a67;">
+                    ${empresasHtml}
                 </ul>
+                <strong>Antecedentes Criminais:</strong> 
+                <span class="badge-status ${hasCrimes ? 'badge-dirty' : 'badge-clean'}">${hasCrimes ? 'Ficha Limpa: NÃO' : 'Ficha Limpa: SIM'}</span>
+                <ul style="margin-left: 20px; margin-top:10px; line-height:1.5;">${fichaCriminalHtml}</ul>
             `;
-
-        } catch (error) {
-            boxResultados.innerHTML = "Erro ao processar a consulta base: " + error.message;
-        }
+        } catch (error) { boxResultados.innerHTML = "Erro: " + error.message; }
     });
 
-    // --- SISTEMA DE LOGIN RESTRITO ---
+    // --- AUTENTICAÇÃO COM BLOQUEIO DE NÍVEL 0 ---
     document.getElementById('formLoginRestrito').addEventListener('submit', async (e) => {
         e.preventDefault();
         const nic = document.getElementById('loginNic').value;
@@ -638,119 +742,133 @@ form input:focus, form select:focus, form textarea:focus {
         }
 
         try {
-            const userRef = doc(db, "usuarios", nic);
-            const userSnap = await getDoc(userRef);
-
+            const userSnap = await getDoc(doc(db, "usuarios", nic));
             if (userSnap.exists()) {
                 const dadosUser = userSnap.data();
                 if(dadosUser.senha === senha) {
+                    const nivelUser = dadosUser.nivel ?? 0;
+                    
+                    // REGRA 1: Bloquear Nível 0 de entrar na área restrita
+                    if (nivelUser === 0) {
+                        alert("⚠️ Acesso Recusado! Cidadãos com Nível 0 não possuem credenciais governamentais.");
+                        return;
+                    }
+
                     usuarioLogado = dadosUser;
-                    carregarPainelRestrito(dadosUser.nivel ?? 0);
-                } else {
-                    alert("Senha incorreta!");
-                }
-            } else {
-                alert("NIC não cadastrado no Firebase.");
-            }
-        } catch (error) {
-            alert("Erro na ligação ao servidor.");
-        }
+                    carregarPainelRestrito(nivelUser);
+                } else { alert("Senha incorreta!"); }
+            } else { alert("Agente não encontrado."); }
+        } catch (error) { alert("Erro de rede."); }
     });
 
     function carregarPainelRestrito(nivel) {
         document.getElementById('loginRestrito').style.display = 'none';
         document.getElementById('painelInternoRestrito').style.display = 'block';
         document.getElementById('txtNivelAgente').innerText = nivel;
-        carregarPedidosRestritos(); // Carrega a inbox de pedidos logo no login
+        carregarPedidosRestritos();
+        carregarPedidosNipcRestritos();
     }
 
-    // --- CRIAR NIC (NÍVEL INICIAL ATRIBUÍDO A 0) ---
+    // --- RESTRITO: CRIAR NIC (PADRÃO NÍVEL 0) ---
     document.getElementById('formCriarNic').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const nome = document.getElementById('cNome').value;
-        const nicNum = document.getElementById('cNic').value;
-        const senhaDefinida = document.getElementById('cSenha').value;
-        const idade = document.getElementById('cIdade').value;
-        const dataNasc = document.getElementById('cDataNasc').value;
-
         try {
+            const nicNum = document.getElementById('cNic').value;
             await setDoc(doc(db, "usuarios", nicNum), {
-                nome: nome,
+                nome: document.getElementById('cNome').value,
                 nic: nicNum,
-                senha: senhaDefinida,
-                idade: parseInt(idade),
-                dataNascimento: dataNasc,
-                nivel: 0 // Garantido nível 0 como padrão inicial
+                senha: document.getElementById('cSenha').value,
+                idade: parseInt(document.getElementById('cIdade').value),
+                dataNascimento: document.getElementById('cDataNasc').value,
+                nivel: 0 
             });
-            alert(`NIC ${nicNum} (${nome}) inserido com sucesso como Nível 0.`);
+            alert("NIC criado com sucesso no Firebase (Nível inicial: 0).");
             e.target.reset();
-        } catch (error) {
-            alert("Erro ao criar utilizador no Firebase.");
-        }
+        } catch (error) { alert("Erro ao criar."); }
     });
 
-    // --- ATUALIZAR ACESSO ---
+    // --- RESTRITO: ATRIBUIR PERMISSÃO ---
     document.getElementById('formDarAcesso').addEventListener('submit', async (e) => {
         e.preventDefault();
         const nicNum = e.target.querySelectorAll('input')[0].value;
         const nivelSelecionado = parseInt(document.getElementById('selectNivelAcesso').value);
-
         try {
             await updateDoc(doc(db, "usuarios", nicNum), { nivel: nivelSelecionado });
-            alert(`Permissões do NIC ${nicNum} redefinidas para o Nível ${nivelSelecionado}!`);
+            alert("Nível de acesso atualizado!");
             e.target.reset();
-        } catch (error) {
-            alert("Falha ao atualizar. Verifique se o NIC existe.");
-        }
+        } catch (error) { alert("Erro ao atualizar."); }
     });
 
-    // --- REMOVER NIC ---
+    // --- RESTRITO: REMOVER NIC ---
     document.getElementById('formRemoverNic').addEventListener('submit', async (e) => {
         e.preventDefault();
         const nicNum = e.target.querySelector('input').value;
-        if(confirm("Deseja expurgar este registo do sistema?")){
+        if(confirm("Confirmar exclusão de cidadão?")){
             try {
                 await deleteDoc(doc(db, "usuarios", nicNum));
-                alert("Registo eliminado.");
+                alert("NIC deletado.");
                 e.target.reset();
-            } catch (error) { alert(error.message); }
+            } catch (e) { alert("Erro."); }
         }
     });
 
-    // --- ADD REGISTO CRIMINAL ---
-    document.getElementById('formRegistoCriminal').addEventListener('submit', async (e) => {
+    // --- RESTRITO: CRIAR NIPC ---
+    document.getElementById('formCriarNipc').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const nicNum = e.target.querySelectorAll('input')[0].value;
-        const crime = e.target.querySelectorAll('input')[1].value;
-        const detalhes = e.target.querySelector('textarea').value;
-
+        const nipcNum = document.getElementById('cNipcNum').value;
         try {
-            await addDoc(collection(db, "registos_criminais"), {
-                nicCidadao: String(nicNum),
-                crime: crime,
-                detalhes: detalhes,
+            await setDoc(doc(db, "empresas", nipcNum), {
+                nipc: nipcNum,
+                nomeEmpresa: document.getElementById('cNipcNome').value,
+                nicDono: document.getElementById('cNipcDono').value,
+                tipo: document.getElementById('cNipcTipo').value,
                 dataRegisto: new Date().toLocaleDateString('pt-PT')
             });
-            alert("Registo criminal averbado!");
+            alert(`NIPC ${nipcNum} registrado e ativo na base comercial!`);
             e.target.reset();
-        } catch (error) { alert("Erro ao salvar."); }
+        } catch (error) { alert("Erro ao registrar empresa."); }
     });
 
-    // --- ADD PORTE DE ARMAS ---
+    // --- RESTRITO: REMOVER NIPC ---
+    document.getElementById('formRemoverNipc').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nipcNum = document.getElementById('rNipcNum').value;
+        if(confirm(`Deseja mesmo banir/remover o NIPC ${nipcNum}?`)){
+            try {
+                await deleteDoc(doc(db, "empresas", nipcNum));
+                alert("Empresa removida com sucesso.");
+                e.target.reset();
+            } catch (error) { alert("Erro ao remover NIPC."); }
+        }
+    });
+
+    // --- OUTROS MÓDULOS RESTRITOS ---
+    document.getElementById('formRegistoCriminal').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+            await addDoc(collection(db, "registos_criminais"), {
+                nicCidadao: String(e.target.querySelectorAll('input')[0].value),
+                crime: e.target.querySelectorAll('input')[1].value,
+                detalhes: e.target.querySelector('textarea').value,
+                dataRegisto: new Date().toLocaleDateString('pt-PT')
+            });
+            alert("Cadastro criminal averbado!");
+            e.target.reset();
+        } catch (e) { alert("Erro."); }
+    });
+
     document.getElementById('formPorteArmas').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const nicNum = e.target.querySelector('input').value;
-        const tipo = document.getElementById('tipoLicenca').value;
-
         try {
+            const nicNum = e.target.querySelector('input').value;
             await setDoc(doc(db, "licencas_armas", String(nicNum)), {
                 nicCidadao: String(nicNum),
-                tipoLicenca: tipo,
+                tipoLicenca: document.getElementById('tipoLicenca').value,
                 dataEmissao: new Date().toLocaleDateString('pt-PT')
             });
-            alert("Licença de porte emitida!");
+            alert("Licença de armamento concedida!");
             e.target.reset();
-        } catch (error) { alert("Erro."); }
+        } catch (e) { alert("Erro."); }
     });
 
     window.fazerLogout = function() {
@@ -761,6 +879,7 @@ form input:focus, form select:focus, form textarea:focus {
     };
 </script>
 
+<!-- CONTROLO DE INTERFACE -->
 <script>
 function mostrar(secao){
     document.querySelectorAll('.section').forEach(s=>{ s.classList.remove('active'); });
@@ -772,6 +891,7 @@ function mostrar(secao){
 function abrirServicoForm(idForm) {
     document.getElementById("formularioNIC").style.display = "none";
     document.getElementById("formularioConsulta").style.display = "none";
+    document.getElementById("formularioNIPC").style.display = "none";
     
     document.getElementById(idForm).style.display = "block";
     document.getElementById(idForm).scrollIntoView({ behavior: 'smooth' });
