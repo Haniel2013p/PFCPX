@@ -100,21 +100,28 @@ p{
     line-height:1.6;
 }
 
-/* CARDS */
-.grid{
+/* SERVIÇOS */
+.servicos-grid{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
     gap:20px;
-    margin-top:20px;
+    margin-top:30px;
 }
 
-.card{
+.card-servico{
     border:1px solid #ddd;
-    padding:20px;
+    padding:25px;
     border-radius:10px;
+    cursor:pointer;
+    transition:.3s;
 }
 
-/* FORM */
+.card-servico:hover{
+    transform:translateY(-5px);
+    box-shadow:0 5px 15px rgba(0,0,0,.1);
+}
+
+/* FORMULÁRIO */
 form{
     display:flex;
     flex-direction:column;
@@ -146,13 +153,15 @@ form input{
 <body>
 
 <header>
-    <img class="logo" src="https://media.discordapp.net/attachments/1514909748385026123/1514941207988404364/Captura_de_ecra_2026-06-10_201852.pdf.png">
+    <img class="logo" src="https://media.discordapp.net/attachments/1514909748385026123/1514941207988404364/Captura_de_ecra_2026-06-10_201852.pdf.png?ex=6a2d3272&is=6a2be0f2&hm=9eb25137342c305e4ab11c45c6b5c7d494c06babe6a0dc92b328fd235f2f397f&=&format=webp&quality=lossless&width=591&height=588">
 
-    <div class="titulo">Governo - Lusitânia RP</div>
+    <div class="titulo">
+        Governo - Lusitânia RP
+    </div>
 </header>
 
 <nav>
-    <button class="nav-btn" onclick="mostrar('pm')">Primeiro Ministro</button>
+    <button class="nav-btn" onclick="mostrar('primeiroministro')">Primeiro Ministro</button>
     <button class="nav-btn" onclick="mostrar('presidencia')">Presidência</button>
     <button class="nav-btn" onclick="mostrar('assembleia')">Assembleia</button>
     <button class="nav-btn" onclick="mostrar('servicos')">Serviços</button>
@@ -161,137 +170,106 @@ form input{
 <main>
 
 <!-- PRIMEIRO MINISTRO -->
-<section id="pm" class="section active">
+<section id="primeiroministro" class="section active">
 
-<h2>Primeiro Ministro</h2>
+    <h2>Primeiro Ministro</h2>
 
-<p>
-Haniel Santos nasceu em 16/04/1989, licenciou-se em Direito em 2012 e tornou-se Primeiro-Ministro em 2026.
-</p>
+    <h3>Acerca</h3>
+    <p>
+        Haniel Santos nasceu em 16 de abril de 1989. Concluiu a licenciatura em Direito no ano de 2012, aos 23 anos de idade. Posteriormente, realizou uma pós-graduação em Direito Penal aos 25 anos.
+        <br><br>
+        Aos 37 anos, tornou-se Presidente do Partido Chega e, em 13 de junho de 2026, foi eleito Primeiro-Ministro de Portugal.
+    </p>
 
-<h3>Plano de Governo</h3>
-
-<div class="grid">
-
-<div class="card">
-<h4>Segurança Nacional</h4>
-<p>Reforço das forças policiais e combate ao crime organizado.</p>
-</div>
-
-<div class="card">
-<h4>Economia</h4>
-<p>Crescimento económico e apoio a empresas nacionais.</p>
-</div>
-
-<div class="card">
-<h4>Saúde</h4>
-<p>Melhoria do sistema de saúde público.</p>
-</div>
-
-<div class="card">
-<h4>Educação</h4>
-<p>Reforma educacional e modernização das escolas.</p>
-</div>
-
-</div>
+    <h3>Plano de Governo</h3>
+    <p>
+        Objetivos focados no desenvolvimento nacional, estabilidade política e reforço das instituições do Estado.
+    </p>
 
 </section>
 
 <!-- PRESIDÊNCIA -->
 <section id="presidencia" class="section">
 
-<h2>Presidência</h2>
+    <h2>Presidência</h2>
 
-<div class="card">
-<p>A Presidência da República representa a autoridade máxima do Estado, garantindo estabilidade e funcionamento das instituições.</p>
-</div>
+    <h3>Acerca</h3>
+    <p>
+        Estrutura máxima do Estado responsável pela representação da República da Lusitânia RP.
+    </p>
 
 </section>
 
 <!-- ASSEMBLEIA -->
 <section id="assembleia" class="section">
 
-<h2>Assembleia da República</h2>
+    <h2>Assembleia</h2>
 
-<h3>Representação Partidária</h3>
+    <h3>Acerca</h3>
+    <p>
+        Órgão legislativo responsável pela criação e aprovação de leis.
+    </p>
 
-<div class="grid">
-
-<div class="card">
-<h4>Partido Chega</h4>
-<p>Maioria parlamentar</p>
-</div>
-
-<div class="card">
-<h4>PS</h4>
-<p>Oposição</p>
-</div>
-
-<div class="card">
-<h4>PSD</h4>
-<p>Oposição</p>
-</div>
-
-</div>
-
-<h3>Função</h3>
-<div class="card">
-<p>A Assembleia é responsável pela criação, alteração e aprovação de leis nacionais.</p>
-</div>
+    <h3>Representação Partidária</h3>
+    <p>
+        Lista de partidos e seus representantes será adicionada aqui.
+    </p>
 
 </section>
 
 <!-- SERVIÇOS -->
 <section id="servicos" class="section">
 
-<h2>Serviços</h2>
+    <h2>Serviços Governamentais</h2>
 
-<div class="grid">
+    <div class="servicos-grid">
 
-<div class="card" onclick="mostrarFormularioNIC()">
-<h3>Tirar NIC</h3>
-<p>Emitir documento de identificação civil.</p>
-</div>
+        <div class="card-servico" onclick="mostrarFormularioNIC()">
+            <h3>Tirar NIC</h3>
+            <p>Solicitar emissão do documento de identidade civil.</p>
+        </div>
 
-<div class="card">
-<h3>Consultar NIC</h3>
-<p>Consulta pública de cidadãos.</p>
-</div>
+        <div class="card-servico">
+            <h3>Consultar NIC</h3>
+            <p>Consulta pública de identificação civil.</p>
+        </div>
 
-<div class="card">
-<h3>Abrir Empresa</h3>
-<p>Registo empresarial nacional.</p>
-</div>
+        <div class="card-servico">
+            <h3>Abrir Empresa</h3>
+            <p>Registo de novas empresas no sistema governamental.</p>
+        </div>
 
-<div class="card">
-<h3>Pagar Impostos</h3>
-<p>Sistema fiscal do Estado.</p>
-</div>
+        <div class="card-servico">
+            <h3>Pagar Impostos</h3>
+            <p>Gestão e pagamento de impostos nacionais.</p>
+        </div>
 
-</div>
+    </div>
 
-<!-- FORM NIC -->
-<div id="formularioNIC" style="display:none; margin-top:40px;">
+    <!-- FORM NIC -->
+    <div id="formularioNIC" style="display:none; margin-top:40px;">
 
-<h2>Pedido de NIC</h2>
+        <h2>Pedido de NIC</h2>
 
-<form id="nicForm">
+        <form>
 
-<input type="text" id="nomePersonagem" placeholder="Nome do Personagem" required>
+            <input type="text" placeholder="Nome do Personagem" required>
 
-<input type="date" id="dataNascimento" required>
+            <input type="date" required>
 
-<input type="number" id="idade" placeholder="Idade" required>
+            <input type="number" placeholder="Idade" required>
 
-<input type="text" id="nomeRoblox" placeholder="Nome do Roblox" required>
+            <input type="text" placeholder="Nome do Roblox" required>
 
-<input type="text" id="nomeDiscord" placeholder="Nome do Discord" required>
+            <input type="text" placeholder="Nome do Discord" required>
 
-<button type="submit" class="enviar-btn">Enviar Pedido</button>
+            <input type="file" accept="image/*" required>
 
-</form>
+            <button type="submit" class="enviar-btn">Enviar Pedido</button>
 
-</div>
+        </form>
+
+    </div>
 
 </section>
 
@@ -299,60 +277,18 @@ Haniel Santos nasceu em 16/04/1989, licenciou-se em Direito em 2012 e tornou-se 
 
 <script>
 
-const WEBHOOK_URL = "https://discord.com/api/webhooks/1515103535711260683/ybuyt05D-mOCZXI9zSg1qqDm0nsEb59m-zKIUZI0SvmKuP9qrE4bOaBGqGCYKO8m8rT8";
-
 function mostrar(secao){
 
-document.querySelectorAll('.section').forEach(s=>{
-s.classList.remove('active');
-});
+    document.querySelectorAll('.section').forEach(s=>{
+        s.classList.remove('active');
+    });
 
-document.getElementById(secao).classList.add('active');
-
-document.getElementById("formularioNIC").style.display = "none";
+    document.getElementById(secao).classList.add('active');
 }
 
 function mostrarFormularioNIC(){
-document.getElementById("formularioNIC").style.display = "block";
+    document.getElementById("formularioNIC").style.display = "block";
 }
-
-function gerarNIC(){
-let last = localStorage.getItem("nic") || 0;
-last++;
-localStorage.setItem("nic", last);
-return "NIC-" + String(last).padStart(4,"0");
-}
-
-document.getElementById("nicForm").addEventListener("submit", async function(e){
-
-e.preventDefault();
-
-const nic = gerarNIC();
-
-const payload = {
-content:
-`📄 NOVO PEDIDO NIC
-
-🆔 ${nic}
-👤 ${document.getElementById("nomePersonagem").value}
-📅 ${document.getElementById("dataNascimento").value}
-🎂 ${document.getElementById("idade").value}
-🎮 ${document.getElementById("nomeRoblox").value}
-💬 ${document.getElementById("nomeDiscord").value}`
-};
-
-await fetch(WEBHOOK_URL,{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify(payload)
-});
-
-alert("Pedido enviado! " + nic);
-
-document.getElementById("nicForm").reset();
-document.getElementById("formularioNIC").style.display = "none";
-
-});
 
 </script>
 
