@@ -275,20 +275,165 @@ form input{
 
 </main>
 
-<script>
+<script type="module">
 
-function mostrar(secao){
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import {
+getFirestore,
+collection,
+addDoc,
+getDocs,
+onSnapshot,
+query,
+where
+} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-    document.querySelectorAll('.section').forEach(s=>{
-        s.classList.remove('active');
+const firebaseConfig = {
+  apiKey: "AIzaSyDc1XMATAsjne5g7N-UISUkwZhVZ3ld0Y",
+  authDomain: "pfcpx-c0b9b.firebaseapp.com",
+  projectId: "pfcpx-c0b9b",
+  storageBucket: "pfcpx-c0b9b.appspot.com",
+  messagingSenderId: "322312831509",
+  appId: "1:322312831509:web:ec0b42fa0a26d74f45c41c"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* =========================
+   NIC PEDIDO -> FIREBASE
+========================= */
+
+window.enviarNIC = async function(){
+
+    const form = document.querySelector("#formularioNIC form");
+
+    const data = {
+        nome: form.querySelectorAll("input")[0].value,
+        nascimento: form.querySelectorAll("input")[1].value,
+        idade: form.querySelectorAll("input")[2].value,
+        roblox: form.querySelectorAll("input")[3].value,
+        discord: form.querySelectorAll("input")[4].value,
+        status: "pendente",
+        createdAt: Date.now()
+    };
+
+    await addDoc(collection(db,"nic_pedidos"), data);
+
+    alert("Pedido de NIC enviado!");
+    form.reset();
+    document.getElementById("formularioNIC").style.display = "none";
+}
+
+/* =========================
+   LOGIN (NIC + SENHA)
+   ADMIN FIXO: 1531 / 01
+========================= */
+
+let userLogado = null;
+
+window.login = async function(){
+
+    const nic = document.getElementById("loginNIC").value;
+    const senha = document.getElementById("loginSenha").value;
+
+    /* ADMIN FIXO */
+    if(nic === "1531" && senha === "01"){
+        userLogado = {nome:"Admin", acesso:5};
+
+        abrirPainel();
+        return;
+    }
+
+    /* USERS FIREBASE */
+    const q = query(
+        collection(db,"users"),
+        where("nic","==",nic),
+        where("senha","==",senha)
+    );
+
+    const snap = await getDocs(q);
+
+    if(snap.empty){
+        alert("Login inválido");
+        return;
+    }
+
+    snap.forEach(doc=>{
+        userLogado = doc.data();
     });
 
-    document.getElementById(secao).classList.add('active');
+    if(userLogado.acesso < 1){
+        alert("Sem acesso à área restrita");
+        return;
+    }
+
+    abrirPainel();
 }
 
-function mostrarFormularioNIC(){
-    document.getElementById("formularioNIC").style.display = "block";
+/* =========================
+   ABRIR PAINEL
+========================= */
+
+function abrirPainel(){
+
+    document.getElementById("loginArea").style.display = "none";
+    document.getElementById("adminPanel").style.display = "block";
+
+    loadNIC();
+    loadUsers();
 }
+
+/* =========================
+   PEDIDOS NIC (REAL TIME)
+========================= */
+
+function loadNIC(){
+
+    onSnapshot(collection(db,"nic_pedidos"),snap=>{
+
+        let html = "";
+
+        snap.forEach(d=>{
+            const x = d.data();
+
+            html += `
+            <div class="card">
+                <b>${x.nome}</b><br>
+                Roblox: ${x.roblox}<br>
+                Discord: ${x.discord}<br>
+                Status: ${x.status}
+            </div>`;
+        });
+
+        document.getElementById("listaUsers").innerHTML = html;
+    });
+}
+
+/* =========================
+   USERS (ACESSOS 1-5)
+========================= */
+
+function loadUsers(){
+
+    onSnapshot(collection(db,"users"),snap=>{
+
+        let html = "";
+
+        snap.forEach(d=>{
+            const x = d.data();
+
+            html += `
+            <div class="card">
+                ${x.nome} | NIC: ${x.nic} | Acesso: ${x.acesso}
+            </div>`;
+        });
+
+        document.getElementById("usersList").innerHTML = html;
+    });
+}
+
+</script>
 
 </script>
 
