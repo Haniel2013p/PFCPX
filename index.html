@@ -276,49 +276,7 @@ form input{
 </main>
 
 <script>
-const WEBHOOK_URL = "https://discord.com/api/webhooks/1515103535711260683/ybuyt05D-mOCZXI9zSg1qqDm0nsEb59m-zKIUZI0SvmKuP9qrE4bOaBGqGCYKO8m8rT8";
 
-document.getElementById("nicForm").addEventListener("submit", async function(e){
-
-    e.preventDefault();
-
-    const nic = "NIC-" + Math.floor(Math.random() * 9999).toString().padStart(4,"0");
-
-    const payload = {
-        content:
-`📄 NOVO PEDIDO DE NIC
-
-🆔 ${nic}
-👤 Nome: ${document.getElementById("nomePersonagem").value}
-📅 Nascimento: ${document.getElementById("dataNascimento").value}
-🎂 Idade: ${document.getElementById("idade").value}
-🎮 Roblox: ${document.getElementById("nomeRoblox").value}
-💬 Discord: ${document.getElementById("nomeDiscord").value}`
-    };
-
-    try {
-
-        await fetch(WEBHOOK_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
-        });
-
-        alert("Pedido enviado com sucesso!");
-
-        document.getElementById("nicForm").reset();
-        document.getElementById("formularioNIC").style.display = "none";
-
-    } catch (err) {
-
-        alert("Erro ao enviar pedido.");
-        console.error(err);
-
-    }
-    });
-    
 function mostrar(secao){
 
     document.querySelectorAll('.section').forEach(s=>{
