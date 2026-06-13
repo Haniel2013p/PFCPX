@@ -268,6 +268,7 @@ form input:focus, form select:focus, form textarea:focus {
     font-weight: 500;
     transition: 0.2s;
     font-size: 14px;
+    display: none; /* Serão mostrados via JS com base no nível */
 }
 
 .sub-nav-btn:hover, .sub-nav-btn.active-sub {
@@ -327,7 +328,7 @@ form input:focus, form select:focus, form textarea:focus {
     <!-- PRESIDÊNCIA -->
     <section id="presidencia" class="section">
         <h2>Presidência</h2>
-        <p>Estrutura máxima do Estado responsável pela representação da República da Lusitânia RP.</p>
+        <p>Estrutura máxima do State responsável pela representação da República da Lusitânia RP.</p>
     </section>
 
     <!-- ASSEMBLEIA -->
@@ -443,26 +444,32 @@ form input:focus, form select:focus, form textarea:focus {
             <div class="restrito-layout">
                 <!-- Menu Lateral -->
                 <div class="restrito-sidebar">
-                    <button class="sub-nav-btn active-sub" onclick="mudarSubAba('abaPedidosNic')">📥 Inbox Pedidos NIC</button>
-                    <button class="sub-nav-btn" onclick="mudarSubAba('abaPedidosNipc')">🏢 Inbox Pedidos Empresa</button>
-                    <button class="sub-nav-btn" onclick="mudarSubAba('abaMultasNaoPagas')">📝 Canal: Multas Não Pagas</button>
-                    <button class="sub-nav-btn" onclick="mudarSubAba('abaRegistrarMulta')" style="color: #4f46e5;">🚔 Registrar Multa (+ID)</button>
-                    <button class="sub-nav-btn" onclick="mudarSubAba('abaCriarNic')">📝 Criar NIC</button>
-                    <button class="sub-nav-btn" onclick="mudarSubAba('abaAcessoNic')">🔑 Dar Acesso a NIC</button>
-                    <button class="sub-nav-btn" onclick="mudarSubAba('abaRemoverNic')">❌ Remover NIC</button>
-                    <button class="sub-nav-btn" onclick="mudarSubAba('abaCriarNipc')">🏬 Criar NIPC (Empresa)</button>
-                    <button class="sub-nav-btn" onclick="mudarSubAba('abaRemoverNipc')">🗑️ Remover NIPC</button>
-                    <button class="sub-nav-btn" onclick="mudarSubAba('abaRegistoCriminal')">🚨 Add Registo Criminal</button>
-                    <button class="sub-nav-btn" onclick="mudarSubAba('abaPorteArmas')">🔫 Add Porte de Armas</button>
-                    <button class="sub-nav-btn" onclick="mudarSubAba('abaRemoverArmas')" style="color: #d97706;">🚫 Remover Porte de Armas</button>
-                    <button class="sub-nav-btn" style="color: red; margin-top: 20px;" onclick="fazerLogout()">Logout</button>
+                    <button id="btn-abaPedidosNic" class="sub-nav-btn" onclick="mudarSubAba('abaPedidosNic')">📥 Inbox Pedidos NIC</button>
+                    <button id="btn-abaPedidosNipc" class="sub-nav-btn" onclick="mudarSubAba('abaPedidosNipc')">🏢 Inbox Pedidos Empresa</button>
+                    <button id="btn-abaMultasNaoPagas" class="sub-nav-btn" onclick="mudarSubAba('abaMultasNaoPagas')">📝 Canal: Multas Não Pagas</button>
+                    <button id="btn-abaRegistrarMulta" class="sub-nav-btn" onclick="mudarSubAba('abaRegistrarMulta')" style="color: #4f46e5;">🚔 Registrar Multa (+ID)</button>
+                    <button id="btn-abaCriarNic" class="sub-nav-btn" onclick="mudarSubAba('abaCriarNic')">📝 Criar NIC</button>
+                    <button id="btn-abaAcessoNic" class="sub-nav-btn" onclick="mudarSubAba('abaAcessoNic')">🔑 Dar Acesso a NIC</button>
+                    <button id="btn-abaRemoverNic" class="sub-nav-btn" onclick="mudarSubAba('abaRemoverNic')">❌ Remover NIC</button>
+                    <button id="btn-abaCriarNipc" class="sub-nav-btn" onclick="mudarSubAba('abaCriarNipc')">🏬 Criar NIPC (Empresa)</button>
+                    <button id="btn-abaRemoverNipc" class="sub-nav-btn" onclick="mudarSubAba('abaRemoverNipc')">🗑️ Remover NIPC</button>
+                    <button id="btn-abaRegistoCriminal" class="sub-nav-btn" onclick="mudarSubAba('abaRegistoCriminal')">🚨 Add Registo Criminal</button>
+                    <button id="btn-abaPorteArmas" class="sub-nav-btn" onclick="mudarSubAba('abaPorteArmas')">🔫 Add Porte de Armas</button>
+                    <button id="btn-abaRemoverArmas" class="sub-nav-btn" onclick="mudarSubAba('abaRemoverArmas')" style="color: #d97706;">🚫 Remover Porte de Armas</button>
+                    <button class="sub-nav-btn" style="color: red; margin-top: 20px; display: block;" onclick="fazerLogout()">Logout</button>
                 </div>
 
                 <!-- Janelas das Funções -->
                 <div class="restrito-content">
                     
+                    <!-- Mensagem Padrão Inicial -->
+                    <div id="abaPainelVazio" class="sub-secao" style="display: block;">
+                        <h3>Painel Operacional</h3>
+                        <p>Selecione uma das opções no menu lateral autorizadas para o seu nível de acesso.</p>
+                    </div>
+
                     <!-- Inbox Pedidos Nic -->
-                    <div id="abaPedidosNic" class="sub-secao" style="display: block;">
+                    <div id="abaPedidosNic" class="sub-secao" style="display: none;">
                         <h3>Pedidos de NIC Pendentes</h3><br>
                         <div id="listaPedidosContainer"><p style="color:#777;">A carregar pedidos...</p></div>
                     </div>
@@ -516,14 +523,15 @@ form input:focus, form select:focus, form textarea:focus {
                     <div id="abaAcessoNic" class="sub-secao" style="display: none;">
                         <h3>Dar Acesso Administrativo</h3>
                         <form id="formDarAcesso">
+                            <label>Número do NIC</label>
                             <input type="number" placeholder="Número do NIC" required>
                             <label>Nível de Acesso Governamental</label>
                             <select id="selectNivelAcesso">
                                 <option value="0">Nível 0 - Cidadão Comum (Sem acesso)</option>
-                                <option value="1">Nível 1 - Estagiário / Consulta</option>
-                                <option value="2">Nível 2 - Oficial</option>
-                                <option value="3">Nível 3 - Investigador</option>
-                                <option value="4">Nível 4 - Direção / Ministro</option>
+                                <option value="1">Nível 1 - Registros Criminais & Multas</option>
+                                <option value="2">Nível 2 - Oficial (Porte de Armas + Nível 1)</option>
+                                <option value="3">Nível 3 - Investigador (Gestão NIC & NIPC apenas)</option>
+                                <option value="4">Nível 4 - Direção / Ministro (Níveis anteriores + Dar Acesso)</option>
                                 <option value="5">Nível 5 - Administração Total</option>
                             </select>
                             <button type="submit" class="enviar-btn">Atualizar Permissões</button>
@@ -575,8 +583,11 @@ form input:focus, form select:focus, form textarea:focus {
                     <div id="abaRegistoCriminal" class="sub-secao" style="display: none;">
                         <h3>Adicionar Registo Criminal</h3>
                         <form id="formRegistoCriminal">
+                            <label>NIC do Suspeito</label>
                             <input type="number" placeholder="NIC do Suspeito" required>
+                            <label>Artigo / Crime Cometido</label>
                             <input type="text" placeholder="Artigo / Crime Cometido" required>
+                            <label>Detalhes da Ocorrência</label>
                             <textarea placeholder="Detalhes da ocorrência e pena aplicada" rows="4" required></textarea>
                             <button type="submit" class="enviar-btn">Aplicar Cadastro</button>
                         </form>
@@ -586,7 +597,9 @@ form input:focus, form select:focus, form textarea:focus {
                     <div id="abaPorteArmas" class="sub-secao" style="display: none;">
                         <h3>Atribuir Licença de Porte de Armas</h3>
                         <form id="formPorteArmas">
+                            <label>NIC do Cidadão</label>
                             <input type="number" placeholder="NIC do Cidadão" required>
+                            <label>Classe da Licença</label>
                             <select id="tipoLicenca">
                                 <option value="Defesa Pessoal">Classe B1 - Defesa Pessoal</option>
                                 <option value="Caça">Classe C - Caça / Desportiva</option>
@@ -645,9 +658,9 @@ form input:focus, form select:focus, form textarea:focus {
                 discord: document.getElementById('pDiscord').value,
                 dataEnvio: new Date().toLocaleDateString('pt-PT')
             });
-            alert("Pedido de NIC submetido!");
+            alert("Pedido de NIC submetido com sucesso!");
             e.target.reset();
-            if(usuarioLogado) carregarPedidosRestritos();
+            if(usuarioLogado && (usuarioLogado.nivel >= 3 || usuarioLogado.nivel === 5)) carregarPedidosRestritos();
         } catch (error) { alert(error.message); }
     });
 
@@ -663,11 +676,11 @@ form input:focus, form select:focus, form textarea:focus {
             });
             alert("Pedido de abertura de empresa enviado com sucesso!");
             e.target.reset();
-            if(usuarioLogado) carregarPedidosNipcRestritos();
+            if(usuarioLogado && (usuarioLogado.nivel >= 3 || usuarioLogado.nivel === 5)) carregarPedidosNipcRestritos();
         } catch (error) { alert(error.message); }
     });
 
-    // --- PUBLIC: PAGAR MULTA COM ID (CORRIGIDO) ---
+    // --- PUBLIC: PAGAR MULTA COM ID ---
     document.getElementById('publicPagarMultaForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const idMulta = document.getElementById('multaIdInput').value.trim().toUpperCase();
@@ -682,7 +695,7 @@ form input:focus, form select:focus, form textarea:focus {
                     await updateDoc(multaRef, { status: "Paga" });
                     alert(`Sucesso! A multa ID ${idMulta} foi paga e dada como resolvida.`);
                     e.target.reset();
-                    if(usuarioLogado) carregarMultasNaoPagasRestrito();
+                    if(usuarioLogado && (usuarioLogado.nivel === 1 || usuarioLogado.nivel === 2 || usuarioLogado.nivel >= 4)) carregarMultasNaoPagasRestrito();
                 }
             } else {
                 alert("Código de multa (ID) inválido ou não encontrado na base de dados governamental.");
@@ -693,7 +706,7 @@ form input:focus, form select:focus, form textarea:focus {
         }
     });
 
-    // --- RESTRITO: REGISTRAR MULTA (GERAR ID) ---
+    // --- RESTRITO: REGISTRAR MULTA ---
     document.getElementById('formRegistrarMulta').addEventListener('submit', async (e) => {
         e.preventDefault();
         const idGerado = "ML-" + Math.floor(1000 + Math.random() * 9000);
@@ -712,13 +725,14 @@ form input:focus, form select:focus, form textarea:focus {
             });
             alert(`Multa Registrada!\nID gerado: ${idGerado}\nInforme este ID ao civil para que ele faça o pagamento.`);
             e.target.reset();
-            if(usuarioLogado) carregarMultasNaoPagasRestrito();
+            carregarMultasNaoPagasRestrito();
         } catch(err) { alert("Erro ao criar multa."); }
     });
 
     // --- RESTRITO: CARREGAR CANAL DE MULTAS NÃO PAGAS ---
     async function carregarMultasNaoPagasRestrito() {
         const container = document.getElementById('listaMultasPendentesContainer');
+        if(!container) return;
         container.innerHTML = "";
         try {
             const q = query(collection(db, "multas"), where("status", "==", "Não Paga"));
@@ -743,9 +757,10 @@ form input:focus, form select:focus, form textarea:focus {
         } catch(e) { container.innerHTML = "Erro ao puxar dados das multas."; }
     }
 
-    // --- CARREGAR PEDIDOS NIC COMPLETO ---
+    // --- CARREGAR PEDIDOS NIC ---
     async function carregarPedidosRestritos() {
         const container = document.getElementById('listaPedidosContainer');
+        if(!container) return;
         container.innerHTML = "";
         try {
             const snap = await getDocs(collection(db, "pedidos_nic"));
@@ -768,6 +783,7 @@ form input:focus, form select:focus, form textarea:focus {
     // --- CARREGAR PEDIDOS EMPRESA ---
     async function carregarPedidosNipcRestritos() {
         const container = document.getElementById('listaPedidosNipcContainer');
+        if(!container) return;
         container.innerHTML = "";
         try {
             const snap = await getDocs(collection(db, "pedidos_nipc"));
@@ -824,7 +840,7 @@ form input:focus, form select:focus, form textarea:focus {
                 });
             }
 
-            // Módulo de Busca de Multas (Pagas e Não Pagas)
+            // Módulo de Busca de Multas
             let multasHtml = "<li>Nenhuma multa vinculada a este NIC.</li>";
             const qMultas = query(collection(db, "multas"), where("nic", "==", String(nicEncontrado)));
             const snapMultas = await getDocs(qMultas);
@@ -879,7 +895,7 @@ form input:focus, form select:focus, form textarea:focus {
         } catch (error) { boxResultados.innerHTML = "Erro: " + error.message; }
     });
 
-    // --- AUTENTICAÇÃO ---
+    // --- AUTENTICAÇÃO E CONTROLO DE NÍVEIS ---
     document.getElementById('formLoginRestrito').addEventListener('submit', async (e) => {
         e.preventDefault();
         const nic = document.getElementById('loginNic').value;
@@ -908,14 +924,91 @@ form input:focus, form select:focus, form textarea:focus {
         } catch (error) { alert("Erro de rede."); }
     });
 
+    // SISTEMA DE PERMISSÕES FILTRADO POR BOTÕES
     function carregarPainelRestrito(nivel) {
         document.getElementById('loginRestrito').style.display = 'none';
         document.getElementById('painelInternoRestrito').style.display = 'block';
         document.getElementById('txtNivelAgente').innerText = nivel;
-        carregarPedidosRestritos();
-        carregarPedidosNipcRestritos();
-        carregarMultasNaoPagasRestrito();
+
+        // Esconder todos os botões primeiro
+        document.querySelectorAll('.restrito-sidebar .sub-nav-btn').forEach(btn => {
+            if(!btn.onclick.toString().includes("fazerLogout")) btn.style.display = "none";
+        });
+
+        // Configuração estruturada de regras de visualização por nível
+        if (nivel === 1) {
+            document.getElementById('btn-abaRegistoCriminal').style.display = "block";
+            document.getElementById('btn-abaRegistrarMulta').style.display = "block";
+            document.getElementById('btn-abaMultasNaoPagas').style.display = "block";
+            carregarMultasNaoPagasRestrito();
+        } 
+        else if (nivel === 2) {
+            document.getElementById('btn-abaRegistoCriminal').style.display = "block";
+            document.getElementById('btn-abaRegistrarMulta').style.display = "block";
+            document.getElementById('btn-abaMultasNaoPagas').style.display = "block";
+            document.getElementById('btn-abaPorteArmas').style.display = "block";
+            document.getElementById('btn-abaRemoverArmas').style.display = "block";
+            carregarMultasNaoPagasRestrito();
+        } 
+        else if (nivel === 3) {
+            document.getElementById('btn-abaPedidosNic').style.display = "block";
+            document.getElementById('btn-abaPedidosNipc').style.display = "block";
+            document.getElementById('btn-abaCriarNic').style.display = "block";
+            document.getElementById('btn-abaRemoverNic').style.display = "block";
+            document.getElementById('btn-abaCriarNipc').style.display = "block";
+            document.getElementById('btn-abaRemoverNipc').style.display = "block";
+            carregarPedidosRestritos();
+            carregarPedidosNipcRestritos();
+        } 
+        else if (nivel === 4) {
+            // Tudo do 1, 2 e 3 + Dar Acesso
+            document.getElementById('btn-abaRegistoCriminal').style.display = "block";
+            document.getElementById('btn-abaRegistrarMulta').style.display = "block";
+            document.getElementById('btn-abaMultasNaoPagas').style.display = "block";
+            document.getElementById('btn-abaPorteArmas').style.display = "block";
+            document.getElementById('btn-abaRemoverArmas').style.display = "block";
+            document.getElementById('btn-abaPedidosNic').style.display = "block";
+            document.getElementById('btn-abaPedidosNipc').style.display = "block";
+            document.getElementById('btn-abaCriarNic').style.display = "block";
+            document.getElementById('btn-abaRemoverNic').style.display = "block";
+            document.getElementById('btn-abaCriarNipc').style.display = "block";
+            document.getElementById('btn-abaRemoverNipc').style.display = "block";
+            document.getElementById('btn-abaAcessoNic').style.display = "block";
+            carregarMultasNaoPagasRestrito();
+            carregarPedidosRestritos();
+            carregarPedidosNipcRestritos();
+        } 
+        else if (nivel === 5) {
+            // Acesso total
+            document.querySelectorAll('.restrito-sidebar .sub-nav-btn').forEach(btn => btn.style.display = "block");
+            carregarMultasNaoPagasRestrito();
+            carregarPedidosRestritos();
+            carregarPedidosNipcRestritos();
+        }
     }
+
+    // Proteger a mudança de abas por segurança
+    window.verificarPermissaoAba = function(idSubAba) {
+        if (!usuarioLogado) return false;
+        const n = usuarioLogado.nivel;
+
+        if (n === 5) return true; // Nível 5 faz tudo
+
+        // Bloqueios específicos por ID de Aba
+        if (idSubAba === 'abaRegistoCriminal' || idSubAba === 'abaRegistrarMulta' || idSubAba === 'abaMultasNaoPagas') {
+            return (n === 1 || n === 2 || n === 4);
+        }
+        if (idSubAba === 'abaPorteArmas' || idSubAba === 'abaRemoverArmas') {
+            return (n === 2 || n === 4);
+        }
+        if (idSubAba === 'abaPedidosNic' || idSubAba === 'abaPedidosNipc' || idSubAba === 'abaCriarNic' || idSubAba === 'abaRemoverNic' || idSubAba === 'abaCriarNipc' || idSubAba === 'abaRemoverNipc') {
+            return (n === 3 || n === 4);
+        }
+        if (idSubAba === 'abaAcessoNic') {
+            return (n === 4);
+        }
+        return false;
+    };
 
     // --- RESTRITO: CRIAR NIC ---
     document.getElementById('formCriarNic').addEventListener('submit', async (e) => {
@@ -942,9 +1035,9 @@ form input:focus, form select:focus, form textarea:focus {
         const nivelSelecionado = parseInt(document.getElementById('selectNivelAcesso').value);
         try {
             await updateDoc(doc(db, "usuarios", nicNum), { nivel: nivelSelecionado });
-            alert("Nível de acesso updated!");
+            alert("Nível de acesso atualizado com sucesso!");
             e.target.reset();
-        } catch (error) { alert("Erro."); }
+        } catch (error) { alert("Erro ao atualizar."); }
     });
 
     // --- RESTRITO: REMOVER NIC ---
@@ -1042,6 +1135,8 @@ form input:focus, form select:focus, form textarea:focus {
         document.getElementById('painelInternoRestrito').style.display = 'none';
         document.getElementById('loginRestrito').style.display = 'block';
         document.getElementById('formLoginRestrito').reset();
+        document.getElementById('abaPainelVazio').style.display = 'block';
+        document.querySelectorAll('.sub-secao').forEach(aba => { if(aba.id !== 'abaPainelVazio') aba.style.display = 'none'; });
     };
 </script>
 
@@ -1065,8 +1160,17 @@ function abrirServicoForm(idForm) {
 }
 
 function mudarSubAba(idSubAba) {
+    // Validar segurança por nível injetada pelo script modular do Firebase
+    if(typeof window.verificarPermissaoAba === "function") {
+        if(!window.verificarPermissaoAba(idSubAba)) {
+            alert("⚠️ Erro: O seu cargo ou nível hierárquico não possui autorização para usar esta aba.");
+            return;
+        }
+    }
+
     document.querySelectorAll('.sub-secao').forEach(aba => { aba.style.display = 'none'; });
     document.querySelectorAll('.sub-nav-btn').forEach(btn => { btn.classList.remove('active-sub'); });
+    
     document.getElementById(idSubAba).style.display = 'block';
     event.currentTarget.classList.add('active-sub');
 }
