@@ -62,6 +62,7 @@ nav{
     position: relative;
     padding: 8px 4px;
     transition: 0.3s;
+    white-space: nowrap; /* Impede que o texto quebre em duas linhas */
 }
 
 .nav-btn:hover, .nav-btn.active-nav {
@@ -248,7 +249,7 @@ form input:focus, form select:focus, form textarea:focus {
 
 .restrito-sidebar {
     background: #f8fafc;
-    border-right: 1px solid #e2e8f0;
+    border: 1px solid #e2e8f0;
     padding: 15px;
     display: flex;
     flex-direction: column;
@@ -268,7 +269,8 @@ form input:focus, form select:focus, form textarea:focus {
     font-weight: 500;
     transition: 0.2s;
     font-size: 14px;
-    display: none; /* Serão mostrados via JS com base no nível */
+    display: none;
+    white-space: nowrap;
 }
 
 .sub-nav-btn:hover, .sub-nav-btn.active-sub {
@@ -296,9 +298,79 @@ form input:focus, form select:focus, form textarea:focus {
     margin-bottom: 15px;
     line-height: 1.6;
 }
+
+/* ==========================================================================
+   Responsividade para Telemóvel (Mobile Fix)
+   ========================================================================== */
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        padding: 15px 20px;
+        gap: 15px;
+    }
+
+    .header-left {
+        flex-direction: column;
+        text-align: center;
+        gap: 8px;
+    }
+
+    .logo {
+        margin-right: 0;
+    }
+
+    .titulo {
+        font-size: 20px;
+    }
+
+    nav {
+        width: 100%;
+        overflow-x: auto; /* Permite arrastar os botões para o lado no mobile */
+        padding-bottom: 8px;
+        gap: 15px;
+        justify-content: flex-start;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    nav::-webkit-scrollbar {
+        height: 4px;
+    }
+    nav::-webkit-scrollbar-thumb {
+        background: rgba(212, 175, 55, 0.4);
+        border-radius: 2px;
+    }
+
+    .nav-btn {
+        font-size: 15px;
+        padding: 6px 2px;
+    }
+
+    main {
+        margin: 20px auto;
+        padding: 0 10px;
+    }
+
+    .section {
+        padding: 20px;
+    }
+
+    /* Ajuste do layout interno da área restrita */
+    .restrito-layout {
+        grid-template-columns: 1fr; /* Sidebar fica por cima e o conteúdo por baixo */
+        gap: 20px;
+    }
+
+    .restrito-sidebar {
+        flex-direction: row;
+        overflow-x: auto;
+        max-height: auto;
+        padding: 10px;
+        border-right: none;
+        border-bottom: 1px solid #e2e8f0;
+    }
+}
 </style>
 </head>
-
 <body>
 
 <header>
@@ -317,7 +389,7 @@ form input:focus, form select:focus, form textarea:focus {
 </header>
 
 <main>
-
+ 
     <!-- PRIMEIRO MINISTRO -->
     <section id="primeiroministro" class="section active">
         <h2>Primeiro Ministro</h2>
