@@ -667,13 +667,13 @@ form input:focus, form select:focus, form textarea:focus {
         } catch (error) { alert(error.message); }
     });
 
-    // --- PUBLIC: PAGAR MULTA COM ID ---
+    // --- PUBLIC: PAGAR MULTA COM ID (CORRIGIDO) ---
     document.getElementById('publicPagarMultaForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const idMulta = document.getElementById('multaIdInput').value.trim().toUpperCase();
         try {
             const multaRef = doc(db, "multas", idMulta);
-            const multaSnap = await getDoc(multRef);
+            const multaSnap = await getDoc(multaRef);
 
             if(multaSnap.exists()) {
                 if(multaSnap.data().status === "Paga") {
@@ -687,13 +687,15 @@ form input:focus, form select:focus, form textarea:focus {
             } else {
                 alert("Código de multa (ID) inválido ou não encontrado na base de dados governamental.");
             }
-        } catch (err) { alert("Erro ao computar pagamento."); }
+        } catch (err) { 
+            console.error(err);
+            alert("Erro ao computar pagamento: " + err.message); 
+        }
     });
 
     // --- RESTRITO: REGISTRAR MULTA (GERAR ID) ---
     document.getElementById('formRegistrarMulta').addEventListener('submit', async (e) => {
         e.preventDefault();
-        // Gerador de ID Único Aleatório (Ex: ML-5421)
         const idGerado = "ML-" + Math.floor(1000 + Math.random() * 9000);
         const nicCidadao = document.getElementById('mNic').value;
         const placa = document.getElementById('mPlaca').value.toUpperCase();
@@ -877,7 +879,7 @@ form input:focus, form select:focus, form textarea:focus {
         } catch (error) { boxResultados.innerHTML = "Erro: " + error.message; }
     });
 
-    // --- AUTENTICAÇÃO COM REJEIÇÃO NÍVEL 0 ---
+    // --- AUTENTICAÇÃO ---
     document.getElementById('formLoginRestrito').addEventListener('submit', async (e) => {
         e.preventDefault();
         const nic = document.getElementById('loginNic').value;
@@ -940,7 +942,7 @@ form input:focus, form select:focus, form textarea:focus {
         const nivelSelecionado = parseInt(document.getElementById('selectNivelAcesso').value);
         try {
             await updateDoc(doc(db, "usuarios", nicNum), { nivel: nivelSelecionado });
-            alert("Nível de acesso atualizado!");
+            alert("Nível de acesso updated!");
             e.target.reset();
         } catch (error) { alert("Erro."); }
     });
@@ -1029,7 +1031,7 @@ form input:focus, form select:focus, form textarea:focus {
                 if(docSnap.exists()){
                     await deleteDoc(docRef);
                     alert(`Licença de armas do cidadão [NIC: ${nicNum}] removida.`);
-                } else { alert("Este cidadão não possui licença ativa registada."); }
+                } else { alert("Este cidadão não possui licença ativa."); }
                 e.target.reset();
             } catch (error) { alert("Erro."); }
         }
